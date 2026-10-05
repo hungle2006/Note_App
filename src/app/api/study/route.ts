@@ -1,0 +1,3 @@
+import {z} from "zod";import {idSchema} from "@/lib/schemas";import {requireUser} from "@/lib/server/auth";import {failure,json,readJson} from "@/lib/server/http";import {getNote,saveStudy,consumeAiQuota} from "@/lib/server/repository";import {makeStudy} from "@/lib/server/gemini";
+export const runtime="nodejs";export const maxDuration=60;
+export async function POST(r:Request){try{const u=await requireUser(r);const {noteId}=await readJson(r,z.object({noteId:idSchema}));const n=await getNote(u.uid,noteId);if(n.study)return json({study:n.study});await consumeAiQuota(u.uid);const study=await makeStudy(n);await saveStudy(u.uid,noteId,study,n.updatedAt);return json({study});}catch(e){return failure(e);}}

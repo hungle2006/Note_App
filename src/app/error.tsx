@@ -1,0 +1,1 @@
+"use client";export default function Page({reset}:{reset:()=>void}){return <main className="not-found"><h1>Có một chút gián đoạn.</h1><p>Thử mở lại không gian học tập.</p><button className="button primary" onClick={reset}>Thử lại</button></main>;}

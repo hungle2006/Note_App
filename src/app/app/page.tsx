@@ -1,0 +1,1 @@
+import {Suspense} from "react";import {AppGate} from "@/components/workspace";import {Spinner} from "@/components/ui";export default function Page(){return <Suspense fallback={<Spinner/>}><AppGate/></Suspense>;}

@@ -1,0 +1,1 @@
+import {connect} from './oracle-config.mjs';const c=await connect();try{await c.execute('SELECT 1 FROM dual');const r=await c.execute("SELECT table_name FROM user_tables WHERE table_name IN ('APP_NOTES','APP_ATTEMPTS','APP_CHATS','APP_AI_USAGE')");console.log('Oracle kết nối; '+r.rows.length+'/4 bảng sẵn sàng.');if(r.rows.length!==4)process.exitCode=1;}finally{await c.close();}

@@ -1,0 +1,4 @@
+import {attemptSchema,gradeAttempt} from "@/lib/schemas";import {requireUser} from "@/lib/server/auth";import {ApiError,failure,json,readJson} from "@/lib/server/http";import {getNote,listAttempts,saveAttempt} from "@/lib/server/repository";
+export const runtime="nodejs";
+export async function GET(r:Request){try{const u=await requireUser(r);return json({attempts:await listAttempts(u.uid)});}catch(e){return failure(e);}}
+export async function POST(r:Request){try{const u=await requireUser(r);const input=await readJson(r,attemptSchema);const n=await getNote(u.uid,input.noteId);if(!n.study)throw new ApiError(400,"NO_STUDY","Hãy tạo bộ ôn trước.");let grade;try{grade=gradeAttempt(n.study,input);}catch{throw new ApiError(400,"ANSWERS_INVALID","Số câu trả lời không khớp.");}const attempt={id:crypto.randomUUID(),noteId:n.id,mode:input.mode,...grade,createdAt:new Date().toISOString()};await saveAttempt(u.uid,attempt);return json({attempt},201);}catch(e){return failure(e);}}

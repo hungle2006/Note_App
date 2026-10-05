@@ -1,0 +1,47 @@
+{
+  "name": "notelab",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev --hostname 0.0.0.0",
+    "build": "next build",
+    "start": "next start --hostname 0.0.0.0",
+    "typecheck": "tsc --noEmit",
+    "test": "node --import tsx --test tests/*.test.ts",
+    "db:migrate": "node --env-file=.env.local scripts/migrate.mjs",
+    "db:check": "node --env-file=.env.local scripts/check-db.mjs"
+  },
+  "dependencies": {
+    "next": "16.3.8",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
+    "firebase": "12.19.0",
+    "firebase-admin": "14.5.0",
+    "oracledb": "7.0.1",
+    "zod": "4.6.5",
+    "lucide-react": "0.468.0",
+    "react-markdown": "10.1.0",
+    "remark-gfm": "4.0.1",
+    "remark-math": "6.0.0",
+    "rehype-katex": "7.0.1",
+    "katex": "0.16.22"
+  },
+  "devDependencies": {
+    "typescript": "5.9.3",
+    "@types/node": "22.19.0",
+    "@types/react": "19.2.0",
+    "@types/react-dom": "19.2.0",
+    "@types/oracledb": "6.10.0",
+    "tsx": "4.20.6",
+    "@playwright/test": "1.56.0"
+  },
+  "engines": {
+    "node": ">=22 <25"
+  },
+  "overrides": {
+    "@grpc/grpc-js": "^1.14.0",
+    "gaxios": {
+      "uuid": "^11.1.1"
+    }
+  }
+}

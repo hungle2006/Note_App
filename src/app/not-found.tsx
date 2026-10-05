@@ -1,0 +1,1 @@
+import Link from "next/link";export default function Page(){return <main className="not-found"><span className="eyebrow">404 · MỘT TRANG CHƯA VIẾT</span><h1>Trang này chưa có trong thư viện.</h1><p>Quay lại để tiếp tục hành trình học nhé.</p><Link className="button primary" href="/">Về trang chủ</Link></main>;}
