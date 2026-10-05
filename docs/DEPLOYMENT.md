@@ -3,7 +3,7 @@
 ## 1. Firebase Authentication
 Tạo Firebase project và Web app. Bật Email/Password và Google trong Authentication → Sign-in method. Điền 4 biến NEXT_PUBLIC_FIREBASE_* theo .env.example.
 
-Tạo service account riêng trong Project settings → Service accounts. Đưa project_id, client_email, private_key vào FIREBASE_ADMIN_* ở môi trường server. Không commit JSON tài khoản dịch vụ. Với private key nhiều dòng, có thể dùng chuỗi có \n; app tự chuyển về newline.
+Tạo service account riêng trong Project settings → Service accounts. Đưa project_id, client_email, private_key vào FIREBASE_PROJECT_ID, FIREBASE_CLIENT_EMAIL và FIREBASE_PRIVATE_KEY ở môi trường server. Không commit JSON tài khoản dịch vụ. Với private key nhiều dòng, có thể dùng chuỗi có \n; app tự chuyển về newline.
 
 Trong Authentication → Settings → Authorized domains, thêm domain production Vercel và domain riêng nếu có. Kiểm tra mẫu thư xác minh và reset mật khẩu. App yêu cầu email_verified ở cả UI và API; người chưa xác minh không đọc/ghi dữ liệu hoặc gọi AI.
 
@@ -15,7 +15,7 @@ App dùng REST generateContent, timeout 45 giây, kiểm tra JSON bằng Zod, t�
 ## 3. Oracle Cloud Always Free
 Tạo Autonomous Database thuộc cấu hình Always Free còn khả dụng trong tenancy/region của bạn. Không bật nâng cấp trả phí nếu chưa chủ động chọn. Chọn workload phù hợp, ghi lại connection string TLS đầy đủ từ trang kết nối.
 
-Ứng dụng dùng node-oracledb Thin. ORACLE_CONNECT_STRING phải là descriptor TLS đầy đủ hoặc chuỗi kết nối được node-oracledb hỗ trợ. Nếu database yêu cầu mTLS, điền ORACLE_WALLET_CONTENT_BASE64 bằng nội dung file ewallet.pem được base64, cùng ORACLE_WALLET_PASSWORD; không truyền cả file ZIP wallet.
+Ứng dụng dùng node-oracledb Thin. ORACLE_CONNECT_STRING phải là descriptor TLS đầy đủ hoặc chuỗi kết nối được node-oracledb hỗ trợ. Nếu database yêu cầu mTLS, điền ORACLE_WALLET_PEM_BASE64 bằng nội dung file ewallet.pem được base64, cùng ORACLE_WALLET_PASSWORD; không truyền cả file ZIP wallet.
 
 Tạo user ứng dụng riêng bằng ADMIN trong SQL worksheet:
 ~~~sql

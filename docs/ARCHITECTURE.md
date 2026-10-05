@@ -15,7 +15,7 @@ Chat lấy lịch sử ngữ cảnh uid+note_id hoặc general; server xác nh�
 - app_attempts: lượt ôn, điểm tính server, ngày ôn tiếp; FK note ON DELETE CASCADE.
 - app_chats: UID + context, JSON lịch sử.
 - app_ai_usage: UID + ngày UTC, quota cập nhật có điều kiện.
-- app_schema_migrations: tracking migration.
+- app_migrations: tracking migration.
 
 Query dùng bind parameters. CLOB trả về dạng string. Server không log token, khóa, ảnh hay prompt; chỉ request ID và tên lỗi. API no-store.
 
