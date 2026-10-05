@@ -83,7 +83,7 @@ test("demo chat tells users no question is sent",async({page})=>{
  await page.goto("/app?mode=demo&view=chat");
  await page.getByLabel("Câu hỏi học tập",{exact:true}).fill("Giải thích kỳ vọng");
  await page.getByRole("button",{name:"Gửi câu hỏi",exact:true}).click();
- await expect(page.getByRole("alert")).toContainText("chưa có câu hỏi nào được gửi");
+ await expect(page.locator(".chat-error")).toContainText("chưa có câu hỏi nào được gửi");
 });
 test("demo scan does not pretend to invoke Gemini",async({page})=>{
  await page.goto("/app?mode=demo&view=scan");
