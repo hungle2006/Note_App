@@ -87,3 +87,5 @@ Lần kiểm tra mới nhất: API project-config của Firebase trả HTTP 200,
 - `AUTH_SERVICE_UNAVAILABLE`: Firebase hoặc mạng xác thực tạm thời lỗi. Thử lại sau; đăng nhập lại không sửa được lỗi máy chủ.
 
 `GET /api/status` có trường `firebaseAdmin`: `ready`, `missing`, `invalid-client-email`, `invalid-private-key`, `invalid`, `project-mismatch` hoặc `unavailable`. `ready` chỉ xác nhận biến có đủ, PEM RSA đọc được và project khớp; không chứng minh khóa còn hoạt động trên Google, quyền truy cập, kết nối Turso hay AI. API không trả giá trị khóa hoặc chi tiết lỗi SDK.
+
+`firebaseAdminRuntime` trong `/api/status` kiểm tra SDK có khởi tạo được trong bản triển khai hay không. `AUTH_RUNTIME_MISSING`, `AUTH_RUNTIME_INCOMPATIBLE` hoặc `AUTH_INITIALIZATION_FAILED` là lỗi runtime/build, không phải bằng chứng khóa Firebase sai. Kiểm tra này không gọi Google OAuth và không đọc tài khoản người dùng.

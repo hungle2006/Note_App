@@ -1,7 +1,7 @@
 # Kiểm thử và giới hạn xác nhận
 ## Kiểm tra tự động
 - TypeScript strict và production build (webpack).
-- Kiểm tra trực tiếp 6 API handler đã compile, bảo đảm module nạp đồng bộ và request chưa đăng nhập trả 401 JSON; CI chạy test:server-build sau build.
+- Kiểm tra trực tiếp 7 trường hợp API handler đã compile, bảo đảm module nạp đồng bộ và request chưa đăng nhập trả 401 JSON; CI chạy test:server-build sau build.
 - Unit tests: schema note/ảnh/quiz/lớp, chấm điểm server, lịch ôn, dữ liệu THCS, retrieval không dấu/lọc lớp/giới hạn nguồn và Mistral HTTP mock (payload nguồn, lỗi key/quota).
 - Playwright: landing, đăng ký khi thiếu config, bản mẫu, thư viện, thêm/sửa/xóa bài, quiz/flashcard/ghép cặp, chat mẫu, mobile, lưu theme sáng/tối, giảm chuyển động và lọc lớp.
 - libSQL integration: migration lặp lại, CRUD/JSON/UTC, phân quyền UID, phân trang, tìm nguồn theo lớp ngoài trang đầu, version bộ ôn, transaction rollback, khóa ngoại, xóa dữ liệu liên quan và quota đồng thời.
@@ -19,8 +19,10 @@ Kiểm tra nhận diện ảnh viết tay và công thức, hiệu năng ảnh l
 
 ## Xác nhận bản THCS
 - Production build thành công.
-- 47 unit/integration test, 26 luồng Playwright và 6 kiểm tra API handler compile đạt; đã có QA giao diện desktop/mobile sáng/tối và kiểm tra lỗi JavaScript.
+- 48 unit/integration test, 26 luồng Playwright và 7 kiểm tra API handler compile đạt; đã có QA giao diện desktop/mobile sáng/tối và kiểm tra lỗi JavaScript.
 - Vercel đã có biến Firebase/Gemini/Mistral/Turso; chưa kiểm thử các dịch vụ đó bằng tài khoản học sinh thật. Firebase Authentication đã khởi tạo và domain `noteappme.vercel.app` đã được cho phép. Test libSQL local và kiểm tra biến môi trường không chứng minh kết nối Turso cloud.
 
 ## Trạng thái
 Xem trạng thái CI của commit hiện tại tại tab Actions. Không coi nút Cài đặt “đã cấu hình” là health check. Mã nguồn chưa chứa credentials và không tự tạo dịch vụ cloud.
+
+Kiểm tra build Firebase có cấu hình sử dụng khóa RSA sinh tạm: SDK phải nạp được và token cố ý sai trả INVALID_TOKEN (401), không bị báo nhầm thành lỗi khóa. Không dùng khóa thật hoặc gọi Google trong kiểm thử này.

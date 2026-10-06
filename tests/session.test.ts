@@ -72,6 +72,15 @@ test("Firebase credential, permission and network failures are server errors, no
   assert.equal(authFailure({ code: "auth/argument-error" }, "initialize").status, 503);
   assert.equal(authFailure(new Error("network secret detail"), "verify").code, "AUTH_SERVICE_UNAVAILABLE");
 });
+test("deployment module failures are distinct from invalid Firebase credentials", () => {
+  for (const code of ["MODULE_NOT_FOUND", "ERR_MODULE_NOT_FOUND"]) {
+    assert.equal(authFailure({ code }, "initialize").code, "AUTH_RUNTIME_MISSING");
+  }
+  for (const code of ["ERR_REQUIRE_ESM", "ERR_REQUIRE_ASYNC_MODULE"]) {
+    assert.equal(authFailure({ code }, "initialize").code, "AUTH_RUNTIME_INCOMPATIBLE");
+  }
+  assert.equal(authFailure(new TypeError("private runtime detail"), "initialize").code, "AUTH_INITIALIZATION_FAILED");
+});
 test("unauthenticated API requests fail before reading server credentials", async () => {
   await assert.rejects(requireUser(new Request("https://example.test/api/notes")), (error: unknown) => {
     assert.ok(error instanceof ApiError);
