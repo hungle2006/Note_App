@@ -15,41 +15,46 @@ App dùng REST generateContent, timeout 45 giây, kiểm tra JSON bằng Zod, t�
 ## 3. Mistral (gia sư)
 Tạo API key của bạn tại https://console.mistral.ai/. Đặt MISTRAL_API_KEY ở server và MISTRAL_MODEL=mistral-small-latest hoặc model Chat Completions đang được tài khoản hỗ trợ. Không đặt key trong biến NEXT_PUBLIC_*.
 
-Mistral chỉ dùng cho gia sư. Gemini tiếp tục nhận diện ảnh và tạo bộ ôn. Gia sư nhận câu hỏi, 10 tin gần nhất và tối đa 4 đoạn nguồn được truy xuất từ Oracle theo UID/lớp; không có quyền truy cập database trực tiếp. Bật safe_prompt và hướng dẫn theo THCS không thay thế việc đối chiếu câu trả lời.
+Mistral chỉ dùng cho gia sư. Gemini tiếp tục nhận diện ảnh và tạo bộ ôn. Gia sư nhận câu hỏi, 10 tin gần nhất và tối đa 4 đoạn nguồn được truy xuất từ Turso theo UID/lớp; không có quyền truy cập database trực tiếp. Bật safe_prompt và hướng dẫn theo THCS không thay thế việc đối chiếu câu trả lời.
 
-## 4. Oracle Cloud Always Free
-Tạo Autonomous Database thuộc cấu hình Always Free còn khả dụng trong tenancy/region của bạn. Không bật nâng cấp trả phí nếu chưa chủ động chọn. Chọn workload phù hợp, ghi lại connection string TLS đầy đủ từ trang kết nối.
+## 4. Turso
+Mở workspace https://app.turso.tech/hungle2006. Chọn một **database libSQL riêng cho NoteLab** hoặc tạo database libSQL mới trong gói hiện có. Dự án dùng @libsql/client/http; không dùng database engine Turso rewrite cho cấu hình này.
 
-Ứng dụng dùng node-oracledb Thin. ORACLE_CONNECT_STRING phải là descriptor TLS đầy đủ hoặc chuỗi kết nối được node-oracledb hỗ trợ. Nếu database yêu cầu mTLS, điền ORACLE_WALLET_PEM_BASE64 bằng nội dung file ewallet.pem được base64, cùng ORACLE_WALLET_PASSWORD; không truyền cả file ZIP wallet.
+Trong trang database, lấy Database URL dạng libsql://...turso.io và database token có quyền đọc/ghi. Token phải thuộc đúng database; không dùng organization API token. Không dùng URL dashboard làm URL database. Giữ token ở server, không đặt NEXT_PUBLIC_* và không đưa vào git hoặc chat.
 
-Tạo user ứng dụng riêng bằng ADMIN trong SQL worksheet:
-~~~sql
-CREATE USER NOTELAB IDENTIFIED BY "REPLACE_WITH_A_STRONG_PASSWORD";
-GRANT CREATE SESSION, CREATE TABLE TO NOTELAB;
-ALTER USER NOTELAB QUOTA 100M ON DATA;
-~~~
-Chỉ đưa user NOTELAB vào ORACLE_USER, không dùng ADMIN cho ứng dụng. Đặt ORACLE_PASSWORD và kết nối trong .env.local để chạy migration:
+Điền vào Vercel → Project → Settings → Environment Variables → Production:
+
+| Biến | Giá trị |
+| --- | --- |
+| TURSO_DATABASE_URL | Database URL lấy từ trang database |
+| TURSO_AUTH_TOKEN | Database token có quyền đọc/ghi |
+
+Redeploy sau khi thêm hai biến. Schema turso-001 tự tạo ở request dữ liệu đầu tiên sau khi đăng nhập; migration chỉ thêm bảng/index còn thiếu, không xóa database. Với máy phát triển, đặt hai biến trong .env.local và chạy:
+
 ~~~bash
 npm ci
 npm run db:migrate
 npm run db:check
 ~~~
-Migration có tracking và có thể chạy lại. v2 cần migration 002 (grade và search_text); script backfill các bài cũ. Bài cũ chưa có lớp mặc định lớp 6, hãy kiểm tra lại ở màn hình chỉnh sửa. Database cần truy cập được từ môi trường Vercel; kiểm tra cấu hình mạng/ACL và TLS của database theo nhu cầu của bạn. Không đưa wallet vào public/ hoặc git.
+
+Nguồn migration là src/lib/server/turso-schema.ts; database/001_turso.sql là bản SQL để xem/chạy trong SQL console. db:check chỉ đọc, báo bảng/cột/phiên bản và số bản ghi, không in token. Hạn chế token ở đúng database này, theo dõi thời hạn token và mức sử dụng gói Turso. Production và Preview nên dùng database riêng.
+
+Thay backend không tự chuyển dữ liệu từ Oracle đã có. Migration Oracle cũ được giữ trong database/legacy-oracle để tham khảo; không chạy các file đó trên Turso. Nếu có dữ liệu cũ, cần export/import riêng trước khi chuyển traffic. Không có kết nối Oracle đang được cấu hình trên Vercel ở thời điểm chuyển đổi này.
 
 ## 5. Vercel
 1. Đăng nhập Vercel bằng tài khoản của bạn.
 2. Add New → Project → Import Git Repository → hungle2006/Note_App.
 3. Framework: Next.js. Node 22.x hoặc 24.x. Root directory: /. Build: npm run build. Install: npm ci.
-4. Điền các biến .env.example tại Project → Settings → Environment Variables. Public Firebase config là thông tin client; Admin key, Gemini/Mistral keys và Oracle credentials là secrets chỉ dùng server.
-5. Chọn Production cho dữ liệu thật. Với Preview, nên dùng dự án/schema riêng hoặc không cung cấp secrets.
+4. Điền các biến .env.example tại Project → Settings → Environment Variables. Public Firebase config là thông tin client; Admin key, Gemini/Mistral keys và Turso token là secrets chỉ dùng server.
+5. Chọn Production cho dữ liệu thật. Với Preview, nên dùng dự án/database riêng hoặc không cung cấp secrets.
 6. Deploy. Thêm domain vừa tạo vào Firebase authorized domains, sau đó kiểm tra đăng ký, xác minh email và Google sign-in.
-7. Chạy db:migrate trước lần sử dụng dữ liệu thật. Redeploy sau khi thay đổi biến NEXT_PUBLIC_* vì chúng được build vào client bundle.
+7. Schema tự bootstrap ở lần đọc/ghi đầu tiên; có thể chạy db:migrate để kiểm tra trước. Redeploy sau khi thay đổi biến NEXT_PUBLIC_* vì chúng được build vào client bundle.
 
-vercel.json đặt AI functions maxDuration 60s. Các tác vụ dài hơn hiện không chạy nền; request có thể hết thời gian tùy gói Vercel và dịch vụ. App sử dụng pool nhỏ 0–2 connection mỗi instance, không giữ một pool duy nhất cho toàn bộ nền tảng.
+vercel.json đặt AI functions maxDuration 60s. Các tác vụ dài hơn hiện không chạy nền; request có thể hết thời gian tùy gói Vercel và dịch vụ. Client HTTP được tái sử dụng trong từng instance và không lưu SQLite local trên Vercel.
 
 ## Kiểm tra sau triển khai
 - Đăng ký email mới, mở thư xác minh, vào ứng dụng; thử đăng nhập Google.
-- Lưu một bài thủ công; đăng xuất rồi đăng nhập lại để xác nhận lưu Oracle.
+- Lưu một bài thủ công; đăng xuất rồi đăng nhập lại để xác nhận lưu Turso.
 - Dùng ảnh vở rõ nét, kiểm tra chỗ nhận diện không chắc chắn trước khi lưu.
 - Tạo cả 3 dạng ôn, hoàn thành quiz; kiểm tra kết quả sau reload.
 - Chat theo bài học bằng Mistral; kiểm tra bài nguồn và lịch sử sau reload.
@@ -59,4 +64,4 @@ vercel.json đặt AI functions maxDuration 60s. Các tác vụ dài hơn hiện
 - Sửa bài làm bộ ôn cũ mất hiệu lực; xóa bài xóa kết quả liên quan.
 - Tab Cài đặt chỉ báo biến môi trường có đủ; không phải kiểm tra kết nối sống. Dùng db:check và các luồng trên để xác nhận.
 
-Các trang cấu hình chính thức: https://console.firebase.google.com/ · https://aistudio.google.com/ · https://cloud.oracle.com/ · https://vercel.com/new
+Các trang cấu hình chính thức: https://console.firebase.google.com/ · https://aistudio.google.com/ · https://app.turso.tech/ · https://vercel.com/new
