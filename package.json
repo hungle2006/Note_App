@@ -13,6 +13,8 @@
     "test:server-build": "node scripts/check-server-build.mjs"
   },
   "dependencies": {
+    "@fontsource-variable/lora": "5.2.8",
+    "@fontsource-variable/nunito-sans": "5.3.0",
     "@libsql/client": "0.18.0",
     "firebase": "12.19.0",
     "firebase-admin": "14.5.0",
@@ -32,6 +34,7 @@
     "@types/node": "22.19.0",
     "@types/react": "19.2.0",
     "@types/react-dom": "19.2.0",
+    "esbuild": "0.25.12",
     "tsx": "4.20.6",
     "typescript": "5.9.3"
   },

@@ -1,5 +1,22 @@
-import {getApp,getApps,initializeApp} from "firebase/app";import {getAuth} from "firebase/auth";
-export const firebaseConfigured=Boolean(process.env.NEXT_PUBLIC_FIREBASE_API_KEY&&process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN&&process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID&&process.env.NEXT_PUBLIC_FIREBASE_APP_ID);
-export function firebaseAuth(){if(!firebaseConfigured)throw new Error("Firebase chưa được cấu hình. Bạn có thể trải nghiệm bản mẫu.");
-const app=getApps().length?getApp():initializeApp({apiKey:process.env.NEXT_PUBLIC_FIREBASE_API_KEY,authDomain:process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,projectId:process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,appId:process.env.NEXT_PUBLIC_FIREBASE_APP_ID});const auth=getAuth(app);auth.languageCode="vi";return auth;}
-export function authError(e:unknown){const code=(e as {code?:string}).code;const messages:Record<string,string>={"auth/email-already-in-use":"Email đã có tài khoản. Hãy đăng nhập.","auth/invalid-credential":"Email hoặc mật khẩu không đúng.","auth/weak-password":"Mật khẩu chưa đủ mạnh.","auth/invalid-email":"Email không hợp lệ.","auth/too-many-requests":"Hãy chờ một chút rồi thử lại.","auth/popup-closed-by-user":"Cửa sổ đăng nhập đã đóng.","auth/popup-blocked":"Hãy cho phép popup để đăng nhập Google.","auth/unauthorized-domain":"Tên miền chưa được thêm vào Firebase Authorized domains.","auth/operation-not-allowed":"Phương thức đăng nhập chưa được bật.","auth/network-request-failed":"Không kết nối được Firebase."};return messages[code||""]||(e instanceof Error&&!code?e.message:"Không thể đăng nhập. Hãy thử lại.");}
+import { getApp, getApps, initializeApp } from "firebase/app";
+import { getAuth } from "firebase/auth";
+export { authError } from "./auth-errors";
+
+const config = {
+  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY?.trim(),
+  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN?.trim(),
+  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID?.trim(),
+  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID?.trim(),
+};
+export const firebaseConfigured = Object.values(config).every(Boolean);
+
+export function firebaseAuth() {
+  if (!firebaseConfigured)
+    throw new Error("Dịch vụ tài khoản chưa được kết nối.");
+  const app = getApps().some((app) => app.name === "[DEFAULT]")
+    ? getApp()
+    : initializeApp(config);
+  const auth = getAuth(app);
+  auth.languageCode = "vi";
+  return auth;
+}

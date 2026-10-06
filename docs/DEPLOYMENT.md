@@ -65,3 +65,13 @@ vercel.json đặt AI functions maxDuration 60s. Các tác vụ dài hơn hiện
 - Tab Cài đặt chỉ báo biến môi trường có đủ; không phải kiểm tra kết nối sống. Dùng db:check và các luồng trên để xác nhận.
 
 Các trang cấu hình chính thức: https://console.firebase.google.com/ · https://aistudio.google.com/ · https://app.turso.tech/ · https://vercel.com/new
+
+## Chẩn đoán đăng nhập Google
+- `CONFIGURATION_NOT_FOUND`: mở Firebase project tương ứng với `NEXT_PUBLIC_FIREBASE_PROJECT_ID`, vào Authentication → Get started nếu chưa khởi tạo. Trong Sign-in method/Providers, bật Google và chọn email hỗ trợ. Bật Email/Password để dùng form email.
+- `unauthorized-domain`: thêm chính xác hostname của app vào Settings → Authorized domains. Với bản production hiện tại: `noteapp-tau-six.vercel.app`. Nếu sử dụng alias khác, thêm từng hostname đó; không thêm `https://` hoặc đường dẫn.
+- `popup-blocked`: cho phép popup, mở app bằng Chrome/Safari thay vì trình duyệt trong ứng dụng. App giữ popup để tránh phụ thuộc redirect với storage khác origin trên Vercel.
+- Sau khi chỉnh biến `NEXT_PUBLIC_FIREBASE_*`, phải redeploy vì chúng được đóng vào client bundle khi build. JSON service account chỉ dành cho Firebase Admin ở server, không thay thế việc bật Authentication/Google provider.
+- Lỗi cấu hình được hiển thị ngay trên nút Google; trạng thái chờ Google và email tách biệt. App chỉ điều hướng sau khi AuthProvider nhận được user, tránh trở lại login khi trạng thái phiên cập nhật muộn.
+
+### Ghi nhận ngày 06/10/2026
+API project-config của Firebase với web API key production trả HTTP 400 `CONFIGURATION_NOT_FOUND`. Chưa xác nhận được Google OAuth thành công; cần chủ sở hữu kiểm tra/khởi tạo Authentication trước khi kiểm thử bằng tài khoản thật.
