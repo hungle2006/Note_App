@@ -98,6 +98,15 @@ function fixture(responses: Response[]) {
 }
 const expired = () => Response.json({ code: "TOKEN_EXPIRED", error: "expired" }, { status: 401 });
 
+test("native fetch receives the global object rather than the dependency container", async () => {
+  const f = fixture([]);
+  const guardedFetch = function (this: unknown) {
+    assert.equal(this, globalThis);
+    return Promise.resolve(Response.json({ ok: true }));
+  } as typeof fetch;
+  assert.deepEqual(await requestWithSession("/api/notes", {}, { ...f.dependencies, fetch: guardedFetch }), { ok: true });
+});
+
 test("expired tokens refresh once and replay a JSON request with the fresh protected auth header", async () => {
   const f = fixture([expired(), Response.json({ saved: true })]);
   const body = JSON.stringify({ title: "Bài học" });

@@ -12,7 +12,8 @@ export async function requestWithSession<T>(url: string, options: RequestInit, d
     const headers = new Headers(options.headers);
     if (!headers.has("Content-Type")) headers.set("Content-Type", "application/json");
     headers.set("Authorization", "Bearer " + token);
-    return dependencies.fetch(url, { ...options, headers });
+    // Native window.fetch requires the browser global as its receiver.
+    return dependencies.fetch.call(globalThis, url, { ...options, headers });
   };
   let response = await send(false);
   let body = await response.json();
