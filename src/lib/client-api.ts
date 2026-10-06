@@ -1,5 +1,6 @@
 import {firebaseAuth} from "./firebase";
-export async function api<T>(path:string,options:RequestInit={}):Promise<T>{const u=firebaseAuth().currentUser;if(!u)throw new Error("Bạn cần đăng nhập.");const r=await fetch("/api"+path,{...options,headers:{"Content-Type":"application/json",Authorization:"Bearer "+await u.getIdToken(),...options.headers}});const b=await r.json();if(!r.ok)throw new Error(b.error||"Yêu cầu chưa thực hiện được.");return b;}
+import {requestWithSession} from "./session-request";
+export async function api<T>(path:string,options:RequestInit={}):Promise<T>{return requestWithSession<T>("/api"+path,options,{currentUser:()=>firebaseAuth().currentUser,fetch});}
 export async function prepareImage(file:File){
  if(!/^image\/(jpeg|png|webp)$/.test(file.type))throw new Error("Chọn JPG, PNG hoặc WebP. HEIC cần chuyển sang JPG.");
  if(file.size>20000000)throw new Error("Ảnh vượt 20 MB.");const url=URL.createObjectURL(file);
