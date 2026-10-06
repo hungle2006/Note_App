@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import { generateKeyPairSync } from "node:crypto";
 import { firebaseAdminConfig, firebaseAdminStatus } from "../src/lib/server/auth-config";
 import { authFailure } from "../src/lib/server/auth-failure";
+import { checkAuthConnection } from "../src/lib/server/auth-connection";
 import { requireUser } from "../src/lib/server/auth";
 import { ApiError } from "../src/lib/server/http";
 import { requestWithSession } from "../src/lib/session-request";
@@ -65,12 +66,22 @@ test("token errors distinguish expiry, revocation, invalid JWTs and disabled acc
   }
 });
 test("Firebase credential, permission and network failures are server errors, not expired sessions", () => {
-  for (const sdkCode of ["auth/invalid-credential", "auth/insufficient-permission", "app/invalid-credential"]) {
+  for (const sdkCode of ["auth/invalid-credential", "app/invalid-credential"]) {
     assert.equal(authFailure({ code: sdkCode }, "verify").code, "AUTH_SERVER_CREDENTIALS");
     assert.equal(authFailure({ code: sdkCode }, "verify").status, 503);
   }
+  assert.equal(authFailure({ code: "auth/insufficient-permission" }, "verify").code, "AUTH_SERVER_PERMISSION_DENIED");
   assert.equal(authFailure({ code: "auth/argument-error" }, "initialize").status, 503);
   assert.equal(authFailure(new Error("network secret detail"), "verify").code, "AUTH_SERVICE_UNAVAILABLE");
+});
+test("connection probe confirms credentials and user-read permission without returning user data", async () => {
+  assert.equal(await checkAuthConnection(async uid => {
+    assert.equal(uid, "__notelab_firebase_health_probe__");
+    throw { code: "auth/user-not-found" };
+  }), "ready");
+  assert.equal(await checkAuthConnection(async () => ({ email: "private-student@example.com" })), "ready");
+  assert.equal(await checkAuthConnection(async () => { throw { code: "auth/insufficient-permission" }; }), "AUTH_SERVER_PERMISSION_DENIED");
+  assert.equal(await checkAuthConnection(async () => { throw { code: "app/invalid-credential", message: "secret credential detail" }; }), "AUTH_SERVER_CREDENTIALS");
 });
 test("deployment module failures are distinct from invalid Firebase credentials", () => {
   for (const code of ["MODULE_NOT_FOUND", "ERR_MODULE_NOT_FOUND"]) {

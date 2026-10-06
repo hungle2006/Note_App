@@ -20,7 +20,10 @@ export function authFailure(error: unknown, stage: "initialize" | "verify") {
       return new ApiError(401, "INVALID_TOKEN", "Phiên đăng nhập không hợp lệ. Hãy đăng nhập lại.");
     }
   }
-  if (code === "auth/invalid-credential" || code === "auth/insufficient-permission" || code === "app/invalid-credential") {
+  if (code === "auth/insufficient-permission") {
+    return new ApiError(503, "AUTH_SERVER_PERMISSION_DENIED", "Tài khoản dịch vụ Firebase chưa có quyền xác minh trạng thái tài khoản. Người quản trị cần kiểm tra quyền IAM.");
+  }
+  if (code === "auth/invalid-credential" || code === "app/invalid-credential") {
     return new ApiError(503, "AUTH_SERVER_CREDENTIALS", "Máy chủ chưa xác thực được với Firebase. Hãy liên hệ người quản trị.");
   }
   if (stage === "initialize") return new ApiError(503, "AUTH_INITIALIZATION_FAILED", "Không khởi tạo được Firebase Admin trên máy chủ. Người quản trị cần kiểm tra bản triển khai.");

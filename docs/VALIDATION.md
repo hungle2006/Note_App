@@ -19,10 +19,12 @@ Kiểm tra nhận diện ảnh viết tay và công thức, hiệu năng ảnh l
 
 ## Xác nhận bản THCS
 - Production build thành công.
-- 48 unit/integration test, 26 luồng Playwright và 7 kiểm tra API handler compile đạt; đã có QA giao diện desktop/mobile sáng/tối và kiểm tra lỗi JavaScript.
+- 49 unit/integration test, 26 luồng Playwright và 7 kiểm tra API handler compile đạt; đã có QA giao diện desktop/mobile sáng/tối và kiểm tra lỗi JavaScript.
 - Vercel đã có biến Firebase/Gemini/Mistral/Turso; chưa kiểm thử các dịch vụ đó bằng tài khoản học sinh thật. Firebase Authentication đã khởi tạo và domain `noteappme.vercel.app` đã được cho phép. Test libSQL local và kiểm tra biến môi trường không chứng minh kết nối Turso cloud.
 
 ## Trạng thái
 Xem trạng thái CI của commit hiện tại tại tab Actions. Không coi nút Cài đặt “đã cấu hình” là health check. Mã nguồn chưa chứa credentials và không tự tạo dịch vụ cloud.
 
 Kiểm tra build Firebase có cấu hình sử dụng khóa RSA sinh tạm: SDK phải nạp được và token cố ý sai trả INVALID_TOKEN (401), không bị báo nhầm thành lỗi khóa. Không dùng khóa thật hoặc gọi Google trong kiểm thử này.
+
+Kiểm tra kết nối Firebase dùng UID cố định để xác nhận OAuth và quyền users.get; kết quả chỉ trả trạng thái, không trả thông tin tài khoản. Unit test mô phỏng user-not-found, permission denied và credential rejected.
