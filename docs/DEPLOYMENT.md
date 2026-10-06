@@ -68,10 +68,22 @@ Các trang cấu hình chính thức: https://console.firebase.google.com/ · ht
 
 ## Chẩn đoán đăng nhập Google
 - `CONFIGURATION_NOT_FOUND`: mở Firebase project tương ứng với `NEXT_PUBLIC_FIREBASE_PROJECT_ID`, vào Authentication → Get started nếu chưa khởi tạo. Trong Sign-in method/Providers, bật Google và chọn email hỗ trợ. Bật Email/Password để dùng form email.
-- `unauthorized-domain`: thêm chính xác hostname của app vào Settings → Authorized domains. Với bản production hiện tại: `noteapp-tau-six.vercel.app`. Nếu sử dụng alias khác, thêm từng hostname đó; không thêm `https://` hoặc đường dẫn.
+- `unauthorized-domain`: thêm chính xác hostname của app vào Settings → Authorized domains. Với bản production hiện tại: `noteappme.vercel.app`. Nếu sử dụng alias khác, thêm từng hostname đó; không thêm `https://` hoặc đường dẫn.
 - `popup-blocked`: cho phép popup, mở app bằng Chrome/Safari thay vì trình duyệt trong ứng dụng. App giữ popup để tránh phụ thuộc redirect với storage khác origin trên Vercel.
 - Sau khi chỉnh biến `NEXT_PUBLIC_FIREBASE_*`, phải redeploy vì chúng được đóng vào client bundle khi build. JSON service account chỉ dành cho Firebase Admin ở server, không thay thế việc bật Authentication/Google provider.
 - Lỗi cấu hình được hiển thị ngay trên nút Google; trạng thái chờ Google và email tách biệt. App chỉ điều hướng sau khi AuthProvider nhận được user, tránh trở lại login khi trạng thái phiên cập nhật muộn.
 
 ### Ghi nhận ngày 06/10/2026
-API project-config của Firebase với web API key production trả HTTP 400 `CONFIGURATION_NOT_FOUND`. Chưa xác nhận được Google OAuth thành công; cần chủ sở hữu kiểm tra/khởi tạo Authentication trước khi kiểm thử bằng tài khoản thật.
+Lần kiểm tra mới nhất: API project-config của Firebase trả HTTP 200, Authentication đã được khởi tạo và `noteappme.vercel.app` có trong authorized domains. Tên miền này đã được gắn vào dự án Vercel. Chưa xác nhận được Google OAuth thành công bằng tài khoản thật; kiểm tra cấu hình không chứng minh luồng đăng nhập hoàn tất.
+
+## Chẩn đoán phiên đăng nhập và Firebase Admin
+- `TOKEN_EXPIRED`: client làm mới ID token và thử lại đúng một lần. Nếu vẫn thất bại, đăng nhập lại.
+- `TOKEN_REVOKED` hoặc `ACCOUNT_DISABLED`: không tự làm mới hoặc thử lại. Phiên bị thu hồi cần đăng nhập lại; tài khoản bị khóa cần người quản trị xử lý.
+- `AUTH_NOT_CONFIGURED`: thiếu một trong ba biến Firebase Admin ở môi trường Production.
+- `AUTH_PROJECT_MISMATCH`: `FIREBASE_PROJECT_ID` phải khớp `NEXT_PUBLIC_FIREBASE_PROJECT_ID`.
+- `AUTH_INVALID_CLIENT_EMAIL`: biến `FIREBASE_CLIENT_EMAIL` phải chứa giá trị `client_email` của tài khoản dịch vụ Firebase.
+- `AUTH_INVALID_PRIVATE_KEY`: kiểm tra định dạng `FIREBASE_PRIVATE_KEY`. Nên điền giá trị của thuộc tính `private_key`; app nhận PEM nhiều dòng, chuỗi có `\n` hoặc chuỗi PEM có dấu ngoặc kép. Nếu đã dán cả JSON service account vào biến này, app chỉ nhận khi `project_id` và `client_email` trong JSON khớp hai biến tương ứng, không tự đổi project/tài khoản.
+- `AUTH_SERVER_CREDENTIALS`: máy chủ không khởi tạo/xác thực được hoặc service account không có quyền cần thiết. Kiểm tra khóa còn hoạt động, email tài khoản dịch vụ và quyền Firebase Authentication; không đưa khóa vào chat hoặc git.
+- `AUTH_SERVICE_UNAVAILABLE`: Firebase hoặc mạng xác thực tạm thời lỗi. Thử lại sau; đăng nhập lại không sửa được lỗi máy chủ.
+
+`GET /api/status` có trường `firebaseAdmin`: `ready`, `missing`, `invalid-client-email`, `invalid-private-key`, `invalid`, `project-mismatch` hoặc `unavailable`. `ready` chỉ xác nhận biến có đủ, PEM RSA đọc được và project khớp; không chứng minh khóa còn hoạt động trên Google, quyền truy cập, kết nối Turso hay AI. API không trả giá trị khóa hoặc chi tiết lỗi SDK.

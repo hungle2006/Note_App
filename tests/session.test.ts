@@ -18,17 +18,26 @@ const config = {
 };
 
 test("Firebase config accepts real, escaped and JSON-quoted PEM line breaks", () => {
-  for (const value of [privateKey, privateKey.replace(/\n/g, "\\n"), JSON.stringify(privateKey)]) {
+  for (const value of [privateKey, privateKey.replace(/\n/g, "\\n"), JSON.stringify(privateKey), '"' + privateKey + '"']) {
     assert.equal(firebaseAdminConfig({ ...config, FIREBASE_PRIVATE_KEY: value }).privateKey, privateKey.trim());
   }
   assert.equal(firebaseAdminStatus(config), "ready");
 });
+test("a pasted service account JSON is accepted only when project and email match", () => {
+  const account = { type: "service_account", project_id: config.FIREBASE_PROJECT_ID,
+    client_email: config.FIREBASE_CLIENT_EMAIL, private_key: privateKey };
+  assert.equal(firebaseAdminConfig({ ...config, FIREBASE_PRIVATE_KEY: JSON.stringify(account) }).privateKey, privateKey.trim());
+  for (const changed of [{ ...account, project_id: "other-project" }, { ...account, client_email: "other@test-project.iam.gserviceaccount.com" }]) {
+    assert.throws(() => firebaseAdminConfig({ ...config, FIREBASE_PRIVATE_KEY: JSON.stringify(changed) }), (error: unknown) => error instanceof ApiError && error.code === "AUTH_INVALID_PRIVATE_KEY");
+  }
+  assert.equal(firebaseAdminConfig({ ...config, FIREBASE_PROJECT_ID: '"test-project"', FIREBASE_CLIENT_EMAIL: '"' + config.FIREBASE_CLIENT_EMAIL + '"' }).projectId, "test-project");
+});
 test("Firebase config detects missing, malformed and mismatched credentials without exposing secrets", () => {
   for (const [env, code, status] of [
     [{ ...config, FIREBASE_PRIVATE_KEY: "" }, "AUTH_NOT_CONFIGURED", "missing"],
-    [{ ...config, FIREBASE_PRIVATE_KEY: "secret-invalid-key" }, "AUTH_INVALID_CONFIG", "invalid"],
+    [{ ...config, FIREBASE_PRIVATE_KEY: "secret-invalid-key" }, "AUTH_INVALID_PRIVATE_KEY", "invalid-private-key"],
     [{ ...config, NEXT_PUBLIC_FIREBASE_PROJECT_ID: "another-project" }, "AUTH_PROJECT_MISMATCH", "project-mismatch"],
-    [{ ...config, FIREBASE_CLIENT_EMAIL: "someone@example.com" }, "AUTH_INVALID_CONFIG", "invalid"],
+    [{ ...config, FIREBASE_CLIENT_EMAIL: "someone@example.com" }, "AUTH_INVALID_CLIENT_EMAIL", "invalid-client-email"],
   ] as const) {
     assert.throws(() => firebaseAdminConfig(env), (error: unknown) => {
       assert.ok(error instanceof ApiError);
