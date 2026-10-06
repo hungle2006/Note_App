@@ -16,17 +16,17 @@ export function tutorSystemPrompt(sources:TutorSource[],grade:number,mode:TutorM
 }
 const responseSchema=z.object({choices:z.array(z.object({finish_reason:z.string().nullish(),message:z.object({content:z.union([z.string(),z.array(z.object({type:z.string(),text:z.string().optional()}))]).nullable()})})).min(1)});
 export async function tutor(messages:TutorMessage[],sources:TutorSource[],grade:number,mode:TutorMode){
- const key=process.env.MISTRAL_API_KEY;
- if(!key)throw new ApiError(503,"TUTOR_NOT_CONFIGURED","Gia sư Mistral chưa được kết nối. Em vẫn có thể đọc và ôn các bài đã lưu.");
- const model=process.env.MISTRAL_MODEL||"mistral-small-latest";
- if(!/^[a-zA-Z0-9._-]+$/.test(model))throw new ApiError(503,"TUTOR_MODEL_INVALID","Model gia sư chưa được cấu hình đúng.");
+ const key=process.env.GROQ_API_KEY?.trim();
+ if(!key)throw new ApiError(503,"TUTOR_NOT_CONFIGURED","Gia sư Groq chưa được kết nối. Em vẫn có thể đọc và ôn các bài đã lưu.");
+ const model=process.env.GROQ_MODEL?.trim()||"openai/gpt-oss-120b";
+ if(!/^[a-zA-Z0-9._-]+(?:\/[a-zA-Z0-9._-]+)?$/.test(model))throw new ApiError(503,"TUTOR_MODEL_INVALID","Model gia sư chưa được cấu hình đúng.");
  let response:Response;
- try{response=await fetch("https://api.mistral.ai/v1/chat/completions",{
+ try{response=await fetch("https://api.groq.com/openai/v1/chat/completions",{
   method:"POST",headers:{"Content-Type":"application/json",Authorization:"Bearer "+key},signal:AbortSignal.timeout(45000),
-  body:JSON.stringify({model,temperature:.3,max_tokens:2200,safe_prompt:true,messages:[{role:"system",content:tutorSystemPrompt(sources,grade,mode)},...messages.slice(-10).map(m=>({role:m.role,content:m.content}))]})
+  body:JSON.stringify({model,temperature:.3,max_completion_tokens:4096,...(model.startsWith("openai/gpt-oss-")?{reasoning_effort:"low",include_reasoning:false}:{}),messages:[{role:"system",content:tutorSystemPrompt(sources,grade,mode)},...messages.slice(-10).map(m=>({role:m.role,content:m.content}))]})
  });}catch{throw new ApiError(504,"TUTOR_TIMEOUT","Gia sư phản hồi hơi lâu. Em thử hỏi ngắn hơn nhé.");}
- if(!response.ok)throw new ApiError(response.status===429?429:502,"TUTOR_UPSTREAM",response.status===429?"Mistral đang hết hạn mức. Hãy thử lại sau.":"Chưa kết nối được Mistral. Quản trị viên cần kiểm tra key và model.");
- const parsed=responseSchema.safeParse(await response.json());
+ if(!response.ok)throw new ApiError(response.status===429?429:502,"TUTOR_UPSTREAM",response.status===429?"Groq đang hết hạn mức. Hãy thử lại sau.":"Chưa kết nối được Groq. Quản trị viên cần kiểm tra key và model.");
+ const parsed=responseSchema.safeParse(await response.json().catch(()=>null));
  if(!parsed.success)throw new ApiError(502,"TUTOR_FORMAT","Gia sư trả về nội dung chưa hợp lệ.");
  const choice=parsed.data.choices[0];const raw=choice.message.content;
  const content=typeof raw==="string"?raw:raw?.filter(c=>c.type==="text").map(c=>c.text||"").join("\n");

@@ -88,7 +88,7 @@ test('library chat is grade-scoped and stores only the most recent 30 messages',
  assert.deepEqual(await repo.getChat('alice',undefined,6),long.slice(-30));assert.deepEqual(await repo.getChat('alice',undefined,7),messages);assert.deepEqual(await repo.getChat('bob',undefined,6),[]);
 });
 
-test('Mistral SQL retrieval finds unaccented terms beyond first page and excludes foreign users/grades/images',async t=>{
+test('Groq SQL retrieval finds unaccented terms beyond first page and excludes foreign users/grades/images',async t=>{
  const {repo}=await database(t);const wanted=await repo.saveNote('alice',input);
  for(let i=0;i<51;i++)await repo.saveNote('alice',{...input,title:'Văn '+i,subject:'Ngữ văn',chapter:'Thơ',content:'Những vần thơ nói về mùa thu và quê hương.',summary:'Mùa thu',tags:[],images:[]});
  await repo.saveNote('bob',input);await repo.saveNote('alice',{...input,grade:9});

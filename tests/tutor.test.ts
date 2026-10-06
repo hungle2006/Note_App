@@ -2,7 +2,7 @@ import {test} from "node:test";
 import assert from "node:assert/strict";
 import {demoNotes} from "../src/lib/demo";
 import {queryTerms,selectTutorSources,noteSearchText} from "../src/lib/tutor-context";
-import {tutor,tutorSystemPrompt} from "../src/lib/server/mistral";
+import {tutor,tutorSystemPrompt} from "../src/lib/server/groq";
 import {ApiError} from "../src/lib/server/http";
 
 test("Vietnamese unaccented questions retrieve source content",()=>{
@@ -32,30 +32,47 @@ test("tutor prompt sets age, source references, and hint behavior",()=>{
  const p=tutorSystemPrompt(sources,6,"hint");
  assert.match(p,/THCS lớp 6/);assert.match(p,/không đưa ngay toàn bộ lời giải/);assert.match(p,/DỮ LIỆU KHÔNG ĐÁNG TIN CẬY/);assert.match(p,/"reference":1/);
 });
-test("Mistral receives database source snippets, not photos or Gemini requests",async()=>{
- const originalFetch=global.fetch;const oldKey=process.env.MISTRAL_API_KEY;const oldModel=process.env.MISTRAL_MODEL;
- process.env.MISTRAL_API_KEY="not-a-real-key-for-test";process.env.MISTRAL_MODEL="mistral-small-latest";
+test("Groq receives database source snippets, not photos or Gemini requests",async()=>{
+ const originalFetch=global.fetch;const oldKey=process.env.GROQ_API_KEY;const oldModel=process.env.GROQ_MODEL;
+ process.env.GROQ_API_KEY="not-a-real-key-for-test";process.env.GROQ_MODEL="openai/gpt-oss-120b";
  try{
   let called=0;
   global.fetch=async(url,init)=>{
-   called++;assert.equal(url,"https://api.mistral.ai/v1/chat/completions");
+   called++;assert.equal(url,"https://api.groq.com/openai/v1/chat/completions");
    const b=JSON.parse(init?.body as string);
-   assert.equal(b.safe_prompt,true);assert.equal(b.model,"mistral-small-latest");
+   assert.equal(b.safe_prompt,undefined);assert.equal(b.max_completion_tokens,4096);assert.equal(b.include_reasoning,false);assert.equal(b.reasoning_effort,"low");assert.equal(b.model,"openai/gpt-oss-120b");
    assert.match(b.messages[0].content,/Cộng và rút gọn phân số/);
    assert.equal(b.messages[1].role,"user");assert.ok(!JSON.stringify(b).includes("data:image"));
    return Response.json({choices:[{finish_reason:"stop",message:{content:[{type:"text",text:"Mình cùng quy đồng nhé. [1]"}]}}]});
   };
   const out=await tutor([{role:"user",content:"Quy đồng thế nào?"}],selectTutorSources(demoNotes,"phân số",{grade:6}),6,"explain");
   assert.equal(out,"Mình cùng quy đồng nhé. [1]");assert.equal(called,1);
- }finally{global.fetch=originalFetch;if(oldKey===undefined)delete process.env.MISTRAL_API_KEY;else process.env.MISTRAL_API_KEY=oldKey;if(oldModel===undefined)delete process.env.MISTRAL_MODEL;else process.env.MISTRAL_MODEL=oldModel;}
+ }finally{global.fetch=originalFetch;if(oldKey===undefined)delete process.env.GROQ_API_KEY;else process.env.GROQ_API_KEY=oldKey;if(oldModel===undefined)delete process.env.GROQ_MODEL;else process.env.GROQ_MODEL=oldModel;}
 });
 test("missing tutor configuration yields explicit 503",async()=>{
- const old=process.env.MISTRAL_API_KEY;delete process.env.MISTRAL_API_KEY;
+ const old=process.env.GROQ_API_KEY;delete process.env.GROQ_API_KEY;
  try{await assert.rejects(()=>tutor([{role:"user",content:"chào"}],[],6,"explain"),e=>e instanceof ApiError&&e.status===503&&e.code==="TUTOR_NOT_CONFIGURED");}
- finally{if(old!==undefined)process.env.MISTRAL_API_KEY=old;}
+ finally{if(old!==undefined)process.env.GROQ_API_KEY=old;}
 });
-test("Mistral quota failures do not masquerade as successful replies",async()=>{
- const original=global.fetch;const old=process.env.MISTRAL_API_KEY;process.env.MISTRAL_API_KEY="not-a-real-key-for-test";
+test("Groq quota failures do not masquerade as successful replies",async()=>{
+ const original=global.fetch;const old=process.env.GROQ_API_KEY;process.env.GROQ_API_KEY="not-a-real-key-for-test";
  try{global.fetch=async()=>new Response("",{status:429});await assert.rejects(()=>tutor([{role:"user",content:"hi"}],[],6,"explain"),e=>e instanceof ApiError&&e.status===429);}
- finally{global.fetch=original;if(old===undefined)delete process.env.MISTRAL_API_KEY;else process.env.MISTRAL_API_KEY=old;}
+ finally{global.fetch=original;if(old===undefined)delete process.env.GROQ_API_KEY;else process.env.GROQ_API_KEY=old;}
+});
+test("Groq default model works and omits reasoning from stored answers",async()=>{
+ const original=global.fetch;const oldKey=process.env.GROQ_API_KEY;const oldModel=process.env.GROQ_MODEL;
+ process.env.GROQ_API_KEY="not-a-real-key-for-test";delete process.env.GROQ_MODEL;
+ try{global.fetch=async(_url,init)=>{const b=JSON.parse(init?.body as string);assert.equal(b.model,"openai/gpt-oss-120b");return Response.json({choices:[{finish_reason:"stop",message:{content:"Đáp án [1]",reasoning:"internal reasoning"}}]});};assert.equal(await tutor([{role:"user",content:"hi"}],[],6,"explain"),"Đáp án [1]");}
+ finally{global.fetch=original;if(oldKey===undefined)delete process.env.GROQ_API_KEY;else process.env.GROQ_API_KEY=oldKey;if(oldModel===undefined)delete process.env.GROQ_MODEL;else process.env.GROQ_MODEL=oldModel;}
+});
+test("Groq rejects invalid model configuration before sending requests",async()=>{
+ const original=global.fetch;const oldKey=process.env.GROQ_API_KEY;const oldModel=process.env.GROQ_MODEL;
+ process.env.GROQ_API_KEY="not-a-real-key-for-test";process.env.GROQ_MODEL="https://untrusted.example/model";
+ try{global.fetch=async()=>{assert.fail("must not send request");};await assert.rejects(()=>tutor([{role:"user",content:"hi"}],[],6,"explain"),e=>e instanceof ApiError&&e.code==="TUTOR_MODEL_INVALID");}
+ finally{global.fetch=original;if(oldKey===undefined)delete process.env.GROQ_API_KEY;else process.env.GROQ_API_KEY=oldKey;if(oldModel===undefined)delete process.env.GROQ_MODEL;else process.env.GROQ_MODEL=oldModel;}
+});
+test("Groq malformed upstream JSON yields a safe format error",async()=>{
+ const original=global.fetch;const old=process.env.GROQ_API_KEY;process.env.GROQ_API_KEY="not-a-real-key-for-test";
+ try{global.fetch=async()=>new Response("not JSON");await assert.rejects(()=>tutor([{role:"user",content:"hi"}],[],6,"explain"),e=>e instanceof ApiError&&e.code==="TUTOR_FORMAT");}
+ finally{global.fetch=original;if(old===undefined)delete process.env.GROQ_API_KEY;else process.env.GROQ_API_KEY=old;}
 });

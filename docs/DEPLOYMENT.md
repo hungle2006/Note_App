@@ -12,10 +12,10 @@ Tạo API key cho dự án của bạn tại Google AI Studio. Đặt GEMINI_API
 
 App dùng REST generateContent, timeout 45 giây, kiểm tra JSON bằng Zod, tối đa 3 ảnh, và quota mặc định 40 lần gọi/người/ngày UTC. Quota trong app không thay thế giới hạn chi phí/quota của nhà cung cấp. Các lần gọi thất bại vẫn tiêu thụ lượt để chống retry lạm dụng.
 
-## 3. Mistral (gia sư)
-Tạo API key của bạn tại https://console.mistral.ai/. Đặt MISTRAL_API_KEY ở server và MISTRAL_MODEL=mistral-small-latest hoặc model Chat Completions đang được tài khoản hỗ trợ. Không đặt key trong biến NEXT_PUBLIC_*.
+## 3. Groq (gia sư)
+Tạo API key của bạn tại https://console.groq.com/keys. Đặt GROQ_API_KEY ở server và GROQ_MODEL=openai/gpt-oss-120b hoặc model Chat Completions đang được tài khoản hỗ trợ. Không đặt key trong biến NEXT_PUBLIC_*. Model mặc định là `openai/gpt-oss-120b`; app gọi Groq Chat Completions, chỉ lưu câu trả lời cuối cùng. Sau khi thêm key ở Vercel Production, redeploy để áp dụng. `MISTRAL_API_KEY` cũ không được dùng làm key Groq.
 
-Mistral chỉ dùng cho gia sư. Gemini tiếp tục nhận diện ảnh và tạo bộ ôn. Gia sư nhận câu hỏi, 10 tin gần nhất và tối đa 4 đoạn nguồn được truy xuất từ Turso theo UID/lớp; không có quyền truy cập database trực tiếp. Bật safe_prompt và hướng dẫn theo THCS không thay thế việc đối chiếu câu trả lời.
+Groq chỉ dùng cho gia sư. Gemini tiếp tục nhận diện ảnh và tạo bộ ôn. Gia sư nhận câu hỏi, 10 tin gần nhất và tối đa 4 đoạn nguồn được truy xuất từ Turso theo UID/lớp; không có quyền truy cập database trực tiếp. Hướng dẫn theo THCS không thay thế việc đối chiếu câu trả lời.
 
 ## 4. Turso
 Mở workspace https://app.turso.tech/hungle2006. Chọn một **database libSQL riêng cho NoteLab** hoặc tạo database libSQL mới trong gói hiện có. Dự án dùng @libsql/client/http; không dùng database engine Turso rewrite cho cấu hình này.
@@ -45,7 +45,7 @@ Thay backend không tự chuyển dữ liệu từ Oracle đã có. Migration Or
 1. Đăng nhập Vercel bằng tài khoản của bạn.
 2. Add New → Project → Import Git Repository → hungle2006/Note_App.
 3. Framework: Next.js. Node 24.x. Root directory: /. Build: npm run build. Install: npm ci.
-4. Điền các biến .env.example tại Project → Settings → Environment Variables. Public Firebase config là thông tin client; Admin key, Gemini/Mistral keys và Turso token là secrets chỉ dùng server.
+4. Điền các biến .env.example tại Project → Settings → Environment Variables. Public Firebase config là thông tin client; Admin key, Gemini/Groq keys và Turso token là secrets chỉ dùng server.
 5. Chọn Production cho dữ liệu thật. Với Preview, nên dùng dự án/database riêng hoặc không cung cấp secrets.
 6. Deploy. Thêm domain vừa tạo vào Firebase authorized domains, sau đó kiểm tra đăng ký, xác minh email và Google sign-in.
 7. Schema tự bootstrap ở lần đọc/ghi đầu tiên; có thể chạy db:migrate để kiểm tra trước. Redeploy sau khi thay đổi biến NEXT_PUBLIC_* vì chúng được build vào client bundle.
@@ -57,7 +57,7 @@ vercel.json đặt AI functions maxDuration 60s. Các tác vụ dài hơn hiện
 - Lưu một bài thủ công; đăng xuất rồi đăng nhập lại để xác nhận lưu Turso.
 - Dùng ảnh vở rõ nét, kiểm tra chỗ nhận diện không chắc chắn trước khi lưu.
 - Tạo cả 3 dạng ôn, hoàn thành quiz; kiểm tra kết quả sau reload.
-- Chat theo bài học bằng Mistral; kiểm tra bài nguồn và lịch sử sau reload.
+- Chat theo bài học bằng Groq; kiểm tra bài nguồn và lịch sử sau reload.
 - Chat tìm thư viện theo lớp; tài khoản thứ hai không được thấy nguồn của tài khoản đầu.
 - Kiểm tra giao diện sáng/tối sau reload và nút 3D; thử chế độ giảm chuyển động trên điện thoại.
 - Dùng tài khoản thứ hai để xác nhận không xem/sửa/xóa bài tài khoản đầu.

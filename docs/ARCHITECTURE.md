@@ -8,15 +8,15 @@ Bài được sắp xếp lớp 6–9 → môn → chương → bài. Trường 
 
 ## Hai vai trò AI
 - Gemini: trích xuất ảnh và sinh flashcard/quiz/ghép cặp từ bài đã lưu.
-- Mistral: gia sư tiếng Việt THCS, giải thích/gợi ý/luyện tập; không nhận ảnh hoặc credentials database.
+- Groq: gia sư tiếng Việt THCS, giải thích/gợi ý/luyện tập; không nhận ảnh hoặc credentials database.
 
-## Truy xuất kiến thức cho Mistral
+## Truy xuất kiến thức cho Groq
 1. Xác thực người gọi.
 2. Nếu chọn note: getNote kiểm tra owner và chỉ dùng nguồn này.
 3. Nếu chọn thư viện: tách từ câu hỏi tiếng Việt/không dấu và ít ngữ cảnh câu hỏi trước, tìm search_text trong Turso với uid và grade.
 4. Turso xếp hạng số từ khớp, lấy tối đa 80 ứng viên. Server so khớp từ hoàn chỉnh và tỷ lệ từ khớp, xếp hạng title/subject/content.
 5. Chọn tối đa 4 bài, chọn các đoạn liên quan, tối đa 6.000 ký tự/bài và tổng 16.000 ký tự nguồn.
-6. Gửi sources trong prompt có nhãn dữ liệu không phải chỉ dẫn; yêu cầu dẫn [1], [2], phân biệt kiến thức nguồn và giải thích bổ sung. Mistral safe_prompt bật; prompt không thể bảo đảm miễn nhiễm prompt injection.
+6. Gửi sources trong prompt có nhãn dữ liệu không phải chỉ dẫn; yêu cầu dẫn [1], [2], phân biệt kiến thức nguồn và giải thích bổ sung. prompt không thể bảo đảm miễn nhiễm prompt injection.
 7. Lưu câu trả lời và metadata/đoạn nguồn đã dùng trong Turso; UI hiển thị bài làm ngữ cảnh.
 
 Đây là retrieval theo từ khóa, không phải embeddings/semantic vector search. Từ đồng nghĩa hoặc câu hỏi mơ hồ có thể không tìm được nguồn; gia sư phải nói rõ thay vì giả nhận đã đọc toàn bộ database. Không cho LLM tự viết SQL hoặc truy cập Turso.
@@ -29,6 +29,6 @@ turso-001: app_notes, app_attempts, app_chats, app_ai_usage; app_migrations lưu
 Các bảng lưu JSON/TEXT và timestamp UTC ISO. app_attempts và chat theo bài có khóa ngoại ghép user_id/note_id; ghi kiểm tra quyền trong write transaction. Xóa bài dọn kết quả/hội thoại nguyên tử. Sửa nội dung xóa bộ ôn/kết quả cũ; version updated_at tăng ít nhất 1 ms để chặn bộ ôn sinh từ nội dung cũ.
 
 ## Hội thoại và giới hạn
-Note chat theo noteId; library chat tách ngữ cảnh general-6…general-9. Lưu 30 tin; Mistral nhận 10 tin gần nhất. Chat chưa stream và các request đồng thời ở hai tab có thể ghi đè lịch sử; cần optimistic concurrency khi mở rộng.
-Quota nguyên tử Turso áp dụng chung cho Gemini và Mistral, reset UTC (07:00 Việt Nam). API timeout 45s, Vercel maxDuration 60s.
+Note chat theo noteId; library chat tách ngữ cảnh general-6…general-9. Lưu 30 tin; Groq nhận 10 tin gần nhất. Chat chưa stream và các request đồng thời ở hai tab có thể ghi đè lịch sử; cần optimistic concurrency khi mở rộng.
+Quota nguyên tử Turso áp dụng chung cho Gemini và Groq, reset UTC (07:00 Việt Nam). API timeout 45s, Vercel maxDuration 60s.
 List note 50/trang; lọc thư viện và thống kê dashboard trên bài đã tải. Attempt 200 gần nhất. Ảnh lưu JSON/TEXT; object storage là bước mở rộng.
