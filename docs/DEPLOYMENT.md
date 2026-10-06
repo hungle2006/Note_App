@@ -44,7 +44,7 @@ Thay backend không tự chuyển dữ liệu từ Oracle đã có. Migration Or
 ## 5. Vercel
 1. Đăng nhập Vercel bằng tài khoản của bạn.
 2. Add New → Project → Import Git Repository → hungle2006/Note_App.
-3. Framework: Next.js. Node 22.x hoặc 24.x. Root directory: /. Build: npm run build. Install: npm ci.
+3. Framework: Next.js. Node 24.x. Root directory: /. Build: npm run build. Install: npm ci.
 4. Điền các biến .env.example tại Project → Settings → Environment Variables. Public Firebase config là thông tin client; Admin key, Gemini/Mistral keys và Turso token là secrets chỉ dùng server.
 5. Chọn Production cho dữ liệu thật. Với Preview, nên dùng dự án/database riêng hoặc không cung cấp secrets.
 6. Deploy. Thêm domain vừa tạo vào Firebase authorized domains, sau đó kiểm tra đăng ký, xác minh email và Google sign-in.

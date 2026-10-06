@@ -39,7 +39,7 @@
     "typescript": "5.9.3"
   },
   "engines": {
-    "node": ">=22 <25"
+    "node": "24.x"
   },
   "overrides": {
     "@grpc/grpc-js": "^1.14.0",
