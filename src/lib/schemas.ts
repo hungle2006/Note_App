@@ -1,9 +1,10 @@
 import { z } from "zod";
 const label=z.string().trim().min(1).max(160);
 export const idSchema=z.string().uuid();
+export const gradeSchema=z.number().int().min(6).max(9);
 export const imageSchema=z.object({name:z.string().max(200),dataUrl:z.string().max(1500000).regex(/^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/]+={0,2}$/)});
 export const noteInputSchema=z.object({
- title:label,subject:label,chapter:label,content:z.string().trim().min(10).max(40000),
+ title:label,subject:label,chapter:label,grade:gradeSchema.default(6),content:z.string().trim().min(10).max(40000),
  summary:z.string().max(6000).default(""),tags:z.array(z.string().trim().min(1).max(60)).max(12).default([]),
  images:z.array(imageSchema).max(3).default([])
 }).refine(v=>v.images.reduce((n,x)=>n+x.dataUrl.length,0)<=2400000,"Tổng ảnh quá lớn.");

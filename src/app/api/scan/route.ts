@@ -1,4 +1,4 @@
-import {z} from "zod";import {imageSchema} from "@/lib/schemas";import {requireUser} from "@/lib/server/auth";import {failure,json,readJson} from "@/lib/server/http";import {consumeAiQuota} from "@/lib/server/repository";import {extract} from "@/lib/server/gemini";
+import {z} from "zod";import {imageSchema,gradeSchema} from "@/lib/schemas";import {requireUser} from "@/lib/server/auth";import {failure,json,readJson} from "@/lib/server/http";import {consumeAiQuota} from "@/lib/server/repository";import {extract} from "@/lib/server/gemini";
 export const runtime="nodejs";export const maxDuration=60;
-const schema=z.object({images:z.array(imageSchema).min(1).max(3),subject:z.string().max(160).optional()}).refine(v=>v.images.reduce((n,i)=>n+i.dataUrl.length,0)<=2400000,"Tổng ảnh quá lớn.");
-export async function POST(r:Request){try{const u=await requireUser(r);const input=await readJson(r,schema,3000000);await consumeAiQuota(u.uid);return json({extraction:await extract(input.images,input.subject)});}catch(e){return failure(e);}}
+const schema=z.object({grade:gradeSchema.default(6),images:z.array(imageSchema).min(1).max(3),subject:z.string().max(160).optional()}).refine(v=>v.images.reduce((n,i)=>n+i.dataUrl.length,0)<=2400000,"Tổng ảnh quá lớn.");
+export async function POST(r:Request){try{const u=await requireUser(r);const input=await readJson(r,schema,3000000);await consumeAiQuota(u.uid);return json({extraction:await extract(input.images,input.subject,input.grade)});}catch(e){return failure(e);}}

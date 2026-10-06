@@ -3,7 +3,7 @@ import {demoNotes,sampleStudy} from "../../src/lib/demo";
 const noteId=demoNotes[0].id;
 test("landing opens an honest demo",async({page})=>{
  await page.goto("/");
- await expect(page.getByRole("heading",{level:1})).toContainText("Kiến thức trong vở");
+ await expect(page.getByRole("heading",{level:1})).toContainText("Mỗi trang vở");
  await page.getByRole("link",{name:"Khám phá bản mẫu"}).click();
  await expect(page.getByText("Không gian mẫu",{exact:true}).first()).toBeVisible();
  await expect(page.getByText("Bài học đã tải",{exact:true})).toBeVisible();
@@ -16,10 +16,10 @@ test("registration has full fields and requires configuration",async({page})=>{
 });
 test("library searches without Vietnamese accents",async({page})=>{
  await page.goto("/app?mode=demo&view=library");
- await page.getByRole("textbox",{name:"Tìm bài học",exact:true}).fill("nhi thuc");
+ await page.getByRole("textbox",{name:"Tìm bài học",exact:true}).fill("quy dong");
  await expect(page.locator(".note-card")).toHaveCount(1);
  await page.locator(".note-card").click();
- await expect(page.getByRole("heading",{level:1})).toContainText("Phân phối nhị thức");
+ await expect(page.getByRole("heading",{level:1})).toContainText("Cộng và rút gọn phân số");
  await expect(page.locator(".katex").first()).toBeVisible();
 });
 test("manual note persists and deletion removes it",async({page})=>{
@@ -43,7 +43,7 @@ test("manual note persists and deletion removes it",async({page})=>{
 test("edited source invalidates study set",async({page})=>{
  await page.goto("/app?mode=demo&view=detail&note="+noteId);
  await page.getByRole("button",{name:"Chỉnh sửa bài học"}).click();
- await page.getByLabel("Tên bài học",{exact:true}).fill("Phân phối nhị thức cập nhật");
+ await page.getByLabel("Tên bài học",{exact:true}).fill("Phân số cập nhật");
  await page.getByRole("button",{name:"Lưu vào thư viện"}).click();
  await page.getByRole("button",{name:/Tạo một lượt ôn tập/}).click();
  await expect(page.getByRole("button",{name:"Tạo bộ ôn tập",exact:true})).toBeVisible();
@@ -93,6 +93,7 @@ test("demo scan does not pretend to invoke Gemini",async({page})=>{
 test("mobile navigation fits viewport",async({page})=>{
  await page.setViewportSize({width:390,height:844});
  await page.goto("/app?mode=demo");
+ await expect(page.getByRole("button",{name:"Tắt chuyển động 3D",exact:true})).toBeVisible();
  await page.getByRole("button",{name:"Mở menu",exact:true}).click();
  await page.getByRole("button",{name:"Thư viện kiến thức",exact:true}).click();
  await expect(page.getByRole("heading",{level:1,name:"Thư viện kiến thức"})).toBeVisible();
@@ -104,4 +105,32 @@ test("anonymous API requests rejected",async({request})=>{
  const r=await request.get("/api/"+path);
  expect(r.status()).toBe(401);
  }
+});
+
+test("appearance persists across pages and reload",async({page})=>{
+ await page.emulateMedia({colorScheme:"light"});await page.goto("/");
+ await page.getByRole("button",{name:"Chuyển sang giao diện tối",exact:true}).click();
+ await expect(page.locator("html")).toHaveAttribute("data-theme","dark");
+ await page.reload();await expect(page.locator("html")).toHaveAttribute("data-theme","dark");
+ await page.goto("/app?mode=demo");await expect(page.locator("html")).toHaveAttribute("data-theme","dark");
+ await page.getByRole("button",{name:"Chuyển sang giao diện sáng",exact:true}).click();
+ await expect(page.locator("html")).toHaveAttribute("data-theme","light");
+});
+test("3D motion can be stopped and respects reduced motion",async({page})=>{
+ await page.goto("/");await page.getByRole("button",{name:"Tắt chuyển động 3D",exact:true}).click();
+ await expect(page.locator("html")).toHaveAttribute("data-motion","off");
+ expect(await page.locator(".scene-book").evaluate(e=>getComputedStyle(e).animationName)).toBe("none");
+ await page.emulateMedia({reducedMotion:"reduce"});await page.reload();
+ await expect(page.locator("html")).toHaveAttribute("data-motion","off");
+});
+test("THCS grade filter exposes the right notes",async({page})=>{
+ await page.goto("/app?mode=demo&view=library");await page.getByLabel("Lọc lớp học").selectOption("9");
+ await expect(page.locator(".note-card")).toHaveCount(1);await expect(page.locator(".note-card")).toContainText("Căn bậc hai");
+ await page.getByLabel("Lọc lớp học").selectOption("8");await expect(page.locator(".note-card")).toContainText("Hằng đẳng thức");
+});
+test("mobile landing is readable without horizontal scroll",async({page})=>{
+ await page.setViewportSize({width:390,height:844});await page.goto("/");
+ await expect(page.getByRole("button",{name:"Tắt chuyển động 3D",exact:true})).toBeVisible();
+ await expect(page.getByRole("heading",{level:1})).toBeVisible();
+ const w=await page.evaluate(()=>({scroll:document.documentElement.scrollWidth,viewport:innerWidth}));expect(w.scroll).toBeLessThanOrEqual(w.viewport);
 });
