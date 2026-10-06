@@ -1,6 +1,6 @@
 # NoteLab THCS · Kiến trúc v2
 
-Next.js App Router, React, TypeScript. Thiết kế responsive theo tokens cho sáng/tối; mô hình sách và hành tinh dùng CSS preserve-3d, pointer parallax và animation transform. Không tải WebGL hoặc thư viện 3D nặng. prefers-reduced-motion và nút 3D có thể tắt hiệu ứng.
+Next.js App Router, React, TypeScript. Production build dùng webpack; Firebase Admin và client Turso nạp qua CJS khi cần để API userland không có module import bất đồng bộ ở cấp ngoài cùng. Thiết kế responsive theo tokens cho sáng/tối; mô hình sách và hành tinh dùng CSS preserve-3d, pointer parallax và animation transform. Không tải WebGL hoặc thư viện 3D nặng. prefers-reduced-motion và nút 3D có thể tắt hiệu ứng.
 
 ## Dữ liệu và quyền
 Browser lấy Firebase ID token. Server xác minh chữ ký, thu hồi và email_verified. UID do server lấy từ token; mọi truy vấn Turso ràng buộc UID, không nhận owner từ client.

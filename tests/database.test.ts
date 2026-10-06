@@ -114,4 +114,6 @@ test('missing/invalid Turso config fails clearly without opening a connection at
  await assert.rejects(getDatabase(),rejectsCode('DATABASE_NOT_CONFIGURED'));
  process.env.TURSO_DATABASE_URL='file:local.db';process.env.TURSO_AUTH_TOKEN='test';
  await assert.rejects(getDatabase(),rejectsCode('DATABASE_CONFIG_INVALID'));
+ process.env.TURSO_DATABASE_URL='libsql://';
+ await assert.rejects(getDatabase(),rejectsCode('DATABASE_UNAVAILABLE'));
 });
