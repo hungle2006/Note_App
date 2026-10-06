@@ -28,3 +28,115 @@
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*::before,*::after{animation:none!important;transition:none!important}.game-card:hover,.button:hover,.subject-preview-card:hover,.subject-card:hover,.note-card:hover,.how-grid article:hover{transform:none!important}.scene-stage{transform:none!important}.scene-compact .scene-stage{transform:scale(.7)!important}}
 
 @media(max-width:480px){.landing-nav{padding:20px 16px;gap:10px}.landing-nav .brand{font-size:22px;white-space:nowrap}.landing-nav .brand-icon{width:32px;height:32px;border-radius:10px}.landing-nav .brand-icon svg{width:19px}.landing-nav .nav-actions{gap:8px}.landing-nav .appearance-controls{gap:5px}.landing-nav .appearance-button{min-width:34px;height:34px;border-radius:10px}.landing-nav .motion-control{min-width:45px;padding:0 6px}.landing-nav .nav-actions>.button{white-space:nowrap;padding:9px 10px;gap:6px}.landing-nav .nav-actions>.button svg{width:14px}}
+
+/* A shared, restrained motion language for every action. */
+:root {
+  --action-ease: cubic-bezier(.22, 1, .36, 1);
+  --action-duration: 320ms;
+  --action-shadow: 0 4px 12px #55418c12;
+  --primary-rest-shadow: 0 3px 8px #6040bd18, inset 0 1px 0 #ffffff24;
+  --primary-hover-shadow: 0 7px 18px #6040bd25, inset 0 1px 0 #ffffff30;
+}
+:root[data-theme=dark] {
+  --action-shadow: 0 4px 14px #00000028;
+  --primary-rest-shadow: 0 3px 10px #00000025, inset 0 1px 0 #ffffff24;
+  --primary-hover-shadow: 0 7px 20px #00000038, inset 0 1px 0 #ffffff30;
+}
+button, .button, .text-button {
+  transition:
+    transform var(--action-duration) var(--action-ease),
+    background-color var(--action-duration) var(--action-ease),
+    border-color var(--action-duration) var(--action-ease),
+    color 240ms var(--action-ease),
+    box-shadow var(--action-duration) var(--action-ease),
+    opacity 180ms ease-out;
+}
+.button { border-radius: 14px; }
+.button.primary, .send-button {
+  position: relative;
+  isolation: isolate;
+  background: linear-gradient(155deg, #7a60df, #684bcd);
+  box-shadow: var(--primary-rest-shadow);
+}
+.button.primary::before, .send-button::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  background: linear-gradient(155deg, #ffffff16, #ffffff04);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--action-duration) var(--action-ease);
+}
+.button.primary:hover { background-color: #7155d8; }
+.button:hover:not(:disabled), .game-card:hover { transform: none; }
+.button > .lucide-arrow-right,
+.text-button > .lucide-arrow-right,
+.chat-prompts button > .lucide-arrow-up-right,
+.game-card-footer > svg,
+.send-button > svg {
+  transition: transform var(--action-duration) var(--action-ease);
+}
+.side-nav button, .settings-nav,
+.side-nav button.active, .settings-nav.active { font-weight: 600; }
+.side-nav button.active:hover, .settings-nav.active:hover { background: var(--soft); }
+.tutor-modes .active { box-shadow: 0 2px 5px #31326608; }
+.appearance-button[aria-pressed=true] { background: var(--soft); color: var(--purple-ink); border-color: var(--line); }
+.appearance-glyph { display: block; position: relative; width: 19px; height: 19px; flex-shrink: 0; }
+.appearance-glyph.motion-glyph { width: 16px; height: 16px; }
+.appearance-glyph > svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  transform: rotate(-40deg) scale(.65);
+  transition: opacity 180ms ease-out, transform var(--action-duration) var(--action-ease);
+}
+.appearance-glyph > .glyph-visible { opacity: 1; transform: rotate(0) scale(1); }
+@media (hover: hover) and (pointer: fine) {
+  .button:hover:not(:disabled) { transform: translateY(-1px); }
+  .button.primary:hover:not(:disabled), .send-button:hover:not(:disabled) { box-shadow: var(--primary-hover-shadow); }
+  .button.primary:hover:not(:disabled)::before, .send-button:hover:not(:disabled)::before { opacity: 1; }
+  .button.secondary:hover:not(:disabled), .button.white:hover:not(:disabled) {
+    background-color: var(--paper-alt);
+    border-color: color-mix(in srgb, var(--purple) 25%, var(--line));
+    box-shadow: var(--action-shadow);
+  }
+  .appearance-button:hover, .icon-button:hover { background-color: var(--soft); box-shadow: var(--action-shadow); }
+  .button:hover:not(:disabled) > .lucide-arrow-right,
+  .text-button:hover > .lucide-arrow-right,
+  .game-card:hover:not(:disabled) .game-card-footer > svg { transform: translateX(3px); }
+  .chat-prompts button:hover:not(:disabled) > .lucide-arrow-up-right { transform: translate(2px, -2px); }
+  .send-button:hover:not(:disabled) > svg { transform: translate(1px, -1px); }
+  .game-card:hover:not(:disabled) { transform: translateY(-3px) rotateX(1deg); }
+  .tutor-modes button:not(.active):hover:not(:disabled) { background: var(--paper); color: var(--purple-ink); }
+  .tutor-sources button:hover:not(:disabled) { background: var(--soft); border-color: var(--purple); }
+}
+.button:active:not(:disabled),
+.appearance-button:active:not(:disabled),
+.icon-button:active:not(:disabled),
+.send-button:active:not(:disabled),
+.chat-prompts button:active:not(:disabled),
+.tutor-modes button:active:not(:disabled),
+.quiz-option:active:not(:disabled),
+.match-board button:active:not(:disabled),
+.game-card:active:not(:disabled) {
+  transform: translateY(0) scale(.98);
+  transition-duration: 110ms;
+}
+.button.primary:active:not(:disabled), .send-button:active:not(:disabled) {
+  box-shadow: 0 1px 3px #6040bd18, inset 0 2px 4px #35236020;
+}
+:root[data-motion=off] :is(.button, .text-button, .appearance-button, .icon-button, .send-button, .chat-prompts button, .tutor-modes button, .quiz-option, .match-board button, .game-card),
+:root[data-motion=off] :is(.appearance-glyph > svg, .button > .lucide-arrow-right, .text-button > .lucide-arrow-right, .chat-prompts button > svg, .game-card-footer > svg, .send-button > svg) {
+  transform: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .button::before, .send-button::before, .appearance-glyph > svg { transition: none; }
+  :is(.button, .text-button, .appearance-button, .icon-button, .send-button, .chat-prompts button, .tutor-modes button, .quiz-option, .match-board button, .game-card),
+  :is(.appearance-glyph > svg, .button > .lucide-arrow-right, .text-button > .lucide-arrow-right, .chat-prompts button > svg, .game-card-footer > svg, .send-button > svg) {
+    transform: none !important;
+  }
+}

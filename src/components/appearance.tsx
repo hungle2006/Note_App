@@ -24,8 +24,8 @@ export function AppearanceProvider({children}:{children:React.ReactNode}){
 export function AppearanceControls({compact=false}:{compact?:boolean}){
   const a=useContext(Context);
   return <div className="appearance-controls">
-    <button type="button" className="appearance-button" onClick={a.toggleTheme} aria-label={a.dark?'Chuyển sang giao diện sáng':'Chuyển sang giao diện tối'} title={a.dark?'Giao diện sáng':'Giao diện tối'}>{a.dark?<Sun size={19}/>:<Moon size={19}/>}</button>
-    {!compact&&<button type="button" className="appearance-button motion-control" onClick={a.toggleMotion} aria-label={a.motion?'Tắt chuyển động 3D':'Bật chuyển động 3D'} aria-pressed={a.motion} title={a.motion?'Tắt chuyển động':'Bật chuyển động'}>{a.motion?<Pause size={16}/>:<Play size={16}/>}<span>3D</span></button>}
+    <button type="button" className="appearance-button" onClick={a.toggleTheme} aria-label={a.dark?'Chuyển sang giao diện sáng':'Chuyển sang giao diện tối'} title={a.dark?'Giao diện sáng':'Giao diện tối'}><span className="appearance-glyph" aria-hidden="true"><Moon size={19} className={!a.dark?'glyph-visible':''}/><Sun size={19} className={a.dark?'glyph-visible':''}/></span></button>
+    {!compact&&<button type="button" className="appearance-button motion-control" onClick={a.toggleMotion} aria-label={a.motion?'Tắt chuyển động 3D':'Bật chuyển động 3D'} aria-pressed={a.motion} title={a.motion?'Tắt chuyển động':'Bật chuyển động'}><span className="appearance-glyph motion-glyph" aria-hidden="true"><Pause size={16} className={a.motion?'glyph-visible':''}/><Play size={16} className={!a.motion?'glyph-visible':''}/></span><span>3D</span></button>}
   </div>;
 }
 export function useAppearance(){return useContext(Context);}
