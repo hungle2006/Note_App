@@ -87,7 +87,7 @@ test("demo chat tells users no question is sent",async({page})=>{
 });
 test("demo scan does not pretend to invoke Gemini",async({page})=>{
  await page.goto("/app?mode=demo&view=scan");
- await expect(page.getByRole("button",{name:"Nhận diện bằng Gemini"})).toBeDisabled();
+ await expect(page.getByRole("button",{name:"Nhận diện bằng Gemini",exact:true})).toBeDisabled();
  await expect(page.getByText("Bản mẫu chưa nhận diện ảnh.")).toBeVisible();
 });
 test("mobile navigation fits viewport",async({page})=>{

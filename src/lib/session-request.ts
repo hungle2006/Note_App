@@ -10,7 +10,7 @@ export async function requestWithSession<T>(url: string, options: RequestInit, d
     const token = await user.getIdToken(forceRefresh);
     if (!isCurrent()) throw new Error("Phiên đăng nhập đã thay đổi. Hãy tải lại trang.");
     const headers = new Headers(options.headers);
-    if (!headers.has("Content-Type")) headers.set("Content-Type", "application/json");
+    if (!(options.body instanceof FormData) && !headers.has("Content-Type")) headers.set("Content-Type", "application/json");
     headers.set("Authorization", "Bearer " + token);
     // Native window.fetch requires the browser global as its receiver.
     return dependencies.fetch.call(globalThis, url, { ...options, headers });

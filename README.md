@@ -1,6 +1,6 @@
 # NoteLab — biến trang vở thành không gian học tập
 
-Web app tiếng Việt dành cho học sinh THCS lớp 6–9: chụp vở → Gemini trích xuất kiến thức → kiểm tra bản nhận diện → lưu theo môn/chương → trò chuyện với gia sư Groq → ôn bằng flashcard, quiz và ghép khái niệm.
+Web app tiếng Việt dành cho học sinh THCS lớp 6–9: chụp vở bằng Gemini hoặc ghi âm bằng VietScribe (rnnlm) → kiểm tra kiến thức → kiểm tra bản nhận diện → lưu theo môn/chương → trò chuyện với gia sư Groq → ôn bằng flashcard, quiz và ghép khái niệm.
 
 ## Chạy
 Yêu cầu Node.js 22 hoặc 24.

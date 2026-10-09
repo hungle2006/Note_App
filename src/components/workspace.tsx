@@ -3,7 +3,7 @@ import {useEffect,useRef,useState} from "react";import Link from "next/link";imp
 import {LayoutDashboard,Library,Camera,MessageCircle,Gamepad2,Settings,LogOut,Search,Plus,ArrowRight,ArrowUpRight,Sparkles,BookOpen,ChevronRight,Check,Clock,Layers,Target,FileText,Trash2,Pencil,Download,Menu,X,ShieldCheck,Mail,RefreshCw,Atom,ChartNoAxesCombined,Languages,Brain} from "lucide-react";
 import {AppearanceControls} from "./appearance";import {LearningScene} from "./learning-scene";
 import {useAuth} from "./auth-provider";import {useLearning} from "@/lib/use-learning";import type {Note,NoteInput} from "@/lib/schemas";import {ScanView} from "./scan-view";import {GamesView} from "./games-view";import {ChatView} from "./chat-view";import {NoteEditor} from "./note-editor";import {Logo,Tag,Title,Spinner,Empty,Markdown,formatDate} from "./ui";
-const nav=[{id:"home",label:"Tổng quan",icon:LayoutDashboard},{id:"library",label:"Thư viện kiến thức",icon:Library},{id:"scan",label:"Chụp & số hóa",icon:Camera},{id:"chat",label:"Gia sư Groq",icon:MessageCircle},{id:"games",label:"Sân chơi kiến thức",icon:Gamepad2}];
+const nav=[{id:"home",label:"Tổng quan",icon:LayoutDashboard},{id:"library",label:"Thư viện kiến thức",icon:Library},{id:"scan",label:"Thêm bài học",icon:Camera},{id:"chat",label:"Gia sư Groq",icon:MessageCircle},{id:"games",label:"Sân chơi kiến thức",icon:Gamepad2}];
 const looks=[{color:"purple",icon:ChartNoAxesCombined},{color:"orange",icon:Brain},{color:"green",icon:Atom},{color:"blue",icon:Languages}];
 const fold=(s:string)=>s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/đ/g,"d");
 export function AppGate(){

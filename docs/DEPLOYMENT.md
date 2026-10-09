@@ -91,3 +91,10 @@ Lần kiểm tra mới nhất: API project-config của Firebase trả HTTP 200,
 `firebaseAdminRuntime` trong `/api/status` kiểm tra SDK có khởi tạo được trong bản triển khai hay không. `AUTH_RUNTIME_MISSING`, `AUTH_RUNTIME_INCOMPATIBLE` hoặc `AUTH_INITIALIZATION_FAILED` là lỗi runtime/build, không phải bằng chứng khóa Firebase sai. Kiểm tra này không gọi Google OAuth và không đọc tài khoản người dùng.
 
 Firebase Admin được pin ở 13.6.0 để dùng chuỗi phụ thuộc CommonJS trên Vercel. Node của package, CI và Vercel được đồng bộ ở 24.x. `GET /api/status?check=firebase` kiểm tra kết nối Google và quyền users.get bằng UID kiểm tra cố định; cache 60 giây, thời gian chờ phản hồi 10 giây, không trả dữ liệu người dùng. `firebaseConnection=ready` xác nhận máy chủ có thể thực hiện kiểm tra thu hồi phiên; chưa thay thế kiểm thử đăng nhập bằng tài khoản thật.
+
+## VietScribe — note bằng giọng nói
+API cố định: `https://leminhhung0101-vietscribe-ai.hf.space/gradio_api`, endpoint `/transcribe`, mode `rnnlm`. Space public không cần token. Nếu Hugging Face yêu cầu quyền/quota, thêm `VIETSCRIBE_HF_TOKEN` ở server (không dùng NEXT_PUBLIC) rồi redeploy. App không tự cấu hình phần cứng hay quota cho Space.
+
+`POST /api/transcribe`: Firebase verified/revocation check → multipart giới hạn 4 MB audio → consent và kiểm tra file → quota UID → Gradio upload/call/SSE → bản chép lời. Timeout 210s, maxDuration 240s. Không gửi URL do người dùng nhập; không log transcript/audio; không lưu audio trong Turso. File âm thanh có thể còn trong cache của Space. Ghi âm tối đa 180s, 64kbps khi trình duyệt hỗ trợ. File dài hơn phải cắt thành đoạn; không tự chia hoặc ghi âm nền.
+
+Kiểm tra thực tế: cấp quyền micro qua HTTPS, ghi/dừng/nghe lại; tải MP3/M4A/WAV; thử từ chối quyền, lỗi Space/quota, transcript rỗng, file quá lớn; sửa và phân loại bản chép lời rồi lưu, reload, hỏi Groq và tạo bộ ôn. Safari có thể dùng M4A thay vì WebM. Bản mẫu không gọi VietScribe.
