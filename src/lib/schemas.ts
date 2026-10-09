@@ -2,6 +2,11 @@ import { z } from "zod";
 const label=z.string().trim().min(1).max(160);
 export const idSchema=z.string().uuid();
 export const gradeSchema=z.number().int().min(6).max(9);
+export const voiceDraftInputSchema=z.object({
+ transcript:z.string().trim().min(10,"Bản chép lời cần ít nhất 10 ký tự.").max(40000),
+ grade:gradeSchema.default(6),subject:z.string().trim().max(160).default(""),
+ consentGemini:z.literal(true,{error:"Cần đồng ý để Gemini sửa lỗi và sắp xếp ghi chép."})
+}).strict();
 export const imageSchema=z.object({name:z.string().max(200),dataUrl:z.string().max(1500000).regex(/^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/]+={0,2}$/)});
 export const noteInputSchema=z.object({
  title:label,subject:label,chapter:label,grade:gradeSchema.default(6),content:z.string().trim().min(10).max(40000),

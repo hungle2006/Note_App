@@ -19,7 +19,7 @@ Kiểm tra nhận diện ảnh viết tay và công thức, hiệu năng ảnh l
 
 ## Xác nhận bản THCS
 - Production build thành công.
-- 62 unit/integration test, 34 luồng Playwright và 9 kiểm tra API handler compile đạt; đã có QA giao diện desktop/mobile sáng/tối và kiểm tra lỗi JavaScript.
+- 63 unit/integration test, 35 luồng Playwright và 9 kiểm tra API handler compile đạt; đã có QA giao diện desktop/mobile sáng/tối và kiểm tra lỗi JavaScript.
 - Vercel đã có biến Firebase/Gemini/Turso; đã có GROQ_API_KEY cho gia sư Groq; chưa kiểm thử các dịch vụ đó bằng tài khoản học sinh thật. Firebase Authentication đã khởi tạo và domain `noteappme.vercel.app` đã được cho phép. Test libSQL local và kiểm tra biến môi trường không chứng minh kết nối Turso cloud.
 
 ## Trạng thái
@@ -35,8 +35,8 @@ Kiểm tra kết nối Firebase dùng UID cố định để xác nhận OAuth v
 - API Space thực tế xác nhận upload/call/SSE đều HTTP 200, nhưng inference trả lỗi hết quota ZeroGPU cho lượt chưa đăng nhập. Chưa xác nhận bản chép lời thật hoặc chất lượng tiếng Việt. Vercel chưa có VIETSCRIBE_HF_TOKEN tại lúc kiểm tra.
 
 ## Biên tập bản ghi bằng Gemini (09/10/2026)
-- Luồng tự động VietScribe → âm thanh gốc + transcript → Gemini → bản nháp Markdown → người học xác nhận lưu. Khi VietScribe lỗi/quota, Gemini đọc âm thanh trực tiếp; cảnh báo nguồn được hiển thị.
-- Unit test kiểm tra inline audio/MIME, JSON có schema, tách dữ liệu nguồn khỏi chỉ dẫn, phản hồi AI sai định dạng và giới hạn multipart theo byte thực tế.
-- Chromium kiểm tra component thật với API dịch vụ mô phỏng: đúng thứ tự gọi, âm thanh được gửi lại cho Gemini, không tự lưu trước xác nhận, fallback khi ZeroGPU hết quota, giữ transcript khi Gemini lỗi và lưu thủ công.
+- Luồng tự động VietScribe → chỉ transcript → Gemini sửa lỗi → bản nháp Markdown → người học xác nhận lưu. VietScribe lỗi/quota thì không gọi Gemini, giữ file để thử lại hoặc tự nhập văn bản.
+- Unit test kiểm tra Gemini chỉ nhận phần text, JSON có schema, tách dữ liệu nguồn khỏi chỉ dẫn, phản hồi AI sai định dạng và giới hạn multipart theo byte thực tế. JSON voice-draft từ chối audio/transcript rỗng/thiếu consent.
+- Chromium kiểm tra component thật với API dịch vụ mô phỏng: đúng thứ tự gọi, JSON gửi Gemini chỉ có transcript/grade/subject/consent, không tự lưu trước xác nhận, không chuyển audio khi ZeroGPU hết quota, gửi đúng văn bản đã sửa dù vẫn chọn file, giữ transcript khi Gemini lỗi và lưu thủ công.
 - Ô nhập có một viền focus, tự giãn theo nội dung và không tràn ngang ở 320px; xem trước Markdown mặc định, có bản chép lời gốc để đối chiếu trước khi lưu.
 - Ghi âm thực bằng MediaRecorder trong Chromium với nguồn âm thanh giả lập; QA desktop/mobile và cả hai theme. Các kiểm tra này chưa xác nhận độ chính xác nhận dạng/biên tập với lời nói thật qua Gemini production hoặc thao tác bằng tài khoản học sinh thật.
