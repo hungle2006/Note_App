@@ -1,7 +1,7 @@
 # Kiểm thử và giới hạn xác nhận
 ## Kiểm tra tự động
 - TypeScript strict và production build (webpack).
-- Kiểm tra trực tiếp 8 trường hợp API handler đã compile, bảo đảm module nạp đồng bộ và request chưa đăng nhập trả 401 JSON; CI chạy test:server-build sau build.
+- Kiểm tra trực tiếp 9 trường hợp API handler đã compile, bảo đảm module nạp đồng bộ và request chưa đăng nhập trả 401 JSON; CI chạy test:server-build sau build.
 - Unit tests: schema note/ảnh/quiz/lớp, chấm điểm server, lịch ôn, dữ liệu THCS, retrieval không dấu/lọc lớp/giới hạn nguồn và Groq HTTP mock (payload nguồn, lỗi key/quota).
 - Playwright: landing, đăng ký khi thiếu config, bản mẫu, thư viện, thêm/sửa/xóa bài, quiz/flashcard/ghép cặp, chat mẫu, mobile, lưu theme sáng/tối, giảm chuyển động và lọc lớp.
 - libSQL integration: migration lặp lại, CRUD/JSON/UTC, phân quyền UID, phân trang, tìm nguồn theo lớp ngoài trang đầu, version bộ ôn, transaction rollback, khóa ngoại, xóa dữ liệu liên quan và quota đồng thời.
@@ -19,8 +19,8 @@ Kiểm tra nhận diện ảnh viết tay và công thức, hiệu năng ảnh l
 
 ## Xác nhận bản THCS
 - Production build thành công.
-- 58 unit/integration test, 30 luồng Playwright và 8 kiểm tra API handler compile đạt; đã có QA giao diện desktop/mobile sáng/tối và kiểm tra lỗi JavaScript.
-- Vercel đã có biến Firebase/Gemini/Turso; cần thêm GROQ_API_KEY cho gia sư Groq; chưa kiểm thử các dịch vụ đó bằng tài khoản học sinh thật. Firebase Authentication đã khởi tạo và domain `noteappme.vercel.app` đã được cho phép. Test libSQL local và kiểm tra biến môi trường không chứng minh kết nối Turso cloud.
+- 62 unit/integration test, 34 luồng Playwright và 9 kiểm tra API handler compile đạt; đã có QA giao diện desktop/mobile sáng/tối và kiểm tra lỗi JavaScript.
+- Vercel đã có biến Firebase/Gemini/Turso; đã có GROQ_API_KEY cho gia sư Groq; chưa kiểm thử các dịch vụ đó bằng tài khoản học sinh thật. Firebase Authentication đã khởi tạo và domain `noteappme.vercel.app` đã được cho phép. Test libSQL local và kiểm tra biến môi trường không chứng minh kết nối Turso cloud.
 
 ## Trạng thái
 Xem trạng thái CI của commit hiện tại tại tab Actions. Không coi nút Cài đặt “đã cấu hình” là health check. Mã nguồn chưa chứa credentials và không tự tạo dịch vụ cloud.
@@ -33,3 +33,10 @@ Kiểm tra kết nối Firebase dùng UID cố định để xác nhận OAuth v
 - Multipart giữ boundary trình duyệt và refresh Firebase đúng một lần. Kiểm tra file/signature/giới hạn, SSE chia UTF-8 và CRLF, heartbeat, rnnlm payload, transcript rỗng/lỗi và quota ZeroGPU.
 - Playwright: tự nhập/chỉnh transcript → phân loại → lưu → reload thư viện; consent/file 4 MB/bản mẫu không gọi AI; từ chối micro; dừng track khi rời màn hình; bố cục 320px. Micro dùng mock ở ranh giới API thiết bị.
 - API Space thực tế xác nhận upload/call/SSE đều HTTP 200, nhưng inference trả lỗi hết quota ZeroGPU cho lượt chưa đăng nhập. Chưa xác nhận bản chép lời thật hoặc chất lượng tiếng Việt. Vercel chưa có VIETSCRIBE_HF_TOKEN tại lúc kiểm tra.
+
+## Biên tập bản ghi bằng Gemini (09/10/2026)
+- Luồng tự động VietScribe → âm thanh gốc + transcript → Gemini → bản nháp Markdown → người học xác nhận lưu. Khi VietScribe lỗi/quota, Gemini đọc âm thanh trực tiếp; cảnh báo nguồn được hiển thị.
+- Unit test kiểm tra inline audio/MIME, JSON có schema, tách dữ liệu nguồn khỏi chỉ dẫn, phản hồi AI sai định dạng và giới hạn multipart theo byte thực tế.
+- Chromium kiểm tra component thật với API dịch vụ mô phỏng: đúng thứ tự gọi, âm thanh được gửi lại cho Gemini, không tự lưu trước xác nhận, fallback khi ZeroGPU hết quota, giữ transcript khi Gemini lỗi và lưu thủ công.
+- Ô nhập có một viền focus, tự giãn theo nội dung và không tràn ngang ở 320px; xem trước Markdown mặc định, có bản chép lời gốc để đối chiếu trước khi lưu.
+- Ghi âm thực bằng MediaRecorder trong Chromium với nguồn âm thanh giả lập; QA desktop/mobile và cả hai theme. Các kiểm tra này chưa xác nhận độ chính xác nhận dạng/biên tập với lời nói thật qua Gemini production hoặc thao tác bằng tài khoản học sinh thật.

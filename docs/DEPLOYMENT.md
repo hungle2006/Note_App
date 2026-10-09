@@ -98,3 +98,8 @@ API cố định: `https://leminhhung0101-vietscribe-ai.hf.space/gradio_api`, en
 `POST /api/transcribe`: Firebase verified/revocation check → multipart giới hạn 4 MB audio → consent và kiểm tra file → quota UID → Gradio upload/call/SSE → bản chép lời. Timeout 210s, maxDuration 240s. Không gửi URL do người dùng nhập; không log transcript/audio; không lưu audio trong Turso. File âm thanh có thể còn trong cache của Space. Ghi âm tối đa 180s, 64kbps khi trình duyệt hỗ trợ. File dài hơn phải cắt thành đoạn; không tự chia hoặc ghi âm nền.
 
 Kiểm tra thực tế: cấp quyền micro qua HTTPS, ghi/dừng/nghe lại; tải MP3/M4A/WAV; thử từ chối quyền, lỗi Space/quota, transcript rỗng, file quá lớn; sửa và phân loại bản chép lời rồi lưu, reload, hỏi Groq và tạo bộ ôn. Safari có thể dùng M4A thay vì WebM. Bản mẫu không gọi VietScribe.
+
+### Gemini kiểm tra và bố trí ghi chép
+`POST /api/voice-draft` nhận multipart audio (không bắt buộc), transcript, grade, subject, consentGemini=true. Auth/quota/giới hạn file giống luồng ghi âm. Máy chủ chuyển âm thanh thành inlineData (MIME chuẩn theo loại file), Gemini đối chiếu transcript và trả extraction JSON đã kiểm tra schema: title/subject/chapter/summary/tags/content Markdown/uncertain. Không tự lưu; người dùng xem bản trình bày và xác nhận lưu vào thư viện. Không thay đổi database schema. Bản gốc để so sánh chỉ giữ ở giao diện trước khi lưu.
+
+Sau nhận dạng bằng VietScribe, app tự gọi Gemini. Nếu VietScribe lỗi và request chưa bị hủy, Gemini nhận trực tiếp audio; bản nháp có thông báo nguồn này. Nếu Gemini lỗi, giữ transcript để thử lại hoặc lưu thủ công. Mỗi lần gọi VietScribe/Gemini tiêu thụ lượt quota chung riêng, kể cả thất bại. Gemini vẫn dùng GEMINI_API_KEY và GEMINI_MODEL; không cần thêm biến mới.
