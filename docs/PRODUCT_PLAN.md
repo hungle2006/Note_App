@@ -1,4 +1,4 @@
-# NoteLab THCS · Kế hoạch sản phẩm v2
+# SmartNote AI THCS · Kế hoạch sản phẩm v2
 ## Mục tiêu
 Giúp học sinh lớp 6–9 hiểu và ôn kiến thức từ chính vở học. Dữ liệu mẫu minh họa mức THCS, không khẳng định bao phủ đầy đủ chương trình của một bộ sách.
 
