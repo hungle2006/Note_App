@@ -1,4 +1,4 @@
-name: Verify NoteLab
+name: Verify SmartNotes AI
 on:
   push:
     branches: [main]

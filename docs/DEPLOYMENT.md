@@ -1,4 +1,4 @@
-# Triển khai SmartNote AI
+# Triển khai SmartNotes AI
 
 ## 1. Firebase Authentication
 Tạo Firebase project và Web app. Bật Email/Password và Google trong Authentication → Sign-in method. Điền 4 biến NEXT_PUBLIC_FIREBASE_* theo .env.example.
@@ -18,7 +18,7 @@ Tạo API key của bạn tại https://console.groq.com/keys. Đặt GROQ_API_K
 Groq chỉ dùng cho gia sư. Gemini tiếp tục nhận diện ảnh và tạo bộ ôn. Gia sư nhận câu hỏi, 10 tin gần nhất và tối đa 4 đoạn nguồn được truy xuất từ Turso theo UID/lớp; không có quyền truy cập database trực tiếp. Hướng dẫn theo THCS không thay thế việc đối chiếu câu trả lời.
 
 ## 4. Turso
-Mở workspace https://app.turso.tech/hungle2006. Chọn một **database libSQL riêng cho SmartNote AI** hoặc tạo database libSQL mới trong gói hiện có. Dự án dùng @libsql/client/http; không dùng database engine Turso rewrite cho cấu hình này.
+Mở workspace https://app.turso.tech/hungle2006. Chọn một **database libSQL riêng cho SmartNotes AI** hoặc tạo database libSQL mới trong gói hiện có. Dự án dùng @libsql/client/http; không dùng database engine Turso rewrite cho cấu hình này.
 
 Trong trang database, lấy Database URL dạng libsql://...turso.io và database token có quyền đọc/ghi. Token phải thuộc đúng database; không dùng organization API token. Không dùng URL dashboard làm URL database. Giữ token ở server, không đặt NEXT_PUBLIC_* và không đưa vào git hoặc chat.
 

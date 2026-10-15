@@ -1,4 +1,4 @@
-"""Rebuild the SmartNote AI hero with Blender's Python runtime.
+"""Rebuild the SmartNotes AI hero with Blender's Python runtime.
 Run: blender --background --python scripts/blender/build_study_atlas.py
 or: a Python interpreter with the official bpy wheel installed.
 """
@@ -39,7 +39,7 @@ for z in [.07,.105,.14,.175,.21]:box('Fine page edge',(.06,-1.493,z),(2.31,.008,
 box('Violet hard cover',(0,0,.34),(2.56,3.16,.12),violet,.09,book)
 box('Cover spine',(-1.14,0,.408),(.12,3.01,.013),lilac,.01,book)
 for y in [-1.1,-.55,0,.55,1.1]:torus('Spiral binding',(-1.24,y,.27),.17,.032,metal,(math.pi/2,0,0),book)
-text('Cover brand','SmartNote',(-.87,.95,.408),.26,white,book);text('Cover AI','AI',(-.85,.59,.408),.35,pale,book)
+text('Cover brand','SmartNotes',(-.87,.95,.408),.26,white,book);text('Cover AI','AI',(-.85,.59,.408),.35,pale,book)
 # An embossed note glyph stays crisp at all WebGL scales.
 for x,angle in [(-.48,-.11),(.02,.11)]:
  o=box('Open notebook glyph',(x,-.12,.425),(.48,.66,.025),white,.055,book);o.rotation_euler.z=angle

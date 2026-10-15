@@ -117,7 +117,7 @@ export function AuthForm({ mode }: { mode: "login" | "register" | "reset" }) {
           <p>
             Từ trang vở viết tay đến thư viện kiến thức.
             <br />
-            Cùng SmartNote AI, học theo cách của riêng bạn.
+            Cùng SmartNotes AI, học theo cách của riêng bạn.
           </p>
           <blockquote>Học để mỗi ngày hiểu thêm một chút.</blockquote>
         </div>

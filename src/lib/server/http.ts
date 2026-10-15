@@ -12,7 +12,7 @@ export function json(data:unknown,status=200){return Response.json(data,{status,
 export function failure(error:unknown){
  const requestId=crypto.randomUUID();
  if(error instanceof ApiError)return json({error:error.message,code:error.code,requestId},error.status);
- console.error("SmartNote AI request failed",{requestId,name:error instanceof Error?error.name:"UnknownError"});
+ console.error("SmartNotes AI request failed",{requestId,name:error instanceof Error?error.name:"UnknownError"});
  return json({error:"Dịch vụ gặp sự cố. Vui lòng thử lại.",code:"INTERNAL",requestId},500);
 }
 export async function readMultipart(request:Request,limit=4_250_000):Promise<FormData>{

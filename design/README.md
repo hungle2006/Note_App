@@ -1,4 +1,4 @@
-# SmartNote AI · Study Atlas
+# SmartNotes AI · Study Atlas
 
 The hero scene is authored in Blender 5.2.2 LTS with the official `bpy` runtime. It is a real mesh scene, not CSS transforms posing as a Blender asset.
 
