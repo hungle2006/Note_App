@@ -5,6 +5,7 @@ import {ApiError,failure,json,readJson} from "@/lib/server/http";
 import {getNote,getChat,saveChat,consumeAiQuota,findTutorNotes} from "@/lib/server/repository";
 import {tutor} from "@/lib/server/groq";
 import {selectTutorSources} from "@/lib/tutor-context";
+import {needsReview} from "@/lib/review";
 export const runtime="nodejs";export const maxDuration=60;
 
 export async function GET(r:Request){try{
@@ -19,6 +20,7 @@ export async function POST(r:Request){try{
  const input=await readJson(r,z.object({message:z.string().trim().min(1).max(3000),noteId:idSchema.optional(),grade:gradeSchema.default(6),mode:z.enum(["explain","hint","practice"]).default("explain")}));
  if(!process.env.GROQ_API_KEY)throw new ApiError(503,"TUTOR_NOT_CONFIGURED","Gia sư Groq chưa được kết nối.");
  const selected=input.noteId?await getNote(u.uid,input.noteId):undefined;
+ if(selected&&needsReview(selected))throw new ApiError(409,"REVIEW_REQUIRED","Bài này đang chờ soát chữ. Hãy kiểm tra và xác nhận trước khi hỏi gia sư theo bài.");
  const history=await getChat(u.uid,input.noteId,input.grade);
  // Follow-up questions use a small amount of the student's previous wording for retrieval.
  const previous=history.filter(m=>m.role==="user").slice(-2).map(m=>m.content).join(" ").slice(-500);

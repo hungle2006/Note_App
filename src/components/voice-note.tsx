@@ -3,6 +3,7 @@ import {useEffect,useRef,useState} from "react";
 import {Mic,Square,UploadCloud,AudioLines,Loader2,FileText,Trash2,ShieldCheck,Sparkles,ArrowRight} from "lucide-react";
 import {api} from "@/lib/client-api";
 import {AUDIO_ACCEPT,AUDIO_MAX_BYTES,AUDIO_MAX_SECONDS,audioFileError} from "@/lib/audio";
+import {createReview} from "@/lib/review";
 import type {NoteInput,Extraction} from "@/lib/schemas";
 export function VoiceNote({demo,onDraft}:{demo:boolean;onDraft:(draft:NoteInput,uncertain?:string[],originalTranscript?:string)=>void}){
  const [file,setFile]=useState<File|null>(null),[url,setUrl]=useState(""),[transcript,setTranscript]=useState(""),[error,setError]=useState(""),[consent,setConsent]=useState(false),[recording,setRecording]=useState(false),[starting,setStarting]=useState(false),[busy,setBusy]=useState(false),[seconds,setSeconds]=useState(0),[grade,setGrade]=useState(6),[subject,setSubject]=useState("");
@@ -25,7 +26,7 @@ export function VoiceNote({demo,onDraft}:{demo:boolean;onDraft:(draft:NoteInput,
  async function organize(text:string,signal:AbortSignal){
   setStage("organize");
   const result=await api<{extraction:Extraction}>("/voice-draft",{method:"POST",body:JSON.stringify({transcript:text,grade,subject,consentGemini:true}),signal});
-  if(alive.current&&!signal.aborted)onDraft({...result.extraction,grade,images:[]},result.extraction.uncertain,text);
+  if(alive.current&&!signal.aborted)onDraft({...result.extraction,grade,images:[],review:createReview("voice",text,[],result.extraction.uncertain)},result.extraction.uncertain,text);
  }
  async function transcribe(){if(!file||!consent||busy)return;setError("");if(demo){setError("Bản mẫu không gửi âm thanh. Đăng nhập tài khoản đã xác minh để nhận dạng thật.");return;}setBusy(true);setStage("recognize");request.current=new AbortController();const signal=request.current.signal;
  try{const form=new FormData();form.append("audio",file);form.append("consent","true");

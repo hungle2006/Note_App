@@ -23,8 +23,8 @@ test('Turso schema is repeatable and SQL-console migration preserves existing no
  await initializeSchema(client);
  await client.executeMultiple(readFileSync(new URL('../database/001_turso.sql',import.meta.url),'utf8'));
  assert.equal((await repo.getNote('alice',n.id)).content,input.content);
- const migrations=await client.execute('SELECT version FROM app_migrations');assert.deepEqual(migrations.rows.map(x=>x.version),[schemaVersion]);
- const tables=await client.execute("SELECT name FROM sqlite_master WHERE type='table' AND name LIKE 'app_%'");assert.equal(tables.rows.length,5);
+ const migrations=await client.execute('SELECT version FROM app_migrations');assert.deepEqual(migrations.rows.map(x=>x.version).sort(),["turso-001",schemaVersion].sort());
+ const tables=await client.execute("SELECT name FROM sqlite_master WHERE type='table' AND name LIKE 'app_%'");assert.equal(tables.rows.length,7);
 });
 
 test('notes round-trip Vietnamese, images and UTC timestamps; all CRUD enforces owner',async t=>{
@@ -116,4 +116,23 @@ test('missing/invalid Turso config fails clearly without opening a connection at
  await assert.rejects(getDatabase(),rejectsCode('DATABASE_CONFIG_INVALID'));
  process.env.TURSO_DATABASE_URL='libsql://';
  await assert.rejects(getDatabase(),rejectsCode('DATABASE_UNAVAILABLE'));
+});
+
+test('review metadata and reference excerpts survive server storage with UID isolation',async t=>{
+ const {repo}=await database(t);const review={source:'image' as const,originalText:'Bản OCR có số 12 m/s.',issues:[{quote:'12 m/s',reason:'Cần so lại',kind:'unit' as const,page:1}],confirmed:false,reference:{label:'SGK do người học cung cấp',excerpt:'Một đoạn trích đủ dài để đối chiếu bài học này.'}};
+ const n=await repo.saveNote('alice',{...input,review});assert.deepEqual((await repo.getNote('alice',n.id)).review,review);await assert.rejects(repo.getNote('bob',n.id),rejectsCode('NOT_FOUND'));
+});
+test('saving page evaluation preserves the learning version, study and attempts and guards stale/foreign writes',async t=>{
+ const {repo}=await database(t);const n=await repo.saveNote('alice',input);await repo.saveStudy('alice',n.id,sampleStudy,n.updatedAt);await repo.saveAttempt('alice',attempt(n.id));const e={page:1,writer:'HS01',condition:'clear' as const,ocrText:'Bản OCR',expectedText:'Bản chuẩn',wrong:1,missing:1,falseCorrections:0};
+ const updated=await repo.saveEvaluation('alice',n.id,e,n.updatedAt);assert.equal(updated.updatedAt,n.updatedAt);assert.deepEqual(updated.study,sampleStudy);assert.equal((await repo.listAttempts('alice')).length,1);assert.deepEqual(updated.review?.evaluations,[e]);assert.equal((await repo.listEvaluationNotes('alice')).length,1);assert.deepEqual(await repo.listEvaluationNotes('bob'),[]);await assert.rejects(repo.saveEvaluation('bob',n.id,e,n.updatedAt),rejectsCode('NOT_FOUND'));await assert.rejects(repo.saveEvaluation('alice',n.id,e,'old'),rejectsCode('NOTE_CHANGED'));
+});
+test('server ledger earns once per note/mode/day, excludes self-assessed cards and never trusts client reward costs',async t=>{
+ const {repo}=await database(t);const n=await repo.saveNote('alice',input);const a=attempt(n.id);await repo.saveAttempt('alice',{...a,score:5});await repo.saveAttempt('alice',{...a,id:crypto.randomUUID(),score:5});await repo.saveAttempt('alice',{...a,id:crypto.randomUUID(),mode:'flashcards',score:5});assert.equal((await repo.getWallet('alice')).balance,10);assert.equal((await repo.getWallet('bob')).balance,0);
+ await assert.rejects(repo.redeemReward('bob','curious-star'),rejectsCode('INSUFFICIENT_POINTS'));await assert.rejects(repo.redeemReward('alice','client-invented-free-reward'),rejectsCode('REWARD_INVALID'));await repo.redeemReward('alice','curious-star');const w=await repo.getWallet('alice');assert.equal(w.balance,0);assert.equal(w.earned,10);assert.equal(w.redeemed.length,1);await assert.rejects(repo.redeemReward('alice','curious-star'),rejectsCode('ALREADY_REDEEMED'));assert.equal((await repo.getWallet('alice')).balance,0);
+});
+test('a failed redemption rolls back the badge and debit together',async t=>{
+ const {repo,client}=await database(t);const n=await repo.saveNote('alice',input);await repo.saveAttempt('alice',{...attempt(n.id),score:5});await client.execute("CREATE TRIGGER fail_reward BEFORE INSERT ON app_points_ledger WHEN NEW.kind='redeem' BEGIN SELECT RAISE(ABORT,'test failure'); END");await assert.rejects(repo.redeemReward('alice','curious-star'));const w=await repo.getWallet('alice');assert.equal(w.balance,10);assert.deepEqual(w.redeemed,[]);
+});
+test('stale practice results cannot award points after the note changes',async t=>{
+ const {repo}=await database(t);const n=await repo.saveNote('alice',input);await repo.saveNote('alice',{...input,content:input.content+' Nội dung mới.'},n.id);await assert.rejects(repo.saveAttempt('alice',attempt(n.id),n.updatedAt),rejectsCode('NOTE_CHANGED'));assert.equal((await repo.getWallet('alice')).balance,0);assert.deepEqual(await repo.listAttempts('alice'),[]);
 });

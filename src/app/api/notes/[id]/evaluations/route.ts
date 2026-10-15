@@ -1,0 +1,3 @@
+import {z} from 'zod';import {idSchema,evaluationSchema} from '@/lib/schemas';import {requireUser} from '@/lib/server/auth';import {ApiError,failure,json,readJson} from '@/lib/server/http';import {saveEvaluation} from '@/lib/server/repository';
+export const runtime='nodejs';
+export async function POST(r:Request,{params}:{params:Promise<{id:string}>}){try{const u=await requireUser(r),{id}=await params;if(!idSchema.safeParse(id).success)throw new ApiError(400,'INVALID_ID','Mã bài không hợp lệ.');const p=await readJson(r,z.object({evaluation:evaluationSchema,version:z.string().min(1).max(80)}).strict(),150000);return json({note:await saveEvaluation(u.uid,id,p.evaluation,p.version)});}catch(e){return failure(e);}}

@@ -103,3 +103,14 @@ Kiểm tra thực tế: cấp quyền micro qua HTTPS, ghi/dừng/nghe lại; t�
 `POST /api/voice-draft` chỉ nhận JSON gồm transcript (10–40.000 ký tự), grade, subject, consentGemini=true. Schema strict từ chối trường audio và endpoint từ chối multipart; giới hạn body 180 KB. Auth/quota vẫn bắt buộc. Gemini chỉ biên tập văn bản: sửa lỗi rõ ràng, trả extraction JSON đã kiểm tra schema (title/subject/chapter/summary/tags/content Markdown/uncertain). Không tự lưu; người dùng xem bản trình bày và xác nhận lưu vào thư viện. Không thay đổi database schema. Bản gốc để so sánh chỉ giữ ở giao diện trước khi lưu.
 
 Luồng tự động: VietScribe rnnlm → transcript → Gemini sửa lỗi và tạo note. Không gửi âm thanh cho Gemini và không dùng Gemini làm fallback ASR. VietScribe lỗi/quota thì giữ file để thử lại hoặc nhập văn bản. Gemini lỗi thì giữ transcript để sửa/lưu thủ công. Dùng GEMINI_API_KEY hiện có; hai lượt AI quota khi gọi cả ASR và Gemini.
+
+## Soát chữ, sổ đánh giá và điểm/huy hiệu (15/10/2026)
+- Không cần biến môi trường mới. Giữ Firebase, Gemini, Groq và Turso hiện có.
+- Runtime bootstrap áp dụng additive `turso-002` gồm `app_points_ledger` và `app_redemptions`; không xóa/sửa cấu trúc bảng bài học cũ. Có bản SQL ở `database/002_review_rewards.sql` nếu quản trị chạy thủ công. Review/evaluation/reference nằm trong content_json theo UID.
+- `POST /api/review`: content + reference label/excerpt + grade/subject + consent=true; Gemini kiểm tra dựa trên đoạn người dùng cung cấp. Không tự tìm SGK trên web.
+- `GET /api/evaluations`: metadata các trang đã đánh giá, không tải ảnh; `POST /api/notes/:id/evaluations`: evaluation + version, không đổi version học tập hoặc xóa study/attempts.
+- `GET /api/rewards`: số dư/điểm tích lũy/huy hiệu/sự kiện; `POST /api/rewards`: chỉ rewardId. Giá và số điểm do server quyết định. Chỉ quiz/match được chấm ở server cộng điểm một lần/bài/mode/ngày UTC. Flashcard không cộng điểm. Sổ điểm giữ độc lập khi xóa bài.
+- Giao diện bản mẫu lưu trên thiết bị, không dùng để chứng minh cloud persistence. Thử bằng hai tài khoản thật, reload trên thiết bị khác, kiểm tra quyền UID và lỗi mạng trước khi mở rộng cho học sinh.
+
+## Dựng lại cảnh 3D
+File thiết kế `design/study-atlas.blend`; script `scripts/blender/build_study_atlas.py`. Chạy Blender background hoặc Python với bpy 5.2.2 chính thức. Script xuất `public/models/study-atlas.glb` và `public/images/study-atlas.webp`. Three.js 0.186.1 tải model khi cảnh nằm gần viewport trên desktop. Điện thoại/giảm chuyển động/lỗi WebGL dùng poster; không cần API 3D hay dịch vụ bên ngoài.

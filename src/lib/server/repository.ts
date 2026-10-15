@@ -2,10 +2,14 @@ import type {Client, Row, Transaction} from "@libsql/client";
 import {getDatabase} from "./turso";
 import {ApiError} from "./http";
 import {noteSearchText,queryTerms,type TutorMessage} from "../tutor-context";
-import type {Note,NoteInput,StudySet,Attempt} from "../schemas";
+import type {Note,NoteInput,StudySet,Attempt,OcrEvaluation} from "../schemas";
+
+import {rewardCatalog,type RewardWallet} from "../rewards";
+import {mergeEvaluation,createReview} from "../review";
 
 function asNote(r:Row):Note {
  const content=r.content_json?JSON.parse(String(r.content_json)):{};
+ if(!content.review&&((r.images_json&&JSON.parse(String(r.images_json)).length>0)||Number(r.image_count)>0))content.review=createReview("image",content.content||"");
  return {...content,id:String(r.note_id),grade:Number(r.grade),title:String(r.title),subject:String(r.subject),chapter:String(r.chapter),content:content.content||"",summary:content.summary??String(r.summary||""),tags:JSON.parse(String(r.tags_json||"[]")),images:r.images_json?JSON.parse(String(r.images_json)):[],study:r.study_json?JSON.parse(String(r.study_json)):undefined,createdAt:String(r.created_at),updatedAt:String(r.updated_at)};
 }
 async function write<T>(client:Client,work:(tx:Transaction)=>Promise<T>):Promise<T> {
@@ -64,11 +68,41 @@ export function createRepository(client:Client) {
     ON CONFLICT(user_id,usage_day) DO UPDATE SET used_count=used_count+1 WHERE used_count<:lim RETURNING used_count`,args:{uid,day:new Date().toISOString().slice(0,10),lim}});
    if(!r.rows.length)throw new ApiError(429,"DAILY_LIMIT",`Đã hết ${lim} lượt AI hôm nay. Đặt lại lúc 07:00 giờ Việt Nam.`);
   },
-  async saveAttempt(uid:string,a:Attempt) {
+  async saveAttempt(uid:string,a:Attempt,version?:string) {
    await write(client,async tx=>{
     const owned=await tx.execute({sql:"SELECT note_id FROM app_notes WHERE user_id=:uid AND note_id=:id",args:{uid,id:a.noteId}});
     if(!owned.rows.length)throw missing();
+    if(version){const current=await tx.execute({sql:"SELECT updated_at FROM app_notes WHERE user_id=:uid AND note_id=:id",args:{uid,id:a.noteId}});if(String(current.rows[0].updated_at)!==version)throw new ApiError(409,"NOTE_CHANGED","Bài vừa đổi. Hãy mở lại bộ ôn trước khi lưu kết quả.");}
     await tx.execute({sql:"INSERT INTO app_attempts(attempt_id,user_id,note_id,mode,score,total,next_review_at) VALUES(:id,:uid,:noteId,:mode,:score,:total,:nextReviewAt)",args:{id:a.id,uid,noteId:a.noteId,mode:a.mode,score:a.score,total:a.total,nextReviewAt:a.nextReviewAt}});
+    // Flashcards are self-assessed; only server-graded quiz/matching earn virtual points.
+    if(a.mode!=="flashcards"&&a.score>0)await tx.execute({sql:"INSERT INTO app_points_ledger(event_id,user_id,source_key,kind,amount,label) VALUES(:event,:uid,:source,'practice',:amount,:label) ON CONFLICT(user_id,source_key) DO NOTHING",args:{event:crypto.randomUUID(),uid,source:`practice:${a.noteId}:${a.mode}:${new Date().toISOString().slice(0,10)}`,amount:a.score*2,label:a.mode==='quiz'?'Hoàn thành quiz':'Hoàn thành ghép đôi'}});
+   });
+  },
+  async saveEvaluation(uid:string,id:string,evaluation:OcrEvaluation,version:string){
+   return write(client,async tx=>{
+    const r=await tx.execute({sql:"SELECT * FROM app_notes WHERE user_id=:uid AND note_id=:id",args:{uid,id}});if(!r.rows.length)throw missing();const n=asNote(r.rows[0]);
+    if(n.updatedAt!==version)throw new ApiError(409,"NOTE_CHANGED","Bài đã đổi. Hãy mở lại trước khi ghi kết quả đánh giá.");
+    const input=mergeEvaluation(n,evaluation);const {images,...content}=input;
+    await tx.execute({sql:"UPDATE app_notes SET content_json=:content WHERE user_id=:uid AND note_id=:id",args:{uid,id,content:JSON.stringify(content)}});
+    const result=await tx.execute({sql:"SELECT * FROM app_notes WHERE user_id=:uid AND note_id=:id",args:{uid,id}});return asNote(result.rows[0]);
+   });
+  },
+  async listEvaluationNotes(uid:string){const r=await client.execute({sql:"SELECT note_id,title,json_extract(content_json,'$.review.evaluations') evaluations_json FROM app_notes WHERE user_id=:uid AND json_array_length(json_extract(content_json,'$.review.evaluations'))>0 ORDER BY updated_at DESC LIMIT 500",args:{uid}});return r.rows.map(x=>({id:String(x.note_id),title:String(x.title),review:{evaluations:JSON.parse(String(x.evaluations_json)) as OcrEvaluation[]}}));},
+  async getWallet(uid:string):Promise<RewardWallet>{
+   const [totals,rewards,events]=await client.batch([
+    {sql:"SELECT COALESCE(SUM(amount),0) balance,COALESCE(SUM(CASE WHEN amount>0 THEN amount ELSE 0 END),0) earned FROM app_points_ledger WHERE user_id=:uid",args:{uid}},
+    {sql:"SELECT reward_id,created_at FROM app_redemptions WHERE user_id=:uid ORDER BY created_at DESC",args:{uid}},
+    {sql:"SELECT * FROM app_points_ledger WHERE user_id=:uid ORDER BY created_at DESC,event_id LIMIT 100",args:{uid}}
+   ],"read");
+   return {balance:Number(totals.rows[0].balance),earned:Number(totals.rows[0].earned),redeemed:rewards.rows.map(r=>({rewardId:String(r.reward_id),createdAt:String(r.created_at)})),history:events.rows.map(r=>({id:String(r.event_id),amount:Number(r.amount),kind:r.kind as 'practice'|'redeem',label:String(r.label),createdAt:String(r.created_at)}))};
+  },
+  async redeemReward(uid:string,rewardId:string){
+   const reward=rewardCatalog.find(r=>r.id===rewardId);if(!reward)throw new ApiError(400,"REWARD_INVALID","Huy hiệu không tồn tại.");
+   await write(client,async tx=>{
+    const owned=await tx.execute({sql:"SELECT reward_id FROM app_redemptions WHERE user_id=:uid AND reward_id=:id",args:{uid,id:reward.id}});if(owned.rows.length)throw new ApiError(409,"ALREADY_REDEEMED","Em đã nhận huy hiệu này.");
+    const balance=await tx.execute({sql:"SELECT COALESCE(SUM(amount),0) balance FROM app_points_ledger WHERE user_id=:uid",args:{uid}});if(Number(balance.rows[0].balance)<reward.cost)throw new ApiError(409,"INSUFFICIENT_POINTS","Em chưa đủ điểm để đổi huy hiệu này.");
+    await tx.execute({sql:"INSERT INTO app_redemptions(user_id,reward_id) VALUES(:uid,:id)",args:{uid,id:reward.id}});
+    await tx.execute({sql:"INSERT INTO app_points_ledger(event_id,user_id,source_key,kind,amount,label) VALUES(:event,:uid,:source,'redeem',:amount,:label)",args:{event:crypto.randomUUID(),uid,source:'reward:'+reward.id,amount:-reward.cost,label:'Đổi '+reward.name}});
    });
   },
   async listAttempts(uid:string):Promise<Attempt[]> {
@@ -91,7 +125,7 @@ export function createRepository(client:Client) {
    const args:Record<string,string|number>={uid,grade};
    const predicates=terms.map((t,i)=>{args["q"+i]=t;return "instr(search_text,:q"+i+")>0";});
    // Owner and grade are always SQL filters. Images are excluded from tutor retrieval.
-   const r=await client.execute({sql:"SELECT note_id,grade,title,subject,chapter,summary,tags_json,content_json,created_at,updated_at FROM app_notes WHERE user_id=:uid AND grade=:grade AND ("+predicates.join(" OR ")+") ORDER BY ("+predicates.map(p=>"CASE WHEN "+p+" THEN 1 ELSE 0 END").join("+")+") DESC,updated_at DESC LIMIT 80",args});
+   const r=await client.execute({sql:"SELECT note_id,grade,title,subject,chapter,summary,tags_json,content_json,json_array_length(images_json) image_count,created_at,updated_at FROM app_notes WHERE user_id=:uid AND grade=:grade AND ("+predicates.join(" OR ")+") ORDER BY ("+predicates.map(p=>"CASE WHEN "+p+" THEN 1 ELSE 0 END").join("+")+") DESC,updated_at DESC LIMIT 80",args});
    return r.rows.map(asNote);
   },
  };
@@ -103,8 +137,14 @@ export async function saveNote(uid:string,input:NoteInput,id?:string){return (aw
 export async function deleteNote(uid:string,id:string){return (await repository()).deleteNote(uid,id);}
 export async function saveStudy(uid:string,id:string,study:StudySet,version:string){return (await repository()).saveStudy(uid,id,study,version);}
 export async function consumeAiQuota(uid:string){return (await repository()).consumeAiQuota(uid);}
-export async function saveAttempt(uid:string,a:Attempt){return (await repository()).saveAttempt(uid,a);}
+export async function saveAttempt(uid:string,a:Attempt,version?:string){return (await repository()).saveAttempt(uid,a,version);}
 export async function listAttempts(uid:string){return (await repository()).listAttempts(uid);}
 export async function getChat(uid:string,noteId?:string,grade=6){return (await repository()).getChat(uid,noteId,grade);}
 export async function saveChat(uid:string,messages:Message[],noteId?:string,grade=6){return (await repository()).saveChat(uid,messages,noteId,grade);}
 export async function findTutorNotes(uid:string,question:string,grade:number){return (await repository()).findTutorNotes(uid,question,grade);}
+
+export async function saveEvaluation(uid:string,id:string,evaluation:OcrEvaluation,version:string){return (await repository()).saveEvaluation(uid,id,evaluation,version);}
+export async function getWallet(uid:string){return (await repository()).getWallet(uid);}
+export async function redeemReward(uid:string,rewardId:string){return (await repository()).redeemReward(uid,rewardId);}
+
+export async function listEvaluationNotes(uid:string){return (await repository()).listEvaluationNotes(uid);}

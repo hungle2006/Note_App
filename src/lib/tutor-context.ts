@@ -1,3 +1,4 @@
+import {needsReview} from "./review";
 import type {Note} from "./schemas";
 
 export type TutorSource={noteId:string;title:string;subject:string;chapter:string;grade:number;reference:number;excerpt:string};
@@ -10,7 +11,7 @@ export function noteSearchText(note:Pick<Note,"title"|"subject"|"chapter"|"summa
 function scoreText(text:string,terms:string[]){const words=new Set(foldText(text).match(/[a-z0-9]+/g)||[]);return terms.reduce((n,t)=>n+(words.has(t)?1:0),0);}
 export function selectTutorSources(notes:Note[],question:string,{grade,noteId}:{grade?:number;noteId?:string}={}):TutorSource[]{
  const terms=queryTerms(question);
- const ranked=notes.filter(n=>noteId?n.id===noteId:!grade||n.grade===grade).map(n=>({note:n,score:scoreText(n.title,terms)*5+scoreText(n.subject+" "+n.chapter+" "+n.tags.join(" "),terms)*2+scoreText(n.content,terms)})).filter(r=>noteId||scoreText(noteSearchText(r.note),terms)>=Math.max(1,Math.ceil(terms.length*.6))).sort((a,b)=>b.score-a.score||b.note.updatedAt.localeCompare(a.note.updatedAt)).slice(0,4);
+ const ranked=notes.filter(n=>!needsReview(n)).filter(n=>noteId?n.id===noteId:!grade||n.grade===grade).map(n=>({note:n,score:scoreText(n.title,terms)*5+scoreText(n.subject+" "+n.chapter+" "+n.tags.join(" "),terms)*2+scoreText(n.content,terms)})).filter(r=>noteId||scoreText(noteSearchText(r.note),terms)>=Math.max(1,Math.ceil(terms.length*.6))).sort((a,b)=>b.score-a.score||b.note.updatedAt.localeCompare(a.note.updatedAt)).slice(0,4);
  let remaining=16000;
  return ranked.map(({note:n},i)=>{
   const chunks=n.content.split(/\n\s*\n/).flatMap(p=>p.length>1800?(p.match(/[\s\S]{1,1800}/g)||[]):[p]);

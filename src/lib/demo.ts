@@ -1,5 +1,6 @@
 import type {Note,StudySet} from "./schemas";
 export const sampleStudy:StudySet={
+ overview:{summary:"Cộng phân số cùng mẫu bằng cách cộng tử số và giữ mẫu số. Với các mẫu khác nhau, cần quy đồng trước. Rút gọn kết quả và luôn kiểm tra mẫu số khác 0.",keyIdeas:["Phân số biểu diễn một phần của đơn vị.","Cùng mẫu: cộng tử số, giữ nguyên mẫu.","Khác mẫu: quy đồng rồi cộng.","Rút gọn kết quả và kiểm tra mẫu số."],mindMap:[{title:"Cùng mẫu",details:["Cộng các tử số","Giữ nguyên mẫu số","3/4 + 1/4 = 1"]},{title:"Khác mẫu",details:["Tìm mẫu chung","Quy đồng tử và mẫu","1/2 + 1/3 = 5/6"]},{title:"Kiểm tra",details:["Mẫu số khác 0","Rút gọn kết quả","Không cộng hai mẫu số"]}]},
  flashcards:[
   {question:"Phân số biểu diễn điều gì?",answer:"Một phần của đơn vị được chia thành các phần bằng nhau."},
   {question:"Cộng hai phân số cùng mẫu số như thế nào?",answer:"Cộng tử số và giữ nguyên mẫu số."},

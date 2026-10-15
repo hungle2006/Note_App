@@ -1,7 +1,7 @@
 # Kiểm thử và giới hạn xác nhận
 ## Kiểm tra tự động
 - TypeScript strict và production build (webpack).
-- Kiểm tra trực tiếp 9 trường hợp API handler đã compile, bảo đảm module nạp đồng bộ và request chưa đăng nhập trả 401 JSON; CI chạy test:server-build sau build.
+- Kiểm tra trực tiếp 14 trường hợp API handler đã compile, bảo đảm module nạp đồng bộ và request chưa đăng nhập trả 401 JSON; CI chạy test:server-build sau build.
 - Unit tests: schema note/ảnh/quiz/lớp, chấm điểm server, lịch ôn, dữ liệu THCS, retrieval không dấu/lọc lớp/giới hạn nguồn và Groq HTTP mock (payload nguồn, lỗi key/quota).
 - Playwright: landing, đăng ký khi thiếu config, bản mẫu, thư viện, thêm/sửa/xóa bài, quiz/flashcard/ghép cặp, chat mẫu, mobile, lưu theme sáng/tối, giảm chuyển động và lọc lớp.
 - libSQL integration: migration lặp lại, CRUD/JSON/UTC, phân quyền UID, phân trang, tìm nguồn theo lớp ngoài trang đầu, version bộ ôn, transaction rollback, khóa ngoại, xóa dữ liệu liên quan và quota đồng thời.
@@ -19,7 +19,7 @@ Kiểm tra nhận diện ảnh viết tay và công thức, hiệu năng ảnh l
 
 ## Xác nhận bản THCS
 - Production build thành công.
-- 63 unit/integration test, 35 luồng Playwright và 9 kiểm tra API handler compile đạt; đã có QA giao diện desktop/mobile sáng/tối và kiểm tra lỗi JavaScript.
+- 74 unit/integration test, 41 luồng Playwright và 14 kiểm tra API handler compile đạt; đã có QA giao diện desktop/mobile sáng/tối và kiểm tra lỗi JavaScript.
 - Vercel đã có biến Firebase/Gemini/Turso; đã có GROQ_API_KEY cho gia sư Groq; chưa kiểm thử các dịch vụ đó bằng tài khoản học sinh thật. Firebase Authentication đã khởi tạo và domain `noteappme.vercel.app` đã được cho phép. Test libSQL local và kiểm tra biến môi trường không chứng minh kết nối Turso cloud.
 
 ## Trạng thái
@@ -40,3 +40,11 @@ Kiểm tra kết nối Firebase dùng UID cố định để xác nhận OAuth v
 - Chromium kiểm tra component thật với API dịch vụ mô phỏng: đúng thứ tự gọi, JSON gửi Gemini chỉ có transcript/grade/subject/consent, không tự lưu trước xác nhận, không chuyển audio khi ZeroGPU hết quota, gửi đúng văn bản đã sửa dù vẫn chọn file, giữ transcript khi Gemini lỗi và lưu thủ công.
 - Ô nhập có một viền focus, tự giãn theo nội dung và không tràn ngang ở 320px; xem trước Markdown mặc định, có bản chép lời gốc để đối chiếu trước khi lưu.
 - Ghi âm thực bằng MediaRecorder trong Chromium với nguồn âm thanh giả lập; QA desktop/mobile và cả hai theme. Các kiểm tra này chưa xác nhận độ chính xác nhận dạng/biên tập với lời nói thật qua Gemini production hoặc thao tác bằng tài khoản học sinh thật.
+
+## Cải tiến từ góp ý (15/10/2026)
+- Đã kiểm tra bản cũ bằng Chromium trước khi chỉnh sửa; ảnh QA trước thay đổi được giữ trong phiên làm việc để so sánh.
+- Review: ảnh/bản chữ gốc cạnh nội dung, marks exact-quote cho lỗi OCR và dấu riêng cho số/công thức/đơn vị. Màu không phải confidence score. Sửa content đặt lại confirmed; study và tutor-source chặn các bài có review pending. Bài ảnh cũ chưa có trạng thái review được yêu cầu soát chữ khi mở; bài tự viết không có ảnh giữ tương thích.
+- SGK: API nhận đoạn nguồn người dùng cung cấp, yêu cầu đồng ý, kiểm tra quote/sourceQuote thật sự nằm trong hai văn bản. Trích dẫn không khớp bị hạ xuống ask_teacher, xóa đề xuất; không tự sửa bài. Chưa xác minh danh tính sách hoặc độ đúng chuyên môn của đoạn nguồn.
+- Evaluation: mã người viết, điều kiện ảnh, lỗi đọc sai/bỏ sót/đính chính sai, CER và CSV. Dữ liệu chỉ có sau khi người kiểm tra nhập. Lưu metadata không hủy bộ ôn/kết quả; kiểm tra stale version và UID. Chưa có bộ 20 trang thật từ 5–6 người để báo kết quả OCR thực nghiệm.
+- Rewards: libSQL thật local kiểm tra điểm một lần/bài/mode/ngày, loại flashcard, giá đổi do server quyết định, UID, số dư, chống đổi hai lần và transaction rollback. Không gọi Turso cloud bằng tài khoản học sinh trong các test này.
+- Blender 5.2.2 LTS: dựng bằng bpy chính thức, giữ project .blend và script, xuất GLB ~1 MB và poster WebP 1200px ~31 KB. WebGL tải chậm theo viewport, giới hạn pixel ratio và 30 fps; dừng khi rời viewport, giảm chuyển động dùng poster. Kiểm tra cleanup khi unmount.
