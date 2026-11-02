@@ -3,7 +3,7 @@ import {useMemo,useState} from "react";
 import {Check,ChevronDown,Clock,Search,SlidersHorizontal,Sparkles,Target} from "lucide-react";
 import {FITNESS_CATEGORIES,FITNESS_LIBRARY,searchFitnessLibrary,type FitnessCategory,type FitnessLevel} from "@/lib/fitness-catalog";
 import styles from "./fitness.module.css";
-const PAGE_SIZE=12;
+const PAGE_SIZE=6;
 export function FitnessLibraryPicker({selectedId,onSelect}:{selectedId:string;onSelect:(id:string)=>void}){
  const [query,setQuery]=useState("");
  const [category,setCategory]=useState<FitnessCategory>("all");
