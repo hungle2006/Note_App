@@ -237,3 +237,17 @@
  .catalogMeta{gap:3px}
  .guideClockActions .controlPrimary{width:100%;flex-basis:100%}
 }
+
+/* One full-width workout studio, with shared history beneath it. */
+.layout{grid-template-columns:minmax(0,1fr)}
+.historyPanel{margin:15px 0 0;min-width:0}
+.historyPanel>.panel{width:100%}
+.root{width:100%;overflow-x:clip}
+@media(max-width:760px){
+ .root>.hero{margin-bottom:12px}
+ .root>.stats{margin-bottom:11px}
+ .historyPanel{margin:11px 0 0}
+ .historyPanel>.panel{border-radius:17px}
+ .selectedWorkout{scroll-margin-top:77px}
+ .libraryPanel,.guideStudio,.historyPanel{max-width:100%}
+}
