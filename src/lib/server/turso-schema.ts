@@ -1,6 +1,6 @@
 import type {Client} from "@libsql/client";
 
-export const schemaVersion = "turso-002";
+export const schemaVersion = "turso-003";
 // Additive, idempotent bootstrap. No existing database is dropped or cleared.
 export const schemaStatements = [
  `CREATE TABLE IF NOT EXISTS app_migrations (
@@ -49,6 +49,17 @@ export const schemaStatements = [
   UNIQUE(user_id,source_key)
  )`,
  `CREATE INDEX IF NOT EXISTS app_points_owner ON app_points_ledger(user_id,created_at DESC)`,
+ `CREATE TABLE IF NOT EXISTS app_fitness_sessions (
+  session_id TEXT PRIMARY KEY,
+  user_id TEXT NOT NULL,
+  exercise TEXT NOT NULL CHECK (exercise IN ('squat','chair','pushup','jack','knees','press','arms')),
+  reps INTEGER NOT NULL CHECK (reps BETWEEN 1 AND 500),
+  duration_seconds INTEGER NOT NULL CHECK (duration_seconds BETWEEN 0 AND 7200),
+  points REAL NOT NULL CHECK (points >= 0),
+  created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
+  UNIQUE (user_id,session_id)
+ )`,
+ `CREATE INDEX IF NOT EXISTS app_fitness_owner_created ON app_fitness_sessions(user_id,created_at DESC)`,
  `CREATE TABLE IF NOT EXISTS app_redemptions (
   user_id TEXT NOT NULL, reward_id TEXT NOT NULL,
   created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
