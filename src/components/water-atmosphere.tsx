@@ -2,229 +2,154 @@
 
 import {useEffect,useRef} from "react";
 
-type Blob={x:number;y:number;vx:number;vy:number;r:number;mass:number;phase:number;squash:number;tilt:number};
-type Spray={x:number;y:number;vx:number;vy:number;r:number;life:number;maxLife:number};
-type Palette={warm:string;cool:string;highlight:string;rim:string;bridge:string;spark:string};
+type Pair={x:number;y:number;angle:number;r1:number;r2:number;spread:number;period:number;offset:number;drift:number};
+type Floater={x:number;y:number;r:number;phase:number;speed:number};
+type Palette={warm:string;cool:string;highlight:string;rim:string};
+const TAU=Math.PI*2;
+const anchors=[
+ [.13,.16],[.80,.15],[.36,.35],[.89,.51],[.12,.69],
+ [.64,.75],[.44,.89],[.75,.37],[.20,.46],[.91,.85]
+];
+function clamp(v:number,a:number,b:number){return Math.min(b,Math.max(a,v));}
+function mix(a:number,b:number,t:number){return a+(b-a)*t;}
+function smooth(t:number){return t*t*(3-2*t);}
+function channel(rgb:string,alpha:number){return "rgba("+rgb+","+clamp(alpha,0,1).toFixed(3)+")";}
+function palette(dark:boolean):Palette{return dark?
+ {warm:"235,173,133",cool:"175,208,217",highlight:"255,240,226",rim:"224,168,139"}:
+ {warm:"223,158,121",cool:"175,210,211",highlight:"255,255,249",rim:"203,153,121"};}
 
-/**
- * Real-time 2D liquid-body physics with mass-weighted elastic collisions,
- * viscous impulses, proximity bridges (metaball-like), and spray particles.
- * Canvas shading adds a glossy 3D look; it is NOT a full fluid solver.
- * Desktop: 34 variable-size bodies + up to 70 splashes @ ~36 fps.
- * Mobile: 14 bodies + up to 22 splashes @ ~22 fps at lower pixel density.
- * Unmounting on 3D off cancels the animation and frees its canvas.
+/** Each pair independently approaches, lightly touches and rebounds.
+ * No metaball bridge, liquid attachment or joining line is ever drawn.
+ * Canvas is transparent, passive and fully unmounted by the 3D switch.
  */
-const PHI=2.399963229728653;
-function limit(v:number,lo:number,hi:number){return Math.max(lo,Math.min(hi,v));}
-function palette(dark:boolean):Palette{
- return dark
-  ?{warm:"238,162,113",cool:"154,186,205",highlight:"255,245,224",rim:"254,188,142",bridge:"235,157,125",spark:"251,208,161"}
-  :{warm:"225,154,111",cool:"169,204,209",highlight:"255,255,249",rim:"199,125,85",bridge:"227,167,135",spark:"255,212,154"};
-}
-function color(rgb:string,alpha:number){return "rgba("+rgb+","+limit(alpha,0,1).toFixed(3)+")";}
-
 export function WaterAtmosphere({active}:{active:boolean}){
- const ref=useRef<HTMLCanvasElement>(null);
+ const canvasRef=useRef<HTMLCanvasElement>(null);
  useEffect(()=>{
-  if(!active||!ref.current||window.matchMedia("(prefers-reduced-motion: reduce)").matches)return;
-  const canvas=ref.current;
-  const ctx=canvas.getContext("2d",{alpha:true,desynchronized:true});
+  if(!active||!canvasRef.current||matchMedia("(prefers-reduced-motion: reduce)").matches)return;
+  const canvas=canvasRef.current,ctx=canvas.getContext("2d",{alpha:true,desynchronized:true});
   if(!ctx)return;
-  let mobile=innerWidth<=760,width=innerWidth,height=innerHeight;
-  let dpr=1,raf=0,last=0,t=0,acc=0,frames=0,visible=!document.hidden,stopped=false;
-  let bodies:Blob[]=[],sprays:Spray[]=[];
-  const collisionClock=new Map<number,number>();
-  let p=palette(document.documentElement.dataset.theme==="dark");
-  // These particles are decorative, not interactive; deterministic initialization
-  // avoids bursts of random allocation during animation.
-  let seed=173291;
-  const rand=()=>{seed=(seed*1664525+1013904223)>>>0;return seed/4294967296;};
-  const count=()=>mobile?14:34;
-  const maxSprays=()=>mobile?22:70;
-  const fillTarget=()=>mobile?22:36;
-  const rmin=()=>mobile?10:16;
-  const rmax=()=>mobile?43:74;
-
-  function populate(){
-   bodies=Array.from({length:count()},(_,i)=>{
-    const mix=rand(),radius=rmin()+Math.pow(mix,1.3)*(rmax()-rmin());
-    const angle=i*PHI+rand()*.8;
-    const x=limit(width/2+Math.cos(angle)*(width*.28+rand()*width*.22),radius+5,width-radius-5);
-    const y=limit(height/2+Math.sin(angle)*(height*.29+rand()*height*.22),radius+5,height-radius-5);
-    const direction=rand()*Math.PI*2,velocity=(mobile?.28:.38)+rand()*(mobile?.45:.95);
-    return {x,y,vx:Math.cos(direction)*velocity,vy:Math.sin(direction)*velocity,r:radius,mass:radius*radius,
-      phase:rand()*Math.PI*2,squash:0,tilt:direction};
-   });
-   sprays=[];collisionClock.clear();
-  }
-  function resize(){
-   mobile=window.matchMedia("(max-width: 760px)").matches;
+  let width=innerWidth,height=innerHeight,mobile=false,raf=0,lastFrame=0,start=performance.now(),hidden=document.hidden,stopped=false;
+  let pairs:Pair[]=[],floaters:Floater[]=[];
+  let shades=palette(document.documentElement.dataset.theme==="dark");
+  let seed=87117;
+  const random=()=>{seed=(seed*1664525+1013904223)>>>0;return seed/4294967296;};
+  function init(){
+   mobile=matchMedia("(max-width:760px)").matches;
    width=Math.max(1,innerWidth);height=Math.max(1,innerHeight);
-   dpr=Math.min(devicePixelRatio||1,mobile?.8:1.2);
-   // A lower backing resolution is intentional; it reduces fill-rate on phones.
-   canvas.width=Math.max(1,Math.floor(width*dpr));
-   canvas.height=Math.max(1,Math.floor(height*dpr));
-   canvas.style.width=width+"px";canvas.style.height=height+"px";
+   const dpr=Math.min(devicePixelRatio||1,mobile?.85:1.2);
+   canvas.width=Math.max(1,Math.round(width*dpr));
+   canvas.height=Math.max(1,Math.round(height*dpr));
    ctx!.setTransform(dpr,0,0,dpr,0,0);
-   populate();
+   const scale=mobile?.74:1;
+   pairs=anchors.slice(0,mobile?5:10).map(([x,y],i)=>({
+    x,y,angle:(i*2.12+random()*.6)%TAU,
+    r1:(19+random()*27)*scale,r2:(13+random()*25)*scale,
+    spread:(32+random()*35)*scale,
+    period:(mobile?16:14)+random()*6,
+    offset:i*.105+random()*.15,drift:6+random()*9
+   }));
+   floaters=Array.from({length:mobile?5:14},()=>({
+    x:.07+random()*.86,y:.08+random()*.84,r:(4+random()*9)*scale,
+    phase:random()*TAU,speed:.10+random()*.13
+   }));
   }
-  function burst(a:Blob,b:Blob,nx:number,ny:number,speed:number){
-   const amount=mobile?2:Math.min(7,Math.max(3,Math.round(speed*1.5)));
-   const cx=(a.x+b.x)/2,cy=(a.y+b.y)/2;
-   const direction=Math.atan2(ny,nx)+Math.PI/2;
-   for(let k=0;k<amount&&sprays.length<maxSprays();k++){
-    const ang=direction+(k%2?Math.PI:0)+(rand()-.5)*1.5;
-    const v=(mobile?1:1.4)+rand()*2.8+speed*.28;
-    const life=25+rand()*38;
-    sprays.push({x:cx+(rand()-.5)*9,y:cy+(rand()-.5)*9,vx:Math.cos(ang)*v,vy:Math.sin(ang)*v,
-      r:(mobile?1.1:1.5)+rand()*(mobile?2.6:4.9),life,maxLife:life});
-   }
-  }
-  function update(dt:number){
-   const step=Math.min(dt,2);
-   t+=step;
-   for(let i=0;i<bodies.length;i++){
-    const a=bodies[i];
-    // Organic vortices with weak centering keep droplets moving across the scene.
-    const swirl=Math.sin(t*.013+a.phase);
-    a.vx+=(Math.cos(a.phase+t*.008)*.024+swirl*.012)*step;
-    a.vy+=(Math.sin(a.phase+t*.011)*.026-Math.cos(t*.014+a.phase)*.012)*step;
-    const wall=18+a.r;
-    if(a.x<wall)a.vx+=.11*step;
-    if(a.x>width-wall)a.vx-=.11*step;
-    if(a.y<wall)a.vy+=.11*step;
-    if(a.y>height-wall)a.vy-=.11*step;
-    a.vx*=Math.pow(.993,step);a.vy*=Math.pow(.993,step);
-    const speed=Math.hypot(a.vx,a.vy);
-    if(speed>2.45){a.vx*=2.45/speed;a.vy*=2.45/speed;}
-    a.squash*=Math.pow(.87,step);
-    a.x+=a.vx*step;a.y+=a.vy*step;
-    a.tilt=Math.atan2(a.vy,a.vx);
-   }
-   // Pairwise mass-aware collision with short-range attraction and impact spray.
-   for(let i=0;i<bodies.length;i++)for(let j=i+1;j<bodies.length;j++){
-    const a=bodies[i],b=bodies[j],dx=b.x-a.x,dy=b.y-a.y;
-    const reach=a.r+b.r;
-    if(Math.abs(dx)>reach*2.4||Math.abs(dy)>reach*2.4)continue;
-    const dist=Math.max(1,Math.hypot(dx,dy)),nx=dx/dist,ny=dy/dist;
-    const invA=1/a.mass,invB=1/b.mass,invSum=invA+invB;
-    if(dist<reach*2.15&&dist>reach*.95){
-     const pull=.013*(1-(dist-reach*.95)/(reach*1.2))*step;
-     a.vx+=nx*pull*(invA/invSum);a.vy+=ny*pull*(invA/invSum);
-     b.vx-=nx*pull*(invB/invSum);b.vy-=ny*pull*(invB/invSum);
+  // The bounce occurs at phase .51. It has a short compress-and-release,
+  // followed by a long slow-motion drift away from the contact point.
+  const phases:[number,number][]=[
+   [0,1],[.20,.90],[.42,.18],[.49,.012],[.52,0],
+   [.58,.24],[.73,1.10],[.88,1.03],[1,1]
+  ];
+  function gap(u:number){
+   for(let i=1;i<phases.length;i++){
+    if(u<=phases[i][0]){
+     const prev=phases[i-1],next=phases[i];
+     return mix(prev[1],next[1],smooth((u-prev[0])/(next[0]-prev[0])));
     }
-    const minDist=reach*.78; // permit small overlapping areas to visibly merge.
-    if(dist>=minDist)continue;
-    const overlap=minDist-dist,move=overlap*.32;
-    a.x-=nx*move*(invA/invSum);a.y-=ny*move*(invA/invSum);
-    b.x+=nx*move*(invB/invSum);b.y+=ny*move*(invB/invSum);
-    const approaching=(b.vx-a.vx)*nx+(b.vy-a.vy)*ny;
-    if(approaching<0){
-     const impulse=-(1.07)*approaching/invSum;
-     a.vx-=impulse*invA*nx;a.vy-=impulse*invA*ny;
-     b.vx+=impulse*invB*nx;b.vy+=impulse*invB*ny;
-     a.squash=Math.min(.31,a.squash+.09+Math.abs(approaching)*.028);
-     b.squash=Math.min(.31,b.squash+.09+Math.abs(approaching)*.028);
-     const key=i*128+j;
-     if(Math.abs(approaching)>.44&&t-(collisionClock.get(key)??-500)>32){
-      burst(a,b,nx,ny,Math.abs(approaching));
-      collisionClock.set(key,t);
+   }
+   return 1;
+  }
+  function orb(x:number,y:number,r:number,angle:number,compression:number,alpha:number){
+   ctx!.save();ctx!.translate(x,y);ctx!.rotate(angle);
+   // The tiny temporary squash is contained inside each circle; shapes
+   // never merge, even at the moment of contact.
+   ctx!.scale(1-compression*.06,1+compression*.08);
+   const gradient=ctx!.createRadialGradient(-r*.28,-r*.30,r*.06,0,0,r*1.02);
+   gradient.addColorStop(0,channel(shades.highlight,alpha*.65));
+   gradient.addColorStop(.32,channel(shades.warm,alpha*.60));
+   gradient.addColorStop(.71,channel(shades.cool,alpha*.42));
+   gradient.addColorStop(1,channel(shades.rim,alpha*.17));
+   ctx!.beginPath();ctx!.arc(0,0,r,0,TAU);ctx!.fillStyle=gradient;ctx!.fill();
+   ctx!.strokeStyle=channel(shades.rim,alpha*.49);
+   ctx!.lineWidth=.7;ctx!.stroke();
+   ctx!.beginPath();ctx!.ellipse(-r*.20,-r*.26,r*.21,r*.07,-.5,0,Math.PI*1.47);
+   ctx!.strokeStyle=channel(shades.highlight,alpha*.67);
+   ctx!.lineWidth=Math.max(.8,r*.04);ctx!.lineCap="round";ctx!.stroke();
+   ctx!.restore();
+  }
+  function draw(seconds:number){
+   ctx!.clearRect(0,0,width,height);
+   for(const pair of pairs){
+    const u=((seconds/pair.period+pair.offset)%1+1)%1;
+    const minDistance=pair.r1+pair.r2+1.5;
+    const distance=minDistance+gap(u)*pair.spread;
+    const cx=pair.x*width+Math.sin(seconds*.21+pair.angle)*pair.drift;
+    const cy=pair.y*height+Math.cos(seconds*.16+pair.angle)*pair.drift;
+    const dx=Math.cos(pair.angle)*distance*.5,dy=Math.sin(pair.angle)*distance*.5;
+    const contact=clamp(1-Math.abs(u-.52)/.075,0,1);
+    const alpha=mobile?.25:.34;
+    orb(cx-dx,cy-dy,pair.r1,pair.angle,contact,alpha);
+    orb(cx+dx,cy+dy,pair.r2,pair.angle+Math.PI,contact,alpha);
+    // Only isolated microdroplets appear briefly after a bounce,
+    // without any trail, beam, web or other visual connection.
+    if(u>.52&&u<.66){
+     const progress=(u-.52)/.14;
+     const ux=-Math.sin(pair.angle),uy=Math.cos(pair.angle);
+     for(let j=0;j<(mobile?1:2);j++){
+      const side=j===0?1:-1;
+      const travel=(4+progress*20)*side;
+      orb(cx+ux*travel,cy+uy*travel,Math.max(1.5,(mobile?2:3.2)*(1-progress*.7)),
+       0,0,(mobile?.13:.20)*(1-progress));
      }
     }
    }
-   for(let i=sprays.length-1;i>=0;i--){
-    const q=sprays[i];q.life-=step;q.x+=q.vx*step;q.y+=q.vy*step;
-    q.vx*=.985;q.vy=q.vy*.985+.008*step;
-    if(q.life<=0||q.x<-25||q.x>width+25||q.y<-25||q.y>height+25)sprays.splice(i,1);
+   for(const f of floaters){
+    const x=f.x*width+Math.sin(seconds*f.speed+f.phase)*12;
+    const y=f.y*height+Math.cos(seconds*f.speed*.8+f.phase)*10;
+    orb(x,y,f.r,f.phase,0,mobile?.13:.20);
    }
   }
-  function bridge(a:Blob,b:Blob,alpha:number){
-   const dx=b.x-a.x,dy=b.y-a.y,d=Math.hypot(dx,dy)||1;
-   const nx=-dy/d,ny=dx/d;
-   const neck=Math.min(a.r,b.r)*(.19+alpha*.39);
-   const start=.22,end=.78;
-   ctx!.save();ctx!.globalAlpha=alpha*.48;
-   ctx!.fillStyle=color(p.bridge,mobile?.33:.45);
-   ctx!.beginPath();
-   ctx!.moveTo(a.x+dx*start+nx*neck,a.y+dy*start+ny*neck);
-   ctx!.bezierCurveTo(a.x+dx*.43+nx*neck*.7,a.y+dy*.43+ny*neck*.7,b.x-dx*.43+nx*neck*.7,b.y-dy*.43+ny*neck*.7,b.x-dx*(1-end)+nx*neck,b.y-dy*(1-end)+ny*neck);
-   ctx!.lineTo(b.x-dx*(1-end)-nx*neck,b.y-dy*(1-end)-ny*neck);
-   ctx!.bezierCurveTo(b.x-dx*.43-nx*neck*.7,b.y-dy*.43-ny*neck*.7,a.x+dx*.43-nx*neck*.7,a.y+dy*.43-ny*neck*.7,a.x+dx*start-nx*neck,a.y+dy*start-ny*neck);
-   ctx!.closePath();ctx!.fill();ctx!.restore();
-  }
-  function droplet(b:Blob){
-   const {x,y,r}=b;
-   const opacity=mobile?.25:.36;
-   ctx!.save();ctx!.translate(x,y);ctx!.rotate(b.tilt*.27);
-   const squish=Math.min(.33,b.squash);
-   ctx!.scale(1+squish,1-squish*.69);
-   const grad=ctx!.createRadialGradient(-r*.24,-r*.28,r*.06,0,0,r*1.04);
-   grad.addColorStop(0,color(p.highlight,opacity*.68));
-   grad.addColorStop(.28,color(p.warm,opacity*.58));
-   grad.addColorStop(.62,color(p.cool,opacity*.57));
-   grad.addColorStop(.85,color(p.warm,opacity*.34));
-   grad.addColorStop(1,color(p.rim,opacity*.16));
-   ctx!.fillStyle=grad;
-   ctx!.beginPath();ctx!.ellipse(0,0,r,r*.93,0,0,Math.PI*2);ctx!.fill();
-   ctx!.strokeStyle=color(p.rim,opacity*.54);ctx!.lineWidth=Math.max(.65,r*.017);ctx!.stroke();
-   ctx!.beginPath();ctx!.ellipse(-r*.23,-r*.27,r*.25,r*.10,-.63,0,Math.PI*1.6);
-   ctx!.strokeStyle=color(p.highlight,opacity*.75);ctx!.lineWidth=Math.max(1,r*.065);ctx!.lineCap="round";ctx!.stroke();
-   ctx!.restore();
-  }
-  function draw(){
-   ctx!.clearRect(0,0,width,height);
-   // Nearby bodies are joined visually into gel-like soft masses.
-   for(let i=0;i<bodies.length;i++)for(let j=i+1;j<bodies.length;j++){
-    const a=bodies[i],b=bodies[j],d=Math.hypot(b.x-a.x,b.y-a.y),reach=a.r+b.r;
-    if(d<reach*1.3&&d>reach*.32)bridge(a,b,1-d/(reach*1.55));
-   }
-   for(const b of bodies)droplet(b);
-   for(const q of sprays){
-    const fade=q.life/q.maxLife;
-    ctx!.beginPath();ctx!.arc(q.x,q.y,q.r*fade,0,Math.PI*2);
-    ctx!.fillStyle=color(p.spark,fade*(mobile?.24:.48));ctx!.fill();
-   }
-  }
-  function tick(time:number){
-   if(stopped||!visible)return;
-   raf=requestAnimationFrame(tick);
-   if(!last){last=time;draw();return;}
-   const delta=Math.min(50,time-last);
-   if(delta<1000/fillTarget())return;
-   last=time;acc+=delta;
-   const steps=Math.min(3,Math.floor(acc/16.67));
-   if(steps>0){for(let i=0;i<steps;i++)update(1);acc-=steps*16.67;}
-   else update(limit(delta/16.67,.3,1.9));
-   draw();frames++;
-   if(frames>300)frames=0;
+  function frame(now:number){
+   if(stopped||hidden)return;
+   raf=requestAnimationFrame(frame);
+   if(now-lastFrame<(mobile?50:32))return; // 20fps phone, ~30fps desktop.
+   lastFrame=now;draw((now-start)/1000);
   }
   function visibility(){
-   visible=!document.hidden;
-   if(!visible){cancelAnimationFrame(raf);raf=0;last=0;}
-   else if(!stopped&&!raf){raf=requestAnimationFrame(tick);}
+   hidden=document.hidden;
+   if(hidden){cancelAnimationFrame(raf);raf=0;lastFrame=0;}
+   else if(!stopped&&!raf){raf=requestAnimationFrame(frame);}
   }
-  const themes=new MutationObserver(()=>{p=palette(document.documentElement.dataset.theme==="dark");});
-  themes.observe(document.documentElement,{attributes:true,attributeFilter:["data-theme"]});
   let oldWidth=innerWidth,oldHeight=innerHeight;
-  const onResize=()=>{
-   if(innerWidth!==oldWidth||Math.abs(innerHeight-oldHeight)>80){
-    oldWidth=innerWidth;oldHeight=innerHeight;resize();last=0;
-   }
-  };
-  window.addEventListener("resize",onResize,{passive:true});
+  function resize(){
+   if(innerWidth===oldWidth&&Math.abs(innerHeight-oldHeight)<=80)return;
+   oldWidth=innerWidth;oldHeight=innerHeight;init();draw((performance.now()-start)/1000);
+  }
+  const obs=new MutationObserver(()=>{shades=palette(document.documentElement.dataset.theme==="dark");});
+  obs.observe(document.documentElement,{attributes:true,attributeFilter:["data-theme"]});
+  window.addEventListener("resize",resize,{passive:true});
   document.addEventListener("visibilitychange",visibility);
-  resize();raf=requestAnimationFrame(tick);
+  init();draw(0);raf=requestAnimationFrame(frame);
   return()=>{
-   stopped=true;cancelAnimationFrame(raf);raf=0;
-   window.removeEventListener("resize",onResize);
+   stopped=true;cancelAnimationFrame(raf);
+   window.removeEventListener("resize",resize);
    document.removeEventListener("visibilitychange",visibility);
-   themes.disconnect();bodies=[];sprays=[];collisionClock.clear();
-   ctx.clearRect(0,0,canvas.width,canvas.height);
+   obs.disconnect();
+   ctx.clearRect(0,0,canvas.width,canvas.height);pairs=[];floaters=[];
   };
  },[active]);
  if(!active)return null;
- return <div className="water-atmosphere liquid-atmosphere" aria-hidden="true" role="presentation"
-  data-effect="liquid-collision-splash" data-renderer="canvas-physics">
-  <canvas ref={ref} className="liquid-canvas" aria-hidden="true"/>
+ return <div className="water-atmosphere liquid-atmosphere" aria-hidden="true"
+  data-effect="slow-bounce-droplets" data-renderer="canvas-soft-collisions">
+  <canvas ref={canvasRef} className="liquid-canvas" aria-hidden="true"/>
  </div>;
 }
