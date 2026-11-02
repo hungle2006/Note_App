@@ -1,0 +1,129 @@
+/*
+ * Soft 3D water ambience.
+ * Positioned behind the app, not on top of text or controls.
+ * Uses only composited transform / opacity animations, no physics or canvas.
+ */
+:root {
+ --water-haze:rgba(246,184,139,.075);
+ --water-shine:rgba(255,255,255,.72);
+ --water-edge:rgba(213,152,112,.20);
+ --water-tint:rgba(189,218,220,.25);
+ --water-shadow:rgba(163,105,63,.09);
+ --water-opacity:.37;
+}
+:root[data-theme="dark"]{
+ --water-haze:rgba(248,181,125,.05);
+ --water-shine:rgba(246,244,239,.20);
+ --water-edge:rgba(230,176,143,.13);
+ --water-tint:rgba(151,194,211,.13);
+ --water-shadow:rgba(14,10,10,.14);
+ --water-opacity:.27;
+}
+/* On a 3D-enabled page, let its quiet backdrop show through the sections;
+ * opaque cards and navigation remain above the water layer. */
+:root[data-motion="on"] body{
+ background:
+  radial-gradient(ellipse at 84% 17%,var(--water-haze),transparent 41%),
+  radial-gradient(ellipse at 18% 80%,var(--water-haze),transparent 45%),
+  var(--bg);
+}
+:root[data-motion="on"] :is(.landing,.app-shell,.auth-page,.policy,.verification){
+ position:relative;z-index:1;
+}
+:root[data-motion="on"] .landing{background:transparent}
+.water-atmosphere{
+ position:fixed;inset:0;z-index:0;overflow:hidden;
+ pointer-events:none;user-select:none;contain:strict;
+ isolation:isolate;opacity:1;
+}
+.water-pair{
+ --drop-scale:1;
+ position:absolute;left:var(--drop-x);top:var(--drop-y);
+ width:calc(var(--drop-size)*2.45);height:calc(var(--drop-size)*1.35);
+ transform:rotate(var(--drop-tilt));pointer-events:none;
+ opacity:var(--water-opacity);
+}
+.water-drop{
+ position:absolute;top:15%;width:var(--drop-size);height:var(--drop-size);
+ border-radius:51% 49% 55% 45% / 49% 45% 55% 51%;
+ background:
+  radial-gradient(circle at 27% 24%,var(--water-shine) 0,transparent 27%),
+  radial-gradient(ellipse at 68% 69%,var(--water-tint) 6%,transparent 71%),
+  linear-gradient(128deg,transparent 13%,var(--water-edge) 51%,transparent 88%);
+ box-shadow:
+  inset 3px 5px 11px -7px var(--water-shine),
+  inset -5px -7px 14px -8px var(--water-edge),
+  0 10px 24px -15px var(--water-shadow);
+ border:1px solid var(--water-edge);
+ filter:blur(2.2px);
+ will-change:transform;
+ animation-duration:var(--drop-cycle);
+ animation-delay:var(--drop-delay);
+ animation-iteration-count:infinite;
+ animation-timing-function:ease-in-out;
+}
+.water-drop-left{left:12%;animation-name:water-meet-left}
+.water-drop-right{right:12%;animation-name:water-meet-right;transform:rotate(180deg)}
+.water-collision-glint{
+ position:absolute;left:43%;top:35%;
+ width:14%;height:18%;border-radius:50%;
+ background:radial-gradient(circle,var(--water-shine),transparent 70%);
+ filter:blur(7px);opacity:0;pointer-events:none;
+ animation:water-glint var(--drop-cycle) var(--drop-delay) ease-in-out infinite;
+}
+/* A quiet approach, a brief almost-touch, then very slow separation.
+   Both bubbles share identical timing for the collision illusion. */
+@keyframes water-meet-left{
+ 0%,100%{transform:translate3d(-10px,6px,0) scale(.96)}
+ 27%{transform:translate3d(0,-4px,0) scale(1)}
+ 46%{transform:translate3d(19px,-1px,0) scale(1.03)}
+ 52%{transform:translate3d(25px,0,0) scaleX(1.10) scaleY(.96)}
+ 60%{transform:translate3d(13px,-2px,0) scale(1.01)}
+ 79%{transform:translate3d(-4px,2px,0) scale(.98)}
+}
+@keyframes water-meet-right{
+ 0%,100%{transform:translate3d(10px,-5px,0) scale(.97)}
+ 27%{transform:translate3d(0,4px,0) scale(1)}
+ 46%{transform:translate3d(-19px,1px,0) scale(1.03)}
+ 52%{transform:translate3d(-25px,0,0) scaleX(1.10) scaleY(.96)}
+ 60%{transform:translate3d(-13px,2px,0) scale(1.01)}
+ 79%{transform:translate3d(4px,-2px,0) scale(.98)}
+}
+@keyframes water-glint{
+ 0%,40%,70%,100%{opacity:0;transform:scale(.6)}
+ 51%{opacity:.32;transform:scale(1.1)}
+}
+/* The book logo only animates while 3D is ON. No layout displacement. */
+:root[data-motion="on"] .brand-icon{
+ transform-style:preserve-3d;
+ backface-visibility:hidden;
+ transform-origin:50% 50%;
+ animation:smart-logo-float 7.8s ease-in-out infinite!important;
+ box-shadow:0 7px 18px rgba(184,99,56,.14);
+}
+@keyframes smart-logo-float{
+ 0%,100%{transform:perspective(360px) rotateY(-5deg) rotateX(0deg) translateY(0)}
+ 25%{transform:perspective(360px) rotateY(8deg) rotateX(5deg) translateY(-2px)}
+ 50%{transform:perspective(360px) rotateY(-1deg) rotateX(-3deg) translateY(0)}
+ 75%{transform:perspective(360px) rotateY(-9deg) rotateX(3deg) translateY(2px)}
+}
+:root[data-motion="off"] .water-atmosphere,
+:root[data-motion="off"] .water-pair{display:none!important}
+:root[data-motion="off"] .brand-icon{
+ animation:none!important;transform:none!important;will-change:auto!important
+}
+@media(max-width:760px){
+ :root{--water-opacity:.26}
+ :root[data-theme="dark"]{--water-opacity:.20}
+ .water-pair{--drop-size-mobile:var(--drop-size);transform:rotate(var(--drop-tilt)) scale(.67);transform-origin:center}
+ .water-pair-d,.water-pair-e{display:none}
+ .water-drop{filter:blur(2.6px)}
+ :root[data-motion="on"] .brand-icon{animation-duration:9.5s!important}
+}
+@media(max-width:390px){
+ .water-pair-c{display:none}
+}
+@media(prefers-reduced-motion:reduce){
+ .water-atmosphere{display:none!important}
+ .brand-icon{animation:none!important;transform:none!important}
+}
