@@ -136,3 +136,68 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
 }
 @media(min-width:761px){.mobile-tabbar{display:none}.mobile-points-chip{display:none}}
 @media(prefers-reduced-motion:reduce){.mobile-tabbar *{transition:none!important}}
+
+
+/* 2026-11-02: Fix dashboard illustration escaping the banner on iPhone/Zalo WebView.
+   The scene must participate in normal mobile flow instead of retaining an old
+   absolute/right-anchored transform, which created a giant empty banner. */
+@media(max-width:760px){
+ .dashboard-hero{
+  display:flex!important;
+  flex-direction:column!important;
+  justify-content:flex-start!important;
+  align-items:stretch!important;
+  gap:8px!important;
+  min-height:0!important;
+  height:auto!important;
+  padding:19px 18px 13px!important;
+  overflow:hidden!important;
+  border-radius:22px;
+ }
+ .dashboard-hero-copy{position:relative;z-index:2;width:100%;max-width:none!important;min-width:0}
+ .dashboard-hero .hero-small-tag{font-size:10px;letter-spacing:.55px;line-height:1.4}
+ .dashboard-hero h2{
+  max-width:none!important;
+  margin:9px 0 10px!important;
+  font-size:clamp(24px,6.3vw,30px)!important;
+  line-height:1.25;
+  letter-spacing:-.035em;
+  overflow-wrap:normal;
+ }
+ .dashboard-hero p{max-width:100%!important;font-size:13px;line-height:1.55;margin-bottom:13px!important;overflow-wrap:anywhere}
+ .dashboard-hero .button{min-height:45px;font-size:12px;max-width:360px;padding:10px 13px;justify-content:center}
+ .dashboard-hero .scene-blender.scene-compact{
+  position:relative!important;
+  left:auto!important;right:auto!important;top:auto!important;bottom:auto!important;
+  width:min(100%,225px)!important;
+  max-width:225px!important;
+  height:145px!important;
+  min-height:0!important;
+  flex:0 0 145px!important;
+  align-self:center;
+  transform:none!important;
+  translate:none!important;
+  margin:0 auto!important;
+  opacity:1!important;
+  overflow:hidden!important;
+  z-index:1!important;
+  pointer-events:none!important;
+ }
+ .dashboard-hero .scene-blender .atelier-chip,
+ .dashboard-hero .scene-blender .atelier-small-star,
+ .dashboard-hero .scene-blender .atelier-aura,
+ .dashboard-hero .scene-blender .atelier-orbit,
+ .dashboard-hero .scene-blender .blender-canvas{display:none!important}
+ .dashboard-hero .scene-blender .scene-book.blender-poster{
+  opacity:1!important;
+  animation:none!important;
+  translate:none!important;
+ }
+ .dashboard-hero .scene-blender .blender-poster img{width:100%;height:100%;object-fit:contain;filter:drop-shadow(0 8px 12px #af704021)}
+ .fitness-home-cta{margin-top:14px}
+}
+@media(max-width:380px){
+ .dashboard-hero{padding:16px 15px 11px!important;gap:6px!important}
+ .dashboard-hero h2{font-size:24px!important}
+ .dashboard-hero .scene-blender.scene-compact{height:125px!important;flex-basis:125px!important;width:200px!important}
+}
