@@ -11,20 +11,18 @@ type Vision={
 };
 declare global {interface Window {vision?:Vision}}
 type Workout={id:string;exercise:ExerciseId;reps:number;seconds:number;at:string;points:number};
-const VERSION="0.10.22";
+const VERSION="0.10.32";
 const MODEL="https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_lite/float16/1/pose_landmarker_lite.task";
 let visionPromise:Promise<Vision>|null=null;
-function loadVision(){
- if(typeof window==="undefined")return Promise.reject(new Error("Tính năng camera chỉ chạy trên trình duyệt."));
- if(window.vision)return Promise.resolve(window.vision);
- if(!visionPromise)visionPromise=new Promise<Vision>((resolve,reject)=>{
-  const script=document.createElement("script");
-  script.src="https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@"+VERSION+"/vision_bundle.js";
-  script.crossOrigin="anonymous";
-  script.onload=()=>window.vision?resolve(window.vision):reject(new Error("MediaPipe không khởi tạo được."));
-  script.onerror=()=>reject(new Error("Không tải được MediaPipe. Hãy kiểm tra kết nối mạng."));
-  document.head.appendChild(script);
- }).catch(e=>{visionPromise=null;throw e;});
+function loadVision():Promise<Vision>{
+ if(typeof window==="undefined")return Promise.reject(new Error("Camera chỉ hoạt động trong trình duyệt."));
+ if(!visionPromise){
+  const address="https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@"+VERSION+"/vision_bundle.mjs";
+  visionPromise=import(/* webpackIgnore: true */ address).then((module:Vision)=>{
+   if(!module.FilesetResolver||!module.PoseLandmarker)throw new Error("Mô hình không có các API MediaPipe cần thiết.");
+   return module;
+  }).catch((error:unknown)=>{visionPromise=null;throw error;});
+ }
  return visionPromise;
 }
 function paint(canvas:HTMLCanvasElement,landmarks:Landmark[]){
