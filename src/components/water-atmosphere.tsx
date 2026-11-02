@@ -1,6 +1,6 @@
 "use client";
 
-import {useAppearance} from "./appearance";
+import type {CSSProperties} from "react";
 
 /**
  * A GPU-friendly ambience behind the actual app content. Each pair travels
@@ -16,15 +16,14 @@ const pairs=[
  {id:"e",x:"79%",y:"84%",size:63,delay:"-6s",duration:"27s",tilt:-19}
 ] as const;
 
-export function WaterAtmosphere(){
- const {motion}=useAppearance();
- if(!motion)return null;
+export function WaterAtmosphere({active}:{active:boolean}){
+ if(!active)return null;
  return <div className="water-atmosphere" role="presentation" aria-hidden="true" data-effect="soft-water-collision">
   {pairs.map(p=><div key={p.id} className={"water-pair water-pair-"+p.id}
    style={{
     "--drop-x":p.x,"--drop-y":p.y,"--drop-size":p.size+"px",
     "--drop-delay":p.delay,"--drop-cycle":p.duration,"--drop-tilt":p.tilt+"deg"
-   } as React.CSSProperties}>
+   } as CSSProperties}>
    <span className="water-drop water-drop-left"/>
    <span className="water-drop water-drop-right"/>
    <span className="water-collision-glint"/>
