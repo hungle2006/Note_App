@@ -3,7 +3,7 @@ import {demoNotes,sampleStudy} from "../../src/lib/demo";
 const noteId=demoNotes[0].id;
 test("landing opens an honest demo",async({page})=>{
  await page.goto("/");
- await expect(page.getByRole("heading",{level:1})).toContainText("Mỗi trang vở");
+ await expect(page.getByRole("heading",{level:1})).toContainText("Tò mò hôm nay");
  await page.getByRole("link",{name:"Khám phá bản mẫu"}).click();
  await expect(page.getByText("Không gian mẫu",{exact:true}).first()).toBeVisible();
  await expect(page.getByText("Bài học đã tải",{exact:true})).toBeVisible();
