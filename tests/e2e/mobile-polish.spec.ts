@@ -8,8 +8,8 @@ for(const width of [320,375,390,430,760]){
   const rects=await page.evaluate(()=>{
    const box=(node:Element|null)=>{if(!node)throw Error("Required element not found");const r=node.getBoundingClientRect();return {x:r.x,y:r.y,w:r.width,h:r.height,cx:r.x+r.width/2,cy:r.y+r.height/2,right:r.right};};
    const search=document.querySelector('section[aria-label="Thư viện bài tập"] label:has(input[type=search])')!;
-   const filter=document.querySelector('section[aria-label="Thư viện bài tập"] label:has(select)')!;
-   return {search:box(search),icon:box(search?.querySelector("svg")),input:box(search?.querySelector("input")),filter:box(filter),filterIcon:box(filter?.querySelector("svg")),select:box(filter?.querySelector("select")),w:document.documentElement.scrollWidth,viewport:innerWidth};
+   const filter=document.querySelector('section[aria-label="Thư viện bài tập"] .fitness-smart-filter')!;
+   return {search:box(search),icon:box(search?.querySelector("svg")),input:box(search?.querySelector("input")),filter:box(filter),filterIcon:box(filter?.querySelector(".smart-select-leading svg")),select:box(filter?.querySelector(".smart-select-trigger .smart-select-current")),w:document.documentElement.scrollWidth,viewport:innerWidth};
   });
   expect(rects.w).toBeLessThanOrEqual(rects.viewport+2);
   expect(rects.search.h).toBeLessThan(60);
@@ -19,8 +19,9 @@ for(const width of [320,375,390,430,760]){
   expect(rects.input.x).toBeGreaterThan(rects.icon.cx);
   expect(rects.select.x).toBeGreaterThan(rects.filterIcon.cx);
   expect(rects.search.right).toBeLessThanOrEqual(width+1);
-  await page.getByRole("combobox",{name:"Lọc độ khó"}).selectOption("Dễ");
-  await expect(page.getByRole("combobox",{name:"Lọc độ khó"})).toHaveValue("Dễ");
+  await page.getByRole("button",{name:"Lọc độ khó"}).click();
+  await page.getByRole("option",{name:"Dễ",exact:true}).click();
+  await expect(page.getByRole("button",{name:"Lọc độ khó"})).toContainText("Dễ");
   await page.getByRole("searchbox",{name:"Tìm bài tập"}).fill("gian co");
   await expect(page.getByText(/\d+ bài phù hợp/)).toBeVisible();
   await expect(page.locator('section[aria-label="Thư viện bài tập"] button[aria-pressed=true]').first()).toBeVisible();
