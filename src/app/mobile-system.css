@@ -139,6 +139,7 @@
  .landing-nav{padding:12px!important;gap:5px}
  .landing-nav .brand{font-size:17px!important}
  .landing-nav .nav-actions>.button{font-size:10px;padding:8px}
+ .landing-nav .motion-control{display:none}
  .landing-hero{padding-inline:14px!important}
  .hero-actions .button{font-size:10px!important}
  .quickstart-card{padding:12px;min-height:134px}
