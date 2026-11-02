@@ -1,13 +1,15 @@
 import {test,expect} from "@playwright/test";
 
 for(const width of [320,390,760,1280]){
- test("Liquid collision physics + extruded 3D orange logo at "+width+"px",async({page})=>{
+ test("Soft two-drop bounce without merging and 3D logo at "+width+"px",async({page})=>{
   await page.setViewportSize({width,height:844});
   const errors:string[]=[];page.on("pageerror",e=>errors.push(e.message));
   await page.goto("/");
   await expect(page.locator("html")).toHaveAttribute("data-motion","on");
-  await expect(page.locator(".water-atmosphere[data-renderer='canvas-physics']")).toHaveCount(1);
+  await expect(page.locator(".water-atmosphere[data-effect='slow-bounce-droplets']")).toHaveCount(1);
+  await expect(page.locator(".water-atmosphere[data-renderer='canvas-soft-collisions']")).toHaveCount(1);
   const canvas=page.locator(".liquid-canvas");
+  await expect(page.locator(".water-drop, .water-pair, .water-bridge")).toHaveCount(0);
   await expect(canvas).toBeVisible();
   await expect.poll(()=>canvas.evaluate((c:HTMLCanvasElement)=>{
    if(!c.width||!c.height)return false;
@@ -30,7 +32,7 @@ for(const width of [320,390,760,1280]){
   expect(errors).toEqual([]);
  });
 }
-test("Liquid shading adapts automatically to dark and light modes",async({page})=>{
+test("Independent droplet shading adapts to dark and light modes",async({page})=>{
  await page.goto("/");
  const root=page.locator("html");
  await expect(root).toHaveAttribute("data-theme",/light|dark/);
@@ -51,7 +53,7 @@ test("3D switch is accessible in the phone header at 320px",async({page})=>{
  await expect(page.locator(".liquid-canvas")).toHaveCount(0);
  await expect(page.getByRole("button",{name:"Bật chuyển động 3D"})).toBeVisible();
 });
-test("Reduced-motion preference disables canvas physics and logo animation",async({page})=>{
+test("Reduced-motion preference disables droplet motion and logo animation",async({page})=>{
  await page.emulateMedia({reducedMotion:"reduce"});
  await page.goto("/");
  await expect(page.locator("html")).toHaveAttribute("data-motion","off");
