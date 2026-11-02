@@ -75,7 +75,7 @@ for(const width of [320,375,390,430]){
   await page.setViewportSize({width,height:844});
   await page.goto("/app?mode=demo&view=fitness");
   const search=page.getByRole("searchbox",{name:"Tìm bài tập"});
-  const select=page.getByRole("combobox",{name:"Lọc độ khó"});
+  const select=page.getByRole("button",{name:"Lọc độ khó"});
   await expect(search).toBeVisible();
   await expect(select).toBeVisible();
   const boxes=await Promise.all([search.boundingBox(),select.boundingBox()]);
@@ -90,7 +90,8 @@ for(const width of [320,375,390,430]){
   expect(Math.abs((searchIcon!.y+searchIcon!.height/2)-(boxes[0]!.y+boxes[0]!.height/2))).toBeLessThan(8);
   await search.fill("gian co");
   await expect(page.getByText(/\d+ bài phù hợp/)).toBeVisible();
-  await select.selectOption("Dễ");
+  await select.click();
+  await page.getByRole("option",{name:"Dễ",exact:true}).click();
   expect(await page.evaluate(()=>document.documentElement.scrollWidth)).toBeLessThanOrEqual(width+2);
  });
 }
