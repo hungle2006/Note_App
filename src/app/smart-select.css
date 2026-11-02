@@ -1,0 +1,74 @@
+/* SmartNotes unified choice fields: desktop popovers and mobile selection sheets. */
+.smart-select{display:flex;flex-direction:column;gap:7px;min-width:0;max-width:100%}
+.smart-select-label{display:block!important;font-size:12px!important;font-weight:850!important;letter-spacing:.13px;color:var(--ink,#49362e);line-height:1.35;margin:0!important}
+.smart-select-trigger{box-sizing:border-box;display:flex;align-items:center;justify-content:space-between;gap:9px;width:100%;height:48px;min-height:48px;max-height:48px;min-width:0;padding:0 13px;border:1px solid var(--line,#ead5c5);border-radius:13px;background:var(--paper,#fffdfa);color:var(--ink,#49362e);font:inherit;font-size:13px;font-weight:800;line-height:1.2;text-align:left;box-shadow:0 2px 7px #ad62250a;transition:border-color .16s,background .16s,box-shadow .16s}
+.smart-select-trigger:hover:not(:disabled){border-color:var(--sun-accent,#c46939);background:var(--sun-peach-light,#fff0e3)}
+.smart-select-trigger:focus-visible{outline:3px solid #e7a26a70;outline-offset:2px;border-color:var(--sun-accent,#c46939)}
+.smart-select-trigger[aria-expanded=true]{border-color:var(--sun-accent,#c46939);background:var(--sun-peach-light,#fff1e3);box-shadow:0 0 0 3px #e6a46d25}
+.smart-select-trigger:disabled{opacity:.53;cursor:default}
+.smart-select-leading{width:18px;height:18px;flex-shrink:0;color:var(--purple-ink,#a34d25);display:grid;place-items:center}
+.smart-select-leading svg{width:17px;height:17px}
+.smart-select-current{display:block;flex:1;min-width:0;text-overflow:ellipsis;white-space:nowrap;overflow:hidden}
+.smart-select-chevron{flex:0 0 17px;color:var(--purple-ink,#a34d25);transition:transform .17s}
+.smart-select-chevron.opened{transform:rotate(180deg)}
+.smart-select-description{font-size:11px;color:var(--muted);line-height:1.45}
+/* portal is outside app-shell so all colors and components are explicitly themed */
+.smart-select-layer{position:fixed;inset:0;z-index:1200;pointer-events:none;font-family:"Nunito Sans Variable",-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif}
+.smart-select-backdrop{position:absolute;inset:0;appearance:none;border:0;border-radius:0;width:100%;height:100%;background:transparent;padding:0;pointer-events:auto;cursor:default}
+.smart-select-menu{position:fixed;z-index:1;overflow:hidden;display:flex;flex-direction:column;border:1px solid var(--line,#edd5c2);border-radius:15px;background:var(--paper,#fffdfa);color:var(--ink,#49362e);box-shadow:0 20px 65px #3d291e36,0 3px 15px #b76b3920;pointer-events:auto}
+.smart-select-menu-header{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 11px 8px 15px;min-height:40px;background:var(--sun-peach-light,#fff2e7);border-bottom:1px solid var(--line,#ecd9c9);font-size:12px;font-weight:850;color:var(--purple-ink,#a34d25)}
+.smart-select-menu-header button{display:grid;place-items:center;flex:0 0 29px;width:29px;height:29px;min-height:29px;padding:0;border:0;border-radius:9px;background:var(--paper,#fff);color:var(--muted,#73665e);cursor:pointer}
+.smart-select-menu-header button:hover{background:var(--soft,#ffe9d8)}
+.smart-select-options{overflow:auto;overscroll-behavior:contain;min-height:0;padding:5px;outline:none;scrollbar-color:var(--line,#e9d0bd) transparent;scrollbar-width:thin}
+.smart-select-option{display:flex;align-items:center;justify-content:space-between;gap:9px;width:100%;min-height:46px;padding:9px 10px;border:0;border-radius:10px;background:transparent;color:var(--ink,#49362e);font:inherit;text-align:left;cursor:pointer}
+.smart-select-option:hover,.smart-select-option.is-active{background:var(--bg,#fff9f3)}
+.smart-select-option.is-selected{background:var(--sun-peach-light,#fff0e3);color:var(--purple-ink,#9a4a24)}
+.smart-select-option-main{display:flex;flex-direction:column;align-items:flex-start;gap:3px;min-width:0}
+.smart-select-option-main strong{font-size:13px;font-weight:800;line-height:1.35;overflow-wrap:anywhere}
+.smart-select-option-main small{font-size:11px;line-height:1.35;color:var(--muted)}
+.smart-select-check{display:grid;place-items:center;flex:0 0 25px;width:25px;height:25px;border-radius:8px;color:white;background:var(--sun-accent,#c46939)}
+.smart-select-menu-header button:focus-visible,.smart-select-option:focus-visible{outline:2px solid var(--sun-accent,#c46939);outline-offset:-2px}
+/* Rebuild the library filters as named fields instead of anonymous miniature native selects. */
+.library-filters:has(.smart-select){display:grid;grid-template-columns:minmax(180px,1.3fr) repeat(3,minmax(120px,.8fr));gap:12px;align-items:end;padding:16px!important}
+.library-filters:has(.smart-select) .search-input{flex:none;min-width:0;min-height:48px;align-self:end;border:1px solid var(--line,#eddbc9);background:var(--paper);border-radius:13px;padding:0 12px;gap:9px}
+.library-filters:has(.smart-select) .search-input input{min-width:0;min-height:46px;height:46px;padding:0!important;font-size:14px;border:0}
+.library-filters:has(.smart-select) .smart-select{min-width:0}
+.library-filters:has(.smart-select) .smart-select-trigger{height:48px;min-height:48px}
+/* Scan grade selector aligns with its subject text field. */
+.scan-options .smart-select{margin:0;max-width:100%}
+.scan-options .smart-select-trigger{height:51px;min-height:51px}
+.scan-options .smart-select-label{font-size:13px!important}
+.scan-options .check-label{margin-top:19px}
+/* Fitness controls keep the established compact toolbar. */
+[class*="catalogTools"] .smart-select{margin:0;max-width:100%}
+[class*="catalogTools"] .smart-select .smart-select-trigger{height:48px;min-height:48px;max-height:48px;font-size:12px}
+[class*="catalogTools"] .smart-select .smart-select-current{font-size:12px}
+@media(max-width:1100px){
+ .library-filters:has(.smart-select){grid-template-columns:repeat(3,minmax(0,1fr))}
+ .library-filters:has(.smart-select) .search-input{grid-column:1/-1}
+}
+@media(max-width:760px){
+ .library-filters:has(.smart-select){grid-template-columns:repeat(2,minmax(0,1fr));padding:12px!important;gap:10px!important}
+ .library-filters:has(.smart-select) .search-input{grid-column:1/-1}
+ .library-filters:has(.smart-select) .smart-select:last-child{grid-column:1/-1}
+ .library-filters:has(.smart-select) .smart-select-label{font-size:11px!important}
+ .smart-select-trigger{font-size:13px;min-height:47px;height:47px;padding:0 11px;border-radius:12px}
+ .smart-select-layer.mobile{z-index:1400}
+ .smart-select-layer.mobile .smart-select-backdrop{background:#20171074;backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px)}
+ .smart-select-layer.mobile .smart-select-menu{position:fixed;left:0;right:0;bottom:0;top:auto;width:100%;max-width:none;max-height:min(68dvh,570px);border-radius:22px 22px 0 0;border:1px solid var(--line,#ebd9c8);border-bottom:0;box-shadow:0 -17px 55px #2c1c1730;padding-bottom:max(env(safe-area-inset-bottom),17px);animation:smart-select-up .18s ease-out}
+ .smart-select-layer.mobile .smart-select-menu:before{content:"";width:38px;height:4px;border-radius:20px;background:var(--line,#dfcdbb);margin:9px auto 2px;flex:0 0 auto}
+ .smart-select-layer.mobile .smart-select-menu-header{font-size:15px;min-height:50px;padding:10px 15px 10px 20px}
+ .smart-select-layer.mobile .smart-select-menu-header button{width:35px;height:35px;flex-basis:35px;border-radius:11px}
+ .smart-select-layer.mobile .smart-select-options{padding:9px 11px;max-height:calc(68dvh - 85px)}
+ .smart-select-layer.mobile .smart-select-option{min-height:51px;border-radius:12px;padding:11px 13px}
+ .smart-select-layer.mobile .smart-select-option-main strong{font-size:14px}
+ .smart-select-layer.mobile .smart-select-option-main small{font-size:11px}
+ [class*="catalogTools"] .smart-select{grid-column:1/-1}
+ [class*="catalogTools"] .smart-select-trigger{height:46px;min-height:46px}
+}
+@media(max-width:380px){
+ .library-filters:has(.smart-select){gap:9px!important}
+ .library-filters:has(.smart-select) .smart-select-trigger{font-size:12px;padding:0 9px}
+}
+@keyframes smart-select-up{from{transform:translateY(12px);opacity:.88}to{transform:translateY(0);opacity:1}}
+@media(prefers-reduced-motion:reduce){.smart-select-menu{animation:none!important}.smart-select-chevron{transition:none}}
