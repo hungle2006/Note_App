@@ -2,6 +2,7 @@
 
 import {createContext, useContext, useEffect, useState} from "react";
 import {Moon, Sun, Pause, Play} from "lucide-react";
+import {WaterAtmosphere} from "./water-atmosphere";
 
 type Appearance={dark:boolean; motion:boolean; toggleTheme:()=>void; toggleMotion:()=>void};
 const Context=createContext<Appearance>({dark:false,motion:true,toggleTheme:()=>{},toggleMotion:()=>{}});
@@ -19,7 +20,7 @@ export function AppearanceProvider({children}:{children:React.ReactNode}){
   },[]);
   function toggleTheme(){const next=!dark;setDark(next);document.documentElement.dataset.theme=next?'dark':'light';try{localStorage.setItem('notelab-theme',next?'dark':'light');}catch{}}
   function toggleMotion(){const next=!motion&&!matchMedia('(prefers-reduced-motion: reduce)').matches;setMotion(next);document.documentElement.dataset.motion=next?'on':'off';try{localStorage.setItem('notelab-motion',next?'on':'off');}catch{}}
-  return <Context.Provider value={{dark,motion,toggleTheme,toggleMotion}}>{children}</Context.Provider>;
+  return <Context.Provider value={{dark,motion,toggleTheme,toggleMotion}}><WaterAtmosphere active={motion}/>{children}</Context.Provider>;
 }
 export function AppearanceControls({compact=false}:{compact?:boolean}){
   const a=useContext(Context);
