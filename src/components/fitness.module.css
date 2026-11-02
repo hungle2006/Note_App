@@ -59,3 +59,71 @@
 @media(max-width:380px){.exerciseGrid{grid-template-columns:1fr}.exercise{min-height:61px}.hero h1{font-size:22px}.countOverlay strong{font-size:24px}}
 
 .rewardNotice{display:flex;align-items:center;gap:9px;background:var(--sun-peach-light,#fff2e2);color:var(--purple-ink,#9a4622);padding:12px 13px;border:1px solid var(--line,#efd9c8);border-radius:12px;font-size:12px;font-weight:800;margin:10px 0 0}
+
+
+/* Two independent visual streams: untouched camera and a synthesized pose mannequin. */
+.exercisePicker{margin-bottom:16px}
+.exercisePicker .exerciseGrid{grid-template-columns:repeat(4,minmax(0,1fr))}
+.visionStage{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;min-width:0}
+.visionTile{min-width:0;border:1px solid var(--line,#ead7c9);border-radius:17px;padding:9px;background:var(--bg,#fff9f3)}
+.visionTileHeader{display:flex;align-items:center;justify-content:space-between;gap:5px;min-height:35px;padding:0 3px 8px}
+.visionTileHeader>div{display:flex;gap:6px;align-items:center;min-width:0;color:var(--ink,#49362e)}
+.visionTileHeader strong{font-size:12px;line-height:1.35;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.visionTileHeader svg{color:var(--sun-accent,#c46939);flex-shrink:0}
+.modeLabel,.aiModeLabel{font-size:10px;font-weight:800;white-space:nowrap;color:var(--purple-ink,#a34d25);background:var(--soft,#ffead8);border-radius:8px;padding:4px 6px}
+.aiModeLabel{background:#3a2a23;color:#ffc58b}
+.visionTile .camera,.poseFrame{position:relative;aspect-ratio:3 / 4;width:100%;min-width:0;overflow:hidden;border-radius:13px}
+.visionTile .camera{background:linear-gradient(145deg,#26303c,#19202a)}
+.visionTile .video{position:absolute;inset:0;width:100%;height:100%;object-fit:contain}
+.poseFrame{background:linear-gradient(155deg,#292228,#171b26 80%);border:1px solid #5c3d2e}
+.poseGrid{position:absolute;inset:0;opacity:.75;pointer-events:none;background-image:linear-gradient(to right,#ffd4a817 1px,transparent 1px),linear-gradient(to bottom,#ffd4a817 1px,transparent 1px);background-size:24px 24px}
+.poseFrame:after{content:"";position:absolute;inset:6%;border:1px solid #ffc58a22;border-radius:12px;pointer-events:none}
+.poseCanvas{position:absolute;inset:0;display:block;width:100%;height:100%;object-fit:contain;pointer-events:none;z-index:1}
+.posePlaceholder{position:absolute;inset:0;display:flex;flex-direction:column;gap:7px;align-items:center;justify-content:center;text-align:center;color:#ffd7ae;padding:10px;z-index:2}
+.posePlaceholder svg{color:#ffba7b;opacity:.85}.posePlaceholder b{font-size:13px}.posePlaceholder small{font-size:10px;line-height:1.45;color:#d4ad96}
+.poseCounter{position:absolute;bottom:9px;left:8px;padding:5px 9px;border-radius:10px;background:#201a1ed9;z-index:3;color:#fff9ee;display:flex;gap:5px;align-items:baseline}
+.poseCounter strong{font-size:24px;line-height:1;font-variant-numeric:tabular-nums;color:#ffbf83}.poseCounter span{font-size:10px}
+.poseFps{position:absolute;right:8px;top:10px;background:#201a1ea8;border-radius:7px;padding:4px 6px;z-index:3;color:#ffe6c7;font-size:10px;font-weight:700}
+.visionTile .emptyCamera{gap:5px;padding:10px}
+.visionTile .emptyCamera b{font-size:13px}
+.visionTile .emptyCamera small{font-size:10px;line-height:1.4}
+.visionTile .liveBadge{font-size:10px;top:9px;left:9px;padding:5px 8px}
+.visionTile .camera .video{transform-origin:center center}
+.legend .dot{background:#ffa766}.legend .bar{background:#f6c997}
+.controls{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.controls .controlPrimary{grid-column:span 2}
+.controls .controlPrimary,.controls .control{width:100%;min-height:45px;min-width:0}
+@media(max-width:1100px){
+ .exercisePicker .exerciseGrid{grid-template-columns:repeat(3,minmax(0,1fr))}
+}
+@media(max-width:760px){
+ .exercisePicker{margin-bottom:12px}
+ .exercisePicker .panelPad{padding:13px}
+ .exercisePicker .exerciseGrid{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(156px,64%);grid-template-columns:none!important;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x mandatory;padding:2px 2px 8px;margin:0 -2px;scrollbar-width:thin;scrollbar-color:var(--line) transparent;overscroll-behavior-inline:contain}
+ .exercisePicker .exercise{scroll-snap-align:start;min-height:66px;padding:10px 8px}
+ .exercisePicker .note{font-size:11px}
+ .visionStage{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+ .visionTile{padding:6px;border-radius:13px}
+ .visionTileHeader{padding:0 1px 5px;min-height:30px}
+ .visionTileHeader strong{font-size:11px}
+ .visionTileHeader svg{width:14px;height:14px}
+ .modeLabel,.aiModeLabel{font-size:9px;padding:3px 4px}
+ .visionTile .camera,.poseFrame{border-radius:9px}
+ .poseCounter{bottom:5px;left:5px;padding:5px 7px}
+ .poseCounter strong{font-size:21px}.poseCounter span{font-size:9px}
+ .poseFps{font-size:9px;top:5px;right:5px}
+ .visionTile .emptyCamera b,.posePlaceholder b{font-size:11px}
+ .visionTile .emptyCamera small,.posePlaceholder small{font-size:9px}
+ .visionTile .liveBadge{font-size:9px;top:5px;left:5px;padding:4px 5px}
+ .controls{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
+ .controls .controlPrimary{grid-column:span 2}
+ .controls .controlPrimary,.controls .control{font-size:12px;min-height:45px}
+}
+@media(max-width:360px){
+ .visionTileHeader strong{font-size:10px}
+ .modeLabel{font-size:8px}
+ .poseCounter span{display:none}
+ .posePlaceholder small{display:none}
+ .visionTile .emptyCamera small{display:none}
+ .exercisePicker .exerciseGrid{grid-auto-columns:minmax(147px,76%)}
+}
