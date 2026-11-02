@@ -6,6 +6,7 @@ import "@fontsource-variable/nunito-sans/wght-italic.css";
 import "@fontsource-variable/lora/wght-italic.css";
 import "katex/dist/katex.min.css";
 import "./globals.css";
+import "./mobile-enhancements.css";
 const siteTitle="SmartNotes AI · Vũ trụ học tập THCS";
 const siteDescription="Không gian học tập lớp 6–9. Chụp vở với Gemini, ghi chép bằng giọng nói, hỏi gia sư Groq và ôn bằng trò chơi.";
 export const metadata:Metadata={
