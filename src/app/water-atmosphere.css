@@ -103,3 +103,17 @@
  .water-atmosphere{display:none!important}
  .brand-icon,.brand-icon::after,.brand-icon>svg{animation:none!important;transform:none!important}
 }
+
+/* Follow-up phone/desktop overflow regression fixes. Some older responsive
+   styles hid the landing 3D switch below 400px, trapping a running scene. */
+.landing{overflow-x:clip}
+@media(max-width:400px){
+ .landing-nav .appearance-controls .motion-control{
+  display:flex!important;min-width:43px;height:34px;
+  padding:0 4px;gap:3px;align-items:center;justify-content:center;
+ }
+ .landing-nav .nav-actions{gap:5px}
+ .landing-nav .appearance-controls{gap:4px}
+ .landing-nav .brand-wordmark{font-size:19px;letter-spacing:-.65px}
+ .landing-nav .brand-icon{width:32px;height:32px;flex-shrink:0}
+}
