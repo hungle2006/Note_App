@@ -8,6 +8,7 @@ export function GuidedExerciseSession({exercise,onComplete}:{exercise:LibraryExe
  const [remaining,setRemaining]=useState(exercise.seconds);
  const [elapsed,setElapsed]=useState(0);
  const [running,setRunning]=useState(false);
+ const [started,setStarted]=useState(false);
  const [done,setDone]=useState(false);
  const lastTick=useRef(0);
  const completed=useRef(false);
@@ -35,7 +36,7 @@ export function GuidedExerciseSession({exercise,onComplete}:{exercise:LibraryExe
  }
  function reset(){
   setRemaining(exercise.seconds);setElapsed(0);setDone(false);
-  setRunning(false);completed.current=false;
+  setRunning(false);setStarted(false);completed.current=false;
  }
  const percent=Math.round((exercise.seconds-remaining)/exercise.seconds*100);
  return <section className={styles.panel+" "+styles.guideStudio} aria-label="Bài tập hướng dẫn có hẹn giờ">
@@ -48,7 +49,7 @@ export function GuidedExerciseSession({exercise,onComplete}:{exercise:LibraryExe
      <span className={styles.guideClockSub}>{done?"Tuyệt! Em đã hoàn thành.":running?"Hãy tập theo hướng dẫn vừa sức.":"Tập cùng nhịp thở, không cần vội."}</span>
      <div className={styles.guideProgress}><div style={{width:percent+"%"}}/></div>
      <div className={styles.guideClockActions}>
-      {!done?<button className={styles.controlPrimary} onClick={()=>setRunning(old=>!old)}>{running?<Pause size={16}/>:<Play size={16}/>} {running?"Tạm dừng":elapsed>0?"Tiếp tục":"Bắt đầu tính giờ"}</button>:<span className={styles.guideSuccess}><CheckCircle2 size={18}/> Hoàn thành</span>}
+      {!done?<button className={styles.controlPrimary} onClick={()=>{setRunning(old=>!old);setStarted(true);}}>{running?<Pause size={16}/>:<Play size={16}/>} {running?"Tạm dừng":started?"Tiếp tục":"Bắt đầu tính giờ"}</button>:<span className={styles.guideSuccess}><CheckCircle2 size={18}/> Hoàn thành</span>}
       <button className={styles.control} disabled={(!running&&elapsed===0)||done} onClick={finish}>Kết thúc</button>
       <button className={styles.control} onClick={reset}><RefreshCcw size={15}/> Làm lại</button>
      </div>
