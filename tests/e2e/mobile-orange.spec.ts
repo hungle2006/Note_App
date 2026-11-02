@@ -68,3 +68,29 @@ for(const width of [320,375,390,430,760]){
   expect(dims.scrollWidth).toBeLessThanOrEqual(dims.viewport+2);
  });
 }
+
+
+for(const width of [320,375,390,430]){
+ test("Mobile fitness search and dropdown remain inline without clipping at "+width+"px",async({page})=>{
+  await page.setViewportSize({width,height:844});
+  await page.goto("/app?mode=demo&view=fitness");
+  const search=page.getByRole("searchbox",{name:"Tìm bài tập"});
+  const select=page.getByRole("combobox",{name:"Lọc độ khó"});
+  await expect(search).toBeVisible();
+  await expect(select).toBeVisible();
+  const boxes=await Promise.all([search.boundingBox(),select.boundingBox()]);
+  expect(boxes[0]).not.toBeNull();expect(boxes[1]).not.toBeNull();
+  expect(boxes[0]!.height).toBeLessThanOrEqual(55);
+  expect(boxes[1]!.height).toBeLessThanOrEqual(55);
+  expect(boxes[0]!.x).toBeGreaterThanOrEqual(0);
+  expect(boxes[0]!.x+boxes[0]!.width).toBeLessThanOrEqual(width);
+  expect(boxes[1]!.x+boxes[1]!.width).toBeLessThanOrEqual(width);
+  const searchIcon=await page.locator('label:has(input[aria-label="Tìm bài tập"])>svg').boundingBox();
+  expect(searchIcon).not.toBeNull();
+  expect(Math.abs((searchIcon!.y+searchIcon!.height/2)-(boxes[0]!.y+boxes[0]!.height/2))).toBeLessThan(8);
+  await search.fill("gian co");
+  await expect(page.getByText(/\d+ bài phù hợp/)).toBeVisible();
+  await select.selectOption("Dễ");
+  expect(await page.evaluate(()=>document.documentElement.scrollWidth)).toBeLessThanOrEqual(width+2);
+ });
+}
