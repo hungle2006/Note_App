@@ -179,7 +179,7 @@ export function FitnessView({accountId,onSessionSaved}:{accountId:string;onSessi
    if(token!==sessionToken.current){localStream.getTracks().forEach(t=>t.stop());return;}
    const frame=video.current;const width=frame.videoWidth||640,height=frame.videoHeight||480;
    setRatio(width+" / "+height);
-   if(canvas.current){canvas.current.width=width;canvas.current.height=height;}
+   if(canvas.current){canvas.current.width=480;canvas.current.height=640;}
    setFeedback("Đang tải mô hình nhận diện tư thế…");
    const vision=await loadVision();
    const files=await vision.FilesetResolver.forVisionTasks("https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@"+VERSION+"/wasm");
@@ -247,7 +247,7 @@ export function FitnessView({accountId,onSessionSaved}:{accountId:string;onSessi
    if(token!==sessionToken.current||!active.current){newStream.getTracks().forEach(t=>t.stop());return;}
    facingRef.current=next;setCameraFacing(next);setMirror(next==="user");
    const w=player.videoWidth||480,h=player.videoHeight||640;setRatio(w+" / "+h);
-   if(canvas.current){canvas.current.width=w;canvas.current.height=h;canvas.current.getContext("2d")?.clearRect(0,0,w,h);}
+   if(canvas.current){canvas.current.width=480;canvas.current.height=640;canvas.current.getContext("2d")?.clearRect(0,0,480,640);}
    motion.current.stableAt=0;lastFrame.current=0;
    setFeedback("Camera "+(next==="user"?"trước":"sau")+" đã sẵn sàng · giữ cơ thể trong khung hình.");
   }catch(e){
@@ -292,22 +292,36 @@ export function FitnessView({accountId,onSessionSaved}:{accountId:string;onSessi
   <div className={styles.layout}>
    <section className={styles.panel}>
     <div className={styles.panelPad}>
-     <div className={styles.sectionHead}><div><h2><Video size={17} style={{verticalAlign:"middle",marginRight:7}}/> Camera & bộ khung 33 điểm</h2><p>Chọn bài tập ở bên dưới để AI kiểm tra chuyển động</p></div><span className={styles.chip}><Activity size={13}/> MediaPipe</span></div>
-     <div className={styles.camera} style={{aspectRatio:ratio}}>
-      <video ref={video} className={styles.video} playsInline autoPlay muted aria-label="Camera tập luyện" style={{display:running||loading?undefined:"none",transform:mirror?"scaleX(-1)":"none"}}/>
-      <canvas ref={canvas} className={styles.skeleton} aria-hidden="true" style={{transform:mirror?"scaleX(-1)":"none"}}/>
-      {!running&&!loading&&<div className={styles.emptyCamera}><Video size={35}/><b>Camera đang tắt</b><small>Bật camera để xem khung xương nối các điểm khớp theo chuyển động thực tế.</small></div>}
-      {(running||loading)&&<span className={styles.liveBadge}>{loading?"ĐANG KHỞI ĐỘNG":paused?"TẠM DỪNG":"● AI ĐANG NHẬN DIỆN"}</span>}
-      {running&&<span className={styles.cornerInfo}>33 khớp · {fps?"~"+fps+" FPS":"đang dò"}</span>}
-      {(running||reps>0)&&<div className={styles.countOverlay}><strong>{reps}</strong><span>lần hợp lệ</span></div>}
+     <div className={styles.sectionHead}><div><h2><Video size={17} style={{verticalAlign:"middle",marginRight:7}}/> Camera & chuyển động AI</h2><p>Camera và bộ khung hiển thị độc lập, không chồng hình lên nhau</p></div><span className={styles.chip}><Activity size={13}/> MediaPipe</span></div>
+     <div className={styles.visionStage}>
+      <section className={styles.visionTile} aria-label="Camera thật">
+       <div className={styles.visionTileHeader}><div><Video size={16}/><strong>Camera thật</strong></div><span className={styles.modeLabel}>{cameraFacing==="user"?"Camera trước":"Camera sau"}</span></div>
+       <div className={styles.camera}>
+        <video ref={video} className={styles.video} playsInline autoPlay muted aria-label="Hình ảnh camera thật" style={{display:running||loading?undefined:"none",transform:mirror?"scaleX(-1)":"none"}}/>
+        {!running&&!loading&&<div className={styles.emptyCamera}><Video size={31}/><b>Chưa bật camera</b><small>Chọn bài tập và bắt đầu</small></div>}
+        {(running||loading)&&<span className={styles.liveBadge}>{loading?"ĐANG KHỞI ĐỘNG":switching?"ĐỔI CAMERA":paused?"TẠM DỪNG":"● TRỰC TIẾP"}</span>}
+       </div>
+      </section>
+      <section className={styles.visionTile} aria-label="Bộ khung AI độc lập">
+       <div className={styles.visionTileHeader}><div><ScanLine size={16}/><strong>Khung xương AI</strong></div><span className={styles.aiModeLabel}>{running?"33 khớp":"POSE"}</span></div>
+       <div className={styles.poseFrame}>
+        <div className={styles.poseGrid} aria-hidden="true"/>
+        <canvas ref={canvas} className={styles.poseCanvas} aria-label="Các điểm khớp và đường nối từ MediaPipe, không kèm hình camera" role="img" style={{transform:mirror?"scaleX(-1)":"none"}}/>
+        {!running&&!loading&&<div className={styles.posePlaceholder}><Activity size={36}/><b>Bộ khung AI</b><small>Chuyển động đồng bộ với camera</small></div>}
+        {loading&&<div className={styles.posePlaceholder}><ScanLine size={34}/><b>Đang nạp AI…</b><small>Nhận diện tư thế trực tiếp</small></div>}
+        {running&&<div className={styles.poseCounter}><strong>{reps}</strong><span>lần hợp lệ</span></div>}
+        {running&&<div className={styles.poseFps}>{fps?"~"+fps+" FPS":"Đang dò khớp"}</div>}
+       </div>
+      </section>
      </div>
-     <div className={styles.legend}><span><i className={styles.dot}/> Khớp được nhận diện</span><span><i className={styles.bar}/> Đường nối xương</span><span>Không ghi hoặc tải video lên server</span></div>
+     <div className={styles.legend}><span><i className={styles.dot}/> Chấm cam = khớp</span><span><i className={styles.bar}/> Đường nối = xương</span><span>Video không tải lên máy chủ</span></div>
      {rewardFeedback&&<div className={styles.rewardNotice} role="status"><Zap size={16}/>{rewardFeedback}</div>}
-     <div className={styles.feedback} role="status" aria-live="polite"><Activity size={20} color="#6c57c5"/><div><strong>{feedback}</strong><span>{metric} · {exercise.name} · {duration(seconds)}</span></div></div>
+     <div className={styles.feedback} role="status" aria-live="polite"><Activity size={20} color="#c46939"/><div><strong>{feedback}</strong><span>{metric} · {exercise.name} · {duration(seconds)}</span></div></div>
      {error&&<div role="alert" className={styles.error}>{error}</div>}
      <div className={styles.controls}>
       {!running&&!loading?<button className={styles.controlPrimary} onClick={start}><Play size={16}/> Bật camera & bắt đầu</button>:<button className={styles.controlPrimary} disabled={loading} onClick={pauseToggle}>{paused?<Play size={16}/>:<Pause size={16}/>} {loading?"Đang khởi động…":paused?"Tiếp tục":"Tạm dừng"}</button>}
       <button className={styles.control} disabled={!running&&!loading} onClick={()=>stop(true)}><VideoOff size={16}/> Kết thúc & lưu</button>
+      <button className={styles.control} disabled={loading||switching} onClick={switchLens} aria-label={"Đổi camera trước sau, hiện đang dùng camera "+(cameraFacing==="user"?"trước":"sau")}><SwitchCamera size={16}/> {switching?"Đang đổi…":cameraFacing==="user"?"Chuyển cam sau":"Chuyển cam trước"}</button>
       <button className={styles.control} onClick={reset}><RefreshCcw size={15}/> Buổi tập mới</button>
       <button className={styles.control} onClick={()=>setMirror(value=>!value)}><Video size={15}/> {mirror?"Bỏ lật ảnh":"Lật ảnh"}</button>
      </div>
