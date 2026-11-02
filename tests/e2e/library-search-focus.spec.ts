@@ -12,7 +12,7 @@ for(const width of [320,390,430,760,1280]){
    const input=wrap.querySelector<HTMLInputElement>("input")!;
    const icon=wrap.querySelector<SVGElement>("svg")!;
    const w=wrap.getBoundingClientRect(),i=input.getBoundingClientRect(),s=icon.getBoundingClientRect();
-   const css=getComputedStyle(input),focus=getComputedStyle(w);
+   const css=getComputedStyle(input),focus=getComputedStyle(wrap);
    return {
     inputBorderTop:css.borderTopWidth,inputOutline:css.outlineStyle,inputShadow:css.boxShadow,
     border:focus.borderTopWidth,shadow:focus.boxShadow,
