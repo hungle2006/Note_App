@@ -1,0 +1,147 @@
+/* SmartNotes Story Design — the seven chapters share a narrative and coherent controls.
+   Visual grammar: parchment canvas, warm coral actions, sage rest moments,
+   subtle orange chapter accents and consistent rounded surfaces. */
+:root{
+ --story-peach:#ffeedf;--story-apricot:#ffe3ca;--story-sage:#edf4e7;
+ --story-sand:#fff3df;--story-border:var(--line,#eddaca);
+ --story-dark:#51382d;--story-accent:#b85e32;
+ --story-radius-lg:22px;--story-radius-md:15px;
+}
+:root[data-theme=dark]{
+ --story-peach:#463024;--story-apricot:#503323;--story-sage:#2c4032;
+ --story-sand:#433529;--story-border:#614737;--story-dark:#fff0e0;
+ --story-accent:#ffc18c;
+}
+.story-roadmap{
+ width:min(1210px,calc(100% - 64px));margin:24px auto 42px;
+ padding:23px;border:1px solid var(--story-border);border-radius:25px;
+ background:linear-gradient(125deg,var(--paper),var(--sun-peach-light) 110%);
+ min-width:0;box-sizing:border-box;isolation:isolate;
+}
+.workspace-content .story-roadmap{width:100%;margin:17px 0 19px}
+.story-roadmap-head{display:flex;justify-content:space-between;gap:15px;align-items:flex-start;margin-bottom:17px;min-width:0}
+.story-roadmap-head>div{min-width:0}
+.story-eyebrow{display:inline-flex;gap:6px;align-items:center;color:var(--purple-ink);font-size:10px;letter-spacing:1.1px;font-weight:850}
+.story-roadmap-head h2{font-size:clamp(19px,2.1vw,27px);line-height:1.23;margin:8px 0 5px;color:var(--ink);letter-spacing:-.65px;overflow-wrap:anywhere}
+.story-roadmap-head p{font-size:12px;line-height:1.6;color:var(--muted);margin:0}
+.story-path-symbol{display:grid;place-items:center;width:47px;height:47px;flex:0 0 47px;border-radius:15px;background:var(--paper);border:1px solid var(--line);color:var(--purple-ink)}
+.story-steps{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:9px;min-width:0}
+.story-step{
+ display:flex;flex-direction:column;gap:7px;position:relative;min-width:0;min-height:157px;
+ padding:14px 12px;border:1px solid var(--line);border-radius:16px;
+ color:var(--ink);text-decoration:none;text-align:left;background:var(--paper);cursor:pointer;
+ font:inherit;transition:transform .17s ease,box-shadow .17s ease,border-color .17s ease;
+}
+.story-step:hover{transform:translateY(-2px);border-color:var(--sun-accent);box-shadow:0 8px 22px #aa63211a}
+.story-step:focus-visible,.story-next:focus-visible{outline:2px solid var(--sun-accent);outline-offset:3px}
+.story-step-icon{width:37px;height:37px;flex:0 0 37px;border-radius:12px;display:grid;place-items:center;background:var(--story-peach);color:var(--purple-ink)}
+.story-step.tone-apricot .story-step-icon{background:var(--story-apricot)}
+.story-step.tone-sage .story-step-icon{background:var(--story-sage);color:var(--teal)}
+.story-step.tone-sand .story-step-icon{background:var(--story-sand)}
+.story-step-number{font-weight:850;font-size:9px;letter-spacing:.75px;color:var(--purple-ink);line-height:1.2}
+.story-step strong{font-size:12px;line-height:1.3;font-weight:850;overflow-wrap:anywhere}
+.story-step small{color:var(--muted);font-size:10px;line-height:1.45;overflow-wrap:anywhere;padding-right:3px}
+.story-step-arrow{position:absolute;right:9px;top:15px;color:var(--purple-ink)}
+.story-chapter{
+ display:flex;align-items:center;gap:12px;position:relative;
+ padding:12px 17px;min-width:0;margin:0 0 16px;
+ border:1px solid var(--line);border-radius:17px;
+ background:linear-gradient(110deg,var(--sun-peach-light),var(--paper) 75%);
+}
+.story-chapter.tone-sage{background:linear-gradient(110deg,var(--story-sage),var(--paper) 76%)}
+.story-chapter.tone-sand{background:linear-gradient(110deg,var(--story-sand),var(--paper) 76%)}
+.story-chapter.tone-apricot{background:linear-gradient(110deg,var(--story-apricot),var(--paper) 76%)}
+.story-chapter-icon{display:grid;place-items:center;width:49px;height:49px;flex:0 0 49px;border:1px solid var(--line);border-radius:15px;background:var(--paper);color:var(--purple-ink)}
+.story-chapter-copy{display:flex;flex-direction:column;align-items:flex-start;gap:3px;flex:1;min-width:0}
+.story-chapter-caption{font-size:9px;font-weight:850;letter-spacing:.8px;color:var(--purple-ink)}
+.story-chapter-copy>strong{font-size:15px;font-weight:850;line-height:1.3;color:var(--ink)}
+.story-chapter-copy>small{font-size:11px;line-height:1.45;color:var(--muted);overflow-wrap:anywhere}
+.story-next{flex:0 0 auto;display:flex;flex-direction:column;align-items:flex-start;gap:4px;
+ padding:10px 12px;border-radius:12px;border:1px solid var(--line);
+ color:var(--purple-ink);background:var(--paper);font:inherit;cursor:pointer}
+.story-next:hover{border-color:var(--sun-accent);background:var(--soft)}
+.story-next-caption{font-size:9px;letter-spacing:.7px;font-weight:800;color:var(--muted)}
+.story-next>span:last-child{display:flex;align-items:center;gap:6px;font-size:11px;font-weight:850}
+.story-roadmap.compact{padding:18px}
+.story-roadmap.compact .story-step{min-height:136px;padding:11px}
+.story-roadmap.compact .story-step small{font-size:10px}
+.story-roadmap.compact .story-roadmap-head{margin-bottom:14px}
+/* Cross-page typographic and control rhythm. Keep vertical hierarchy predictable. */
+.landing,.app-shell{--ui-radius:18px}
+.landing :is(.panel,.quickstart-card,.subject-preview-card,.feature-mini-grid article),
+.app-shell :is(.panel,.note-card,.game-card,.subject-card,.settings-card){border-color:var(--line)}
+.landing .button,.app-shell .button{display:inline-flex;align-items:center;justify-content:center;gap:8px;line-height:1.3;font-weight:800}
+.landing .button svg,.app-shell .button svg{flex-shrink:0}
+.workspace-content{max-width:1380px;margin:0 auto;box-sizing:border-box}
+.workspace-content :is(h1,h2,h3){overflow-wrap:break-word}
+.workspace-content .section-title{margin-bottom:17px}
+.workspace-content .section-title h1{line-height:1.19;letter-spacing:-.65px}
+.landing .eyebrow,.workspace-content .eyebrow{color:var(--purple-ink);font-weight:850;letter-spacing:.9px}
+.app-shell :is(.capture-tabs,.scan-tabs,.overview-tabs,.sun-filters,.chat-modes){min-width:0}
+.app-shell :is(.capture-tabs button,.scan-tabs button,.overview-tabs button,.sun-filters button){min-width:0;border-radius:12px;min-height:42px;line-height:1.35}
+.app-shell :is(.capture-tabs button,.scan-tabs button,.overview-tabs button,.sun-filters button):focus-visible{outline:2px solid var(--sun-accent);outline-offset:2px}
+.app-shell :is(.library-filters,.game-note-select,.scan-main,.chat-context,.quality-form,.settings-card){min-width:0;max-width:100%}
+.app-shell select{color:var(--ink);border-color:var(--line);border-radius:12px}
+.app-shell :is(input,textarea,select){accent-color:var(--sun-accent)}
+.app-shell :is(input,textarea,select):focus-visible{outline:2px solid var(--sun-accent);outline-offset:1px}
+.app-shell .sidebar .side-nav button,.app-shell .sidebar .settings-nav{min-height:46px}
+.app-shell .sidebar .side-nav button>svg{flex-shrink:0}
+.landing .quickstart-grid .quickstart-card{border-radius:18px}
+.app-shell .mobile-tabbar .tabbar-icon svg{stroke-width:2}
+.app-shell .mobile-tabbar button:focus-visible{outline:2px solid var(--sun-accent);outline-offset:-2px}
+@media(max-width:1200px){
+ .story-steps{grid-template-columns:repeat(4,minmax(0,1fr))}
+ .story-step{min-height:138px}
+}
+@media(max-width:900px){
+ .story-steps{display:grid;grid-auto-flow:column;grid-template-columns:none;grid-auto-columns:minmax(160px,210px);overflow-x:auto;scroll-snap-type:x proximity;padding:3px 2px 10px;scrollbar-width:thin;overscroll-behavior-x:contain}
+ .story-step{scroll-snap-align:start;min-height:145px}
+}
+@media(max-width:760px){
+ .story-roadmap{width:auto;margin:13px 14px 26px;padding:15px 13px;border-radius:19px}
+ .workspace-content .story-roadmap{margin:12px 0 17px;padding:14px 12px}
+ .story-roadmap-head{margin-bottom:12px;gap:9px}
+ .story-roadmap-head h2{font-size:18px;margin:5px 0}
+ .story-roadmap-head p{font-size:11px;line-height:1.55}
+ .story-eyebrow{font-size:9px;letter-spacing:.45px}
+ .story-path-symbol{width:38px;height:38px;flex-basis:38px}
+ .story-path-symbol svg{width:21px}
+ .story-steps{grid-auto-columns:minmax(178px,64%);gap:9px;scrollbar-width:none;padding-bottom:5px}
+ .story-steps::-webkit-scrollbar{display:none}
+ .story-step{min-height:144px;padding:12px}
+ .story-step strong{font-size:12px}
+ .story-step small{font-size:10px}
+ .story-step-icon{width:35px;height:35px;flex-basis:35px}
+ .story-roadmap.compact{padding:14px 12px}
+ .story-roadmap.compact .story-step{min-height:135px}
+ .story-chapter{margin:0 0 13px;gap:10px;padding:10px 12px;border-radius:15px}
+ .story-chapter-icon{width:41px;height:41px;flex-basis:41px;border-radius:12px}
+ .story-chapter-icon svg{width:20px}
+ .story-chapter-caption{font-size:9px}
+ .story-chapter-copy>strong{font-size:13px}
+ .story-chapter-copy>small{font-size:10px;line-height:1.45}
+ .story-next{align-self:center;width:37px;min-width:37px;height:38px;padding:0;display:grid;place-items:center;overflow:hidden}
+ .story-next-caption{display:none}
+ .story-next>span:last-child{font-size:0;gap:0}
+ .story-next>span:last-child svg{width:19px;height:19px}
+ .workspace-content .section-title{margin-bottom:14px}
+ .workspace-content .section-title h1{font-size:clamp(21px,5.9vw,27px)!important;line-height:1.23}
+ .workspace-content .section-title p{font-size:12px}
+ .landing .quickstart-grid{align-items:stretch}
+ .landing .quickstart-card{min-width:0}
+ .app-shell .sidebar{border-radius:0 18px 18px 0}
+ .app-shell .sidebar .side-nav{padding-bottom:10px}
+ .app-shell .sidebar .side-nav button{min-height:47px}
+}
+@media(max-width:380px){
+ .story-roadmap{margin-inline:11px}
+ .story-steps{grid-auto-columns:minmax(170px,74%)}
+ .story-roadmap-head h2{font-size:17px}
+ .story-chapter-copy>small{font-size:10px}
+ .story-chapter{padding:9px}
+ .story-chapter-icon{width:37px;height:37px;flex-basis:37px}
+}
+@media(prefers-reduced-motion:reduce){
+ .story-step{transition:none}
+ .story-step:hover{transform:none}
+}
