@@ -124,9 +124,9 @@ test("3D motion can be stopped and respects reduced motion",async({page})=>{
  await expect(page.locator("html")).toHaveAttribute("data-motion","off");
 });
 test("THCS grade filter exposes the right notes",async({page})=>{
- await page.goto("/app?mode=demo&view=library");await page.getByLabel("Lọc lớp học").selectOption("9");
+ await page.goto("/app?mode=demo&view=library");await page.getByRole("button",{name:"Lớp học"}).click();await page.getByRole("option",{name:"Lớp 9"}).click();
  await expect(page.locator(".note-card")).toHaveCount(1);await expect(page.locator(".note-card")).toContainText("Căn bậc hai");
- await page.getByLabel("Lọc lớp học").selectOption("8");await expect(page.locator(".note-card")).toContainText("Hằng đẳng thức");
+ await page.getByRole("button",{name:"Lớp học"}).click();await page.getByRole("option",{name:"Lớp 8"}).click();await expect(page.locator(".note-card")).toContainText("Hằng đẳng thức");
 });
 test("mobile landing is readable without horizontal scroll",async({page})=>{
  await page.setViewportSize({width:390,height:844});await page.goto("/");
