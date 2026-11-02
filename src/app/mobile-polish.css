@@ -53,36 +53,36 @@
 }
 @media(max-width:760px){
  /* A compact search and filter row instead of two oversized icon-over-text boxes. */
- .catalogTools{display:grid!important;grid-template-columns:minmax(0,1fr) 142px!important;align-items:stretch;gap:8px!important;margin:11px 0!important}
- .catalogTools .catalogSearch{grid-column:1/-1!important}
- .catalogTools .levelFilter{grid-column:1/-1!important;width:min(100%,210px)!important;max-width:210px!important}
- .catalogTools .catalogSearch,.catalogTools .levelFilter{display:flex!important;flex-direction:row!important;flex-wrap:nowrap!important;align-items:center!important;justify-content:flex-start!important;gap:9px!important;box-sizing:border-box!important;height:48px!important;min-height:48px!important;max-height:48px!important;padding:0 12px!important;margin:0!important;border:1px solid var(--line)!important;border-radius:14px!important;background:var(--paper)!important}
- .catalogTools .catalogSearch>svg,.catalogTools .levelFilter>svg{display:block!important;flex:0 0 17px!important;width:17px!important;height:17px!important;position:static!important;transform:none!important;margin:0!important}
- .catalogTools .catalogSearch>input{display:block!important;flex:1!important;min-width:0!important;width:100%!important;max-width:100%!important;height:44px!important;min-height:0!important;padding:0!important;margin:0!important;border:0!important;outline:none!important;background:transparent!important;text-align:left!important;font-size:16px!important;box-shadow:none!important}
- .catalogTools .catalogSearch input::placeholder{text-align:left!important;font-size:12px!important;opacity:1}
- .catalogTools .levelFilter select{flex:1 1 auto!important;min-width:0!important;width:100%!important;min-height:0!important;height:44px!important;margin:0!important;padding:0!important;border:0!important;background:transparent!important;font-size:13px!important}
- .catalogTools .levelFilter .filterChevron{flex:0 0 16px!important}
- .categoryRail{margin-left:-14px;margin-right:-14px;padding:5px 14px 9px}
- .categoryRail button{min-height:42px}
- .catalogSummary{gap:5px;font-size:11px;line-height:1.5}
- .catalogGrid{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
- .catalogCard{box-sizing:border-box;min-width:0;max-width:100%;overflow:hidden;min-height:142px}
- .catalogCardCopy{width:100%;min-width:0}
- .catalogCardCopy strong{overflow-wrap:anywhere}
- .catalogMeta{max-width:100%;flex-wrap:wrap}
- .libraryHeading{align-items:flex-start}
- .libraryHeading>div:first-child{min-width:0}
- .libraryHeading h2{font-size:clamp(18px,5.3vw,22px);overflow-wrap:anywhere}
- .libraryCount{flex:0 0 60px;min-width:60px}
- .libraryPanel .panelPad{padding:14px}
- .selectedWorkout{max-width:100%;overflow-wrap:anywhere}
- .visionStage{min-width:0}
- .visionTile{min-width:0}
- .guideClockActions button{min-width:0}
+ [class*="catalogTools"]{display:grid!important;grid-template-columns:minmax(0,1fr) 142px!important;align-items:stretch;gap:8px!important;margin:11px 0!important}
+ [class*="catalogTools"] [class*="catalogSearch"]{grid-column:1/-1!important}
+ [class*="catalogTools"] [class*="levelFilter"]{grid-column:1/-1!important;width:min(100%,210px)!important;max-width:210px!important}
+ [class*="catalogTools"] [class*="catalogSearch"],[class*="catalogTools"] [class*="levelFilter"]{display:flex!important;flex-direction:row!important;flex-wrap:nowrap!important;align-items:center!important;justify-content:flex-start!important;gap:9px!important;box-sizing:border-box!important;height:48px!important;min-height:48px!important;max-height:48px!important;padding:0 12px!important;margin:0!important;border:1px solid var(--line)!important;border-radius:14px!important;background:var(--paper)!important}
+ [class*="catalogTools"] [class*="catalogSearch"]>svg,[class*="catalogTools"] [class*="levelFilter"]>svg{display:block!important;flex:0 0 17px!important;width:17px!important;height:17px!important;position:static!important;transform:none!important;margin:0!important}
+ [class*="catalogTools"] [class*="catalogSearch"]>input{display:block!important;flex:1!important;min-width:0!important;width:100%!important;max-width:100%!important;height:44px!important;min-height:0!important;padding:0!important;margin:0!important;border:0!important;outline:none!important;background:transparent!important;text-align:left!important;font-size:16px!important;box-shadow:none!important}
+ [class*="catalogTools"] [class*="catalogSearch"] input::placeholder{text-align:left!important;font-size:12px!important;opacity:1}
+ [class*="catalogTools"] [class*="levelFilter"] select{flex:1 1 auto!important;min-width:0!important;width:100%!important;min-height:0!important;height:44px!important;margin:0!important;padding:0!important;border:0!important;background:transparent!important;font-size:13px!important}
+ [class*="catalogTools"] [class*="levelFilter"] [class*="filterChevron"]{flex:0 0 16px!important}
+ [class*="categoryRail"]{margin-left:-14px;margin-right:-14px;padding:5px 14px 9px}
+ [class*="categoryRail"] button{min-height:42px}
+ [class*="catalogSummary"]{gap:5px;font-size:11px;line-height:1.5}
+ [class*="catalogGrid"]{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+ [class*="catalogCard"]{box-sizing:border-box;min-width:0;max-width:100%;overflow:hidden;min-height:142px}
+ [class*="catalogCard"]Copy{width:100%;min-width:0}
+ [class*="catalogCard"]Copy strong{overflow-wrap:anywhere}
+ [class*="catalogMeta"]{max-width:100%;flex-wrap:wrap}
+ [class*="libraryHeading"]{align-items:flex-start}
+ [class*="libraryHeading"]>div:first-child{min-width:0}
+ [class*="libraryHeading"] h2{font-size:clamp(18px,5.3vw,22px);overflow-wrap:anywhere}
+ [class*="libraryCount"]{flex:0 0 60px;min-width:60px}
+ [class*="libraryPanel"] [class*="panelPad"]{padding:14px}
+ [class*="selectedWorkout"]{max-width:100%;overflow-wrap:anywhere}
+ [class*="visionStage"]{min-width:0}
+ [class*="visionTile"]{min-width:0}
+ [class*="guideClockActions"] button{min-width:0}
 }
 @media(max-width:360px){
- .catalogGrid{grid-template-columns:minmax(0,1fr)}
- .catalogCard{display:grid;grid-template-columns:40px minmax(0,1fr);min-height:83px;align-items:start}
- .catalogCardCopy{grid-column:2}
- .catalogTools .levelFilter{width:100%!important}
+ [class*="catalogGrid"]{grid-template-columns:minmax(0,1fr)}
+ [class*="catalogCard"]{display:grid;grid-template-columns:40px minmax(0,1fr);min-height:83px;align-items:start}
+ [class*="catalogCard"]Copy{grid-column:2}
+ [class*="catalogTools"] [class*="levelFilter"]{width:100%!important}
 }
