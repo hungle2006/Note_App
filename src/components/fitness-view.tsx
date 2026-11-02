@@ -311,7 +311,7 @@ export function FitnessView({accountId,onSessionSaved}:{accountId:string;onSessi
    <div className={styles.stat}><strong>{mergedHistory.length}</strong><span>Buổi tập đã lưu</span></div>
    <div className={styles.stat}><strong>{totalReps}</strong><span>Động tác hợp lệ</span></div>
    <div className={styles.stat}><strong>{totalMinutes}</strong><span>Phút vận động</span></div>
-   <div className={styles.stat}><strong>{totalPoints}</strong><span>Điểm vận động</span></div>
+   <div className={styles.stat}><strong>{totalPoints}</strong><span>Điểm hoạt động tham khảo</span></div>
   </div>
   <FitnessLibraryPicker selectedId={selectedId} onSelect={changeExercise}/>
   <div className={styles.selectedWorkout} id="fitness-session"><span className={styles.kicker}>BÀI ĐÃ CHỌN</span><strong>{selected.name}</strong><span className={selected.kind==="ai"?styles.kindAI:styles.kindTimer}>{selected.kind==="ai"?"◎ AI đếm chuyển động":"◷ Hướng dẫn theo giờ"}</span></div>
@@ -360,7 +360,7 @@ export function FitnessView({accountId,onSessionSaved}:{accountId:string;onSessi
   </div>}
   <section className={styles.historyPanel} aria-label="Nhật ký vận động">
     <section className={styles.panel}><div className={styles.panelPad}>
-     <div className={styles.sectionHead}><div><h2><Timer size={17} style={{verticalAlign:"middle",marginRight:6}}/> Lịch sử tập luyện</h2><p>{todayCount} buổi hôm nay · {cloud?"đồng bộ Turso":"lưu tại trình duyệt"}</p></div>{mergedHistory.length>0&&<div style={{display:"flex",gap:7}}><button className={styles.control} onClick={downloadCsv} title="Tải CSV" aria-label="Tải lịch sử CSV"><Download size={16}/></button><button className={styles.danger} onClick={removeHistory} title="Xóa lịch sử">Xóa</button></div>}</div>
+     <div className={styles.sectionHead}><div><h2><Timer size={17} style={{verticalAlign:"middle",marginRight:6}}/> Lịch sử tập luyện</h2><p>{todayCount} buổi hôm nay · {cloud?"AI trên Turso · hướng dẫn tại máy":"lưu tại trình duyệt"}</p></div>{mergedHistory.length>0&&<div style={{display:"flex",gap:7}}><button className={styles.control} onClick={downloadCsv} title="Tải CSV" aria-label="Tải lịch sử CSV"><Download size={16}/></button><button className={styles.danger} onClick={removeHistory} title="Xóa lịch sử">Xóa</button></div>}</div>
      <div className={styles.list}>{!storageReady?<div className={styles.empty}>Đang tải lịch sử…</div>:mergedHistory.length===0?<div className={styles.empty}>Chưa có buổi tập. Hoàn thành vài động tác và bấm Kết thúc & lưu để ghi lại.</div>:mergedHistory.slice(0,8).map(h=><div className={styles.history} key={h.id}><div><strong>{getFitnessExercise(h.exercise)?.name||h.exercise}</strong><span>{new Date(h.at).toLocaleString("vi-VN")} · {duration(h.seconds)} {h.guided?"· Hướng dẫn (trên máy)":"· AI đếm"}</span></div><b>{h.guided?"Đã tập":h.reps+" lần"}</b></div>)}</div>
      <p className={styles.footer}>{cloud?"Lịch sử đồng bộ với tài khoản qua Turso; bản sao trên máy hỗ trợ khi mạng lỗi.":"Bản mẫu chỉ lưu lịch sử trên thiết bị này."} Bài hướng dẫn lưu tại máy, không đồng bộ hoặc cộng điểm; không lưu video hay ảnh cơ thể.</p>{cloudError&&<p className={styles.error} role="alert">{cloudError}</p>}
     </div></section>
