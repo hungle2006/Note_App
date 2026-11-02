@@ -1,9 +1,78 @@
 "use client";
-import {useState} from 'react';import {Trophy,Gift,ArrowUpRight,ShieldCheck,Loader2,Check} from 'lucide-react';import type {Learning} from '@/lib/use-learning';import {rewardCatalog} from '@/lib/rewards';import {Title,Tag,formatDate} from './ui';
-export function RewardsView({learning,demo}:{learning:Learning;demo:boolean}){
- const [busy,setBusy]=useState(''),[error,setError]=useState('');const w=learning.wallet;
- async function claim(id:string){setBusy(id);setError('');try{await learning.claimReward(id);}catch(e){setError(e instanceof Error?e.message:'Chưa đổi được huy hiệu.');}finally{setBusy('');}}
- return <><Title eyebrow="NHỮNG BƯỚC NHỎ, THÀNH TÍCH LỚN" title="Góc thành tích" description="Điểm khích lệ cho việc ôn tập, cùng những huy hiệu của riêng em."/><div className="achievement-balance panel" aria-live="polite"><div className="achievement-orbit"><Trophy size={35}/></div><div><span>ĐIỂM HỌC TẬP</span><strong>{w.balance}<small>điểm</small></strong><p>Đã tích lũy {w.earned} điểm từ quiz và ghép đôi.</p></div><Tag color={demo?'orange':'green'}>{demo?'BẢN MẪU · TRÊN THIẾT BỊ':'MÁY CHỦ XÁC NHẬN'}</Tag></div><p className="achievement-rule"><ShieldCheck size={18}/>Mỗi đáp án đúng được 2 điểm. Mỗi bài / trò / ngày chỉ nhận điểm một lần (ngày UTC, đổi lúc 07:00 Việt Nam). Flashcard tự đánh giá không cộng điểm. Huy hiệu là phần thưởng ảo.</p>{(error||learning.walletError)&&<p className="form-error" role="alert">{error||learning.walletError}</p>}
- <div className="reward-grid">{rewardCatalog.map(r=>{const owned=w.redeemed.some(x=>x.rewardId===r.id);return <article className={'panel reward-card '+(owned?'reward-owned':'')} key={r.id}><span className="reward-glyph">{r.emoji}</span><Tag color={owned?'green':'purple'}>{owned?'ĐÃ SỞ HỮU':r.cost+' ĐIỂM'}</Tag><h2>{r.name}</h2><p>{r.description}</p><button className={'button '+(owned?'secondary':'primary')} disabled={Boolean(busy)||owned||w.balance<r.cost} onClick={()=>claim(r.id)}>{busy===r.id?<Loader2 className="spin" size={16}/>:owned?<Check size={16}/>:<Gift size={16}/>} {owned?'Huy hiệu của em':'Đổi huy hiệu'}</button></article>;})}</div>
- <section className="panel rewards-history"><div className="section-row"><h2>Lịch sử điểm & đổi huy hiệu</h2><Tag>{demo?'LƯU CỤC BỘ':'LƯU TRÊN TURSO'}</Tag></div>{w.history.length?<div>{w.history.map(e=><div className="reward-event" key={e.id}><span className={'reward-event-icon '+(e.amount>0?'earned':'spent')}>{e.amount>0?<ArrowUpRight size={18}/>:<Gift size={18}/>}</span><div><strong>{e.label}</strong><small>{formatDate(e.createdAt)}</small></div><b>{e.amount>0?'+':''}{e.amount}</b></div>)}</div>:<div className="reward-empty"><Trophy size={28}/><h3>Thành tích bắt đầu từ một lượt ôn.</h3><p>Hoàn thành quiz hoặc ghép đôi để nhận điểm đầu tiên.</p></div>}</section></>;
+import {useState} from "react";
+import {ArrowRight,ArrowUpRight,BookOpen,Check,Gift,Heart,Loader2,ShieldCheck,Sun,Trophy,Dumbbell} from "lucide-react";
+import type {Learning} from "@/lib/use-learning";
+import {rewardCatalog,tierProgress} from "@/lib/rewards";
+import {Title,formatDate} from "./ui";
+
+type Filter="all"|"available"|"owned";
+export function RewardsView({learning,demo,onNavigate}:{learning:Learning;demo:boolean;onNavigate?:(target:string)=>void}){
+ const [busy,setBusy]=useState("");
+ const [error,setError]=useState("");
+ const [filter,setFilter]=useState<Filter>("all");
+ const wallet=learning.wallet;
+ const tier=tierProgress(wallet.earned);
+ const ownedCount=wallet.redeemed.filter(r=>rewardCatalog.some(c=>c.id===r.rewardId)).length;
+ const catalog=rewardCatalog.filter(item=>{
+  const owned=wallet.redeemed.some(r=>r.rewardId===item.id);
+  return filter==="all"||(filter==="owned"?owned:!owned&&wallet.balance>=item.cost);
+ });
+ async function claim(id:string){
+  setBusy(id);setError("");
+  try{await learning.claimReward(id);}
+  catch(e){setError(e instanceof Error?e.message:"Chưa đổi được huy hiệu. Hãy thử lại.");}
+  finally{setBusy("");}
+ }
+ return <div className="sun-page">
+  <Title eyebrow="SÂN CHƠI THÀNH TÍCH · KHÔNG CẦN SO SÁNH VỚI AI" title="Góc thành tích" description="Tích Điểm Nắng bằng kiến thức và vận động nhẹ, rồi đổi thành những huy hiệu ảo của riêng em."/>
+  <div className="sun-hero">
+   <section className="sun-balance" aria-label="Số Điểm Nắng">
+    <span className="sun-kicker"><Sun size={15}/> VÍ ĐIỂM NẮNG CỦA EM</span>
+    <h2>{wallet.balance.toLocaleString("vi-VN")}<small>Điểm Nắng ☀️</small></h2>
+    <p>Em đã nhận tổng cộng <strong>{wallet.earned} điểm</strong> và mở khóa <strong>{ownedCount}/{rewardCatalog.length}</strong> huy hiệu. Dành thời gian nghỉ ngơi cũng là một phần của việc học tốt.</p>
+    <div className="sun-actions">
+     <button className="button primary" onClick={()=>onNavigate?.("games")}><BookOpen size={15}/> Ôn tập nhận điểm</button>
+     <button className="button secondary" onClick={()=>onNavigate?.("fitness")}><Dumbbell size={15}/> Vận động cùng AI</button>
+    </div>
+   </section>
+   <section className="sun-tier" aria-label="Cấp độ khám phá">
+    <span className="sun-tier-kicker">Hành trình của chính em</span>
+    <div className="sun-tier-name"><span className="sun-tier-emoji" aria-hidden="true">{tier.current.icon}</span><div><strong>{tier.current.label}</strong><small>Cấp độ dựa trên tổng điểm đã từng nhận</small></div></div>
+    <div className="sun-track" role="progressbar" aria-valuenow={tier.progress} aria-valuemin={0} aria-valuemax={100} aria-label="Tiến độ lên cấp"><span style={{width:tier.progress+"%"}}/></div>
+    <p className="sun-tier-next">{tier.next?<><span>Còn <b>{tier.remaining}</b> điểm để lên cấp</span><strong>{tier.next.label}</strong></>:<span>Em đã mở tất cả các cấp hiện tại. Cứ tận hưởng việc học nhé!</span>}</p>
+   </section>
+  </div>
+  <p className="sun-rule"><ShieldCheck size={19}/><span><strong>Quy đổi minh bạch:</strong> Quiz/ghép đôi được 2 Điểm Nắng mỗi đáp án đúng, tối đa một lượt thưởng cho mỗi bài và trò/ngày. Vận động từ 30 giây và ít nhất 4 lần hợp lệ được 4 điểm/bài, tối đa 2 bài khác nhau/ngày. Ngày tính theo UTC, đặt lại lúc 07:00 giờ Việt Nam. Không có điểm cho việc tập quá mức, không có bảng xếp hạng hay phần thưởng tiền mặt.</span></p>
+  {error&&<p role="alert" className="form-error">{error}</p>}
+  {learning.walletError&&<p role="status" className="notice">{learning.walletError}</p>}
+  <div className="sun-quests" aria-label="Hai cách nhận Điểm Nắng">
+   <article className="sun-quest"><span className="sun-quest-icon"><BookOpen size={23}/></span><div><h3>Khám phá kiến thức</h3><p>Trả lời quiz hoặc ghép đôi để củng cố bài học. Không cần đạt điểm tối đa.</p><button onClick={()=>onNavigate?.("games")}>Mở sân chơi kiến thức <ArrowRight size={14}/></button></div></article>
+   <article className="sun-quest"><span className="sun-quest-icon"><Heart size={23}/></span><div><h3>Vận động vừa sức</h3><p>Một bài tập nhẹ cũng đáng khen. Đủ điều kiện: +4 Điểm Nắng; giới hạn 8 điểm/ngày.</p><button onClick={()=>onNavigate?.("fitness")}>Tập với bộ khung AI <ArrowRight size={14}/></button></div></article>
+  </div>
+  <section className="sun-collection" id="rewards-collection">
+   <div className="sun-collection-head"><div><span className="sun-kicker">BỘ SƯU TẬP NHO NHỎ</span><h2>Chọn một huy hiệu em thích</h2><p>Huy hiệu chỉ là biểu tượng ảo để ghi nhận nỗ lực.</p></div><div className="sun-filters" role="group" aria-label="Lọc huy hiệu">
+    <button aria-pressed={filter==="all"} onClick={()=>setFilter("all")}>Tất cả ({rewardCatalog.length})</button>
+    <button aria-pressed={filter==="available"} onClick={()=>setFilter("available")}>Có thể đổi</button>
+    <button aria-pressed={filter==="owned"} onClick={()=>setFilter("owned")}>Đã sở hữu ({ownedCount})</button>
+   </div></div>
+   {catalog.length?<div className="sun-reward-grid">{catalog.map(r=>{
+    const owned=wallet.redeemed.some(x=>x.rewardId===r.id);
+    const affordable=wallet.balance>=r.cost;
+    return <article className={"sun-reward"+(owned?" owned":"")} key={r.id}>
+     <span className="sun-reward-art" aria-hidden="true">{r.emoji}</span>
+     <span className="sun-reward-meta">{owned?"✓ ĐÃ SỞ HỮU":r.theme.toUpperCase()}</span>
+     <h3>{r.name}</h3><p>{r.description}</p>
+     <div className="sun-reward-bottom"><strong><Sun size={13} style={{verticalAlign:"middle",marginRight:3}}/>{r.cost} điểm</strong>{owned?<span>Đã mở khóa</span>:affordable?<span>Sẵn sàng</span>:<span>Thiếu {r.cost-wallet.balance}</span>}</div>
+     <button className={"button "+(owned?"secondary":"primary")} disabled={Boolean(busy)||owned||!affordable} onClick={()=>claim(r.id)}>
+      {busy===r.id?<Loader2 className="spin" size={16}/>:owned?<Check size={16}/>:<Gift size={16}/>}
+      {owned?"Huy hiệu của em":affordable?"Đổi huy hiệu":"Chưa đủ Điểm Nắng"}
+     </button>
+    </article>;
+   })}</div>:<p className="sun-empty">Chưa có huy hiệu nào ở bộ lọc này. Em có thể chọn “Tất cả” để khám phá nhé.</p>}
+  </section>
+  <section className="sun-archive">
+   <header><h2>Nhật ký Điểm Nắng</h2><span className="sun-kicker">{demo?"LƯU Ở THIẾT BỊ":"LƯU TRÊN TURSO"}</span></header>
+   {wallet.history.length?<div>{wallet.history.slice(0,35).map(event=><div className="sun-log" key={event.id}><span className="sun-log-icon">{event.amount>0?<ArrowUpRight size={17}/>:<Gift size={17}/>}</span><div><strong>{event.label}</strong><small>{formatDate(event.createdAt)}</small></div><b>{event.amount>0?"+":""}{event.amount}</b></div>)}</div>:<p className="sun-empty"><Trophy size={18} style={{verticalAlign:"middle",marginRight:6}}/> Chưa có điểm. Em có thể thử một lượt quiz ngắn bất cứ khi nào sẵn sàng.</p>}
+  </section>
+ </div>;
 }
