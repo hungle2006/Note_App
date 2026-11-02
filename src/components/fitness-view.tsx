@@ -1,6 +1,6 @@
 "use client";
 import {useCallback,useEffect,useRef,useState} from "react";
-import {Activity,CheckCircle2,Download,Dumbbell,Info,Pause,Play,RefreshCcw,ShieldCheck,Target,Timer,Video,VideoOff,Zap} from "lucide-react";
+import {Activity,CheckCircle2,Download,Dumbbell,Info,Pause,Play,RefreshCcw,ShieldCheck,Target,Timer,Video,VideoOff,Zap,SwitchCamera,ScanLine} from "lucide-react";
 import {CONNECTIONS,EXERCISES,newMotionState,processMotion,type ExerciseId,type Landmark,type MotionState} from "@/lib/fitness-engine";
 import {api} from "@/lib/client-api";
 import styles from "./fitness.module.css";
@@ -30,9 +30,19 @@ function paint(canvas:HTMLCanvasElement,landmarks:Landmark[]){
  const ctx=canvas.getContext("2d");if(!ctx)return;
  const w=canvas.width,h=canvas.height;ctx.clearRect(0,0,w,h);
  const good=(i:number)=>{const p=landmarks[i];return p&&Number.isFinite(p.x)&&Number.isFinite(p.y)&&(p.visibility??1)>=.5};
- ctx.lineJoin="round";ctx.lineCap="round";ctx.lineWidth=Math.max(2,w/175);ctx.strokeStyle="#d4fff4";
- for(const [a,b] of CONNECTIONS){if(!good(a)||!good(b))continue;ctx.beginPath();ctx.moveTo(landmarks[a].x*w,landmarks[a].y*h);ctx.lineTo(landmarks[b].x*w,landmarks[b].y*h);ctx.stroke();}
- for(let i=0;i<landmarks.length;i++){if(!good(i))continue;const p=landmarks[i];ctx.beginPath();ctx.fillStyle=i===11||i===12||i===23||i===24?"#fbe47a":"#34edbb";ctx.arc(p.x*w,p.y*h,Math.max(3,w/135),0,Math.PI*2);ctx.fill();}
+ const points=landmarks.map((p,i)=>good(i)?p:null).filter((p):p is Landmark=>Boolean(p));
+ if(points.length<5)return;
+ const minX=Math.min(...points.map(p=>p.x)),maxX=Math.max(...points.map(p=>p.x));
+ const minY=Math.min(...points.map(p=>p.y)),maxY=Math.max(...points.map(p=>p.y));
+ const centerX=(minX+maxX)/2,centerY=(minY+maxY)/2;
+ const scale=Math.min(w*.78/Math.max(.38,maxX-minX),h*.84/Math.max(.65,maxY-minY));
+ const xy=(i:number)=>({x:w/2+(landmarks[i].x-centerX)*scale,y:h/2+(landmarks[i].y-centerY)*scale});
+ ctx.lineJoin="round";ctx.lineCap="round";ctx.lineWidth=Math.max(3,w/120);
+ ctx.shadowBlur=w/52;ctx.shadowColor="#f3b07088";
+ ctx.strokeStyle="#f6c997";
+ for(const [a,b] of CONNECTIONS){if(!good(a)||!good(b))continue;const p=xy(a),q=xy(b);ctx.beginPath();ctx.moveTo(p.x,p.y);ctx.lineTo(q.x,q.y);ctx.stroke();}
+ ctx.shadowBlur=0;
+ for(let i=0;i<landmarks.length;i++){if(!good(i))continue;const p=xy(i);ctx.beginPath();ctx.fillStyle=i===11||i===12||i===23||i===24?"#ffdf9b":"#ffa766";ctx.strokeStyle="#fff5dd";ctx.lineWidth=Math.max(1.5,w/290);ctx.arc(p.x,p.y,Math.max(3,w/125),0,Math.PI*2);ctx.fill();ctx.stroke();}
 }
 const duration=(s:number)=>String(Math.floor(s/60)).padStart(2,"0")+":"+String(s%60).padStart(2,"0");
 const storageKey=(account:string)=>"smartnotes-fitness-v1:"+account;
@@ -54,6 +64,10 @@ export function FitnessView({accountId,onSessionSaved}:{accountId:string;onSessi
  const [ratio,setRatio]=useState("4 / 3");
  const [fps,setFps]=useState(0);
  const [mirror,setMirror]=useState(true);
+ const [cameraFacing,setCameraFacing]=useState<"user"|"environment">("user");
+ const [switching,setSwitching]=useState(false);
+ const facingRef=useRef<"user"|"environment">("user");
+ const switchingRef=useRef(false);
  const video=useRef<HTMLVideoElement|null>(null);
  const canvas=useRef<HTMLCanvasElement|null>(null);
  const stream=useRef<MediaStream|null>(null);
@@ -117,6 +131,7 @@ export function FitnessView({accountId,onSessionSaved}:{accountId:string;onSessi
  }
  const clearCamera=useCallback(()=>{
   active.current=false;isPaused.current=false;isLoading.current=false;
+  switchingRef.current=false;
   sessionToken.current++;
   cancelAnimationFrame(raf.current);
   if(timer.current){clearInterval(timer.current);timer.current=null;}
@@ -133,7 +148,7 @@ export function FitnessView({accountId,onSessionSaved}:{accountId:string;onSessi
    const ex=EXERCISES.find(item=>item.id===exerciseRef.current)||EXERCISES[0];
    saveHistory({id:crypto.randomUUID(),exercise:ex.id,reps:completed,seconds:durationSeconds,points:Math.round(completed*ex.points*10)/10,at:new Date().toISOString()});
   }
-  clearCamera();setRunning(false);setLoading(false);setPaused(false);setFps(0);
+  clearCamera();setRunning(false);setLoading(false);setPaused(false);setFps(0);setSwitching(false);
   if(save)setFeedback(completed>0?"Đã lưu buổi tập trên thiết bị. Chúc mừng bạn!":"Buổi tập chưa có lần lặp hợp lệ.");
  }
  function changeExercise(id:ExerciseId){
@@ -156,7 +171,7 @@ export function FitnessView({accountId,onSessionSaved}:{accountId:string;onSessi
   const token=++sessionToken.current;
   let localStream:MediaStream|null=null;let localModel:Model|null=null;
   try{
-   localStream=await navigator.mediaDevices.getUserMedia({audio:false,video:{facingMode:"user",width:{ideal:640},height:{ideal:480},frameRate:{ideal:24,max:30}}});
+   localStream=await navigator.mediaDevices.getUserMedia({audio:false,video:{facingMode:{ideal:facingRef.current},width:{ideal:480},height:{ideal:640},frameRate:{ideal:24,max:30}}});
    if(token!==sessionToken.current){localStream.getTracks().forEach(t=>t.stop());return;}
    stream.current=localStream;
    if(!video.current)throw new Error("Không tìm thấy khung camera.");
@@ -207,6 +222,48 @@ export function FitnessView({accountId,onSessionSaved}:{accountId:string;onSessi
     setFeedback("Camera chưa khởi động. Kiểm tra quyền truy cập hoặc kết nối mạng.");
    }else{localModel?.close();localStream?.getTracks().forEach(t=>t.stop());}
   }
+ }
+ async function switchLens(){
+  if(isLoading.current||switchingRef.current)return;
+  const before=facingRef.current;
+  const next=before==="user"?"environment":"user";
+  if(!active.current){
+   facingRef.current=next;setCameraFacing(next);setMirror(next==="user");
+   setFeedback(next==="user"?"Đã chọn camera trước.":"Đã chọn camera sau.");
+   return;
+  }
+  const token=sessionToken.current;switchingRef.current=true;setSwitching(true);setError("");
+  setFeedback("Đang chuyển sang camera "+(next==="user"?"trước":"sau")+"…");
+  const player=video.current;
+  if(!player){switchingRef.current=false;setSwitching(false);return;}
+  try{
+   // Releasing the previous track is essential on iOS, where only one lens can stay open.
+   stream.current?.getTracks().forEach(track=>track.stop());
+   stream.current=null;player.pause();player.srcObject=null;
+   const newStream=await navigator.mediaDevices.getUserMedia({audio:false,video:{facingMode:{exact:next},width:{ideal:480},height:{ideal:640},frameRate:{ideal:24,max:30}}});
+   if(token!==sessionToken.current||!active.current){newStream.getTracks().forEach(t=>t.stop());return;}
+   stream.current=newStream;player.srcObject=newStream;
+   await player.play();
+   if(token!==sessionToken.current||!active.current){newStream.getTracks().forEach(t=>t.stop());return;}
+   facingRef.current=next;setCameraFacing(next);setMirror(next==="user");
+   const w=player.videoWidth||480,h=player.videoHeight||640;setRatio(w+" / "+h);
+   if(canvas.current){canvas.current.width=w;canvas.current.height=h;canvas.current.getContext("2d")?.clearRect(0,0,w,h);}
+   motion.current.stableAt=0;lastFrame.current=0;
+   setFeedback("Camera "+(next==="user"?"trước":"sau")+" đã sẵn sàng · giữ cơ thể trong khung hình.");
+  }catch(e){
+   // A laptop or browser may have only one physical camera. Restore the old one.
+   if(token!==sessionToken.current||!active.current)return;
+   try{
+    const oldStream=await navigator.mediaDevices.getUserMedia({audio:false,video:{facingMode:{ideal:before},width:{ideal:480},height:{ideal:640}}});
+    if(token!==sessionToken.current||!active.current){oldStream.getTracks().forEach(t=>t.stop());return;}
+    stream.current=oldStream;player.srcObject=oldStream;await player.play();
+    lastFrame.current=0;
+    setError("Không tìm thấy camera "+(next==="environment"?"sau":"trước")+" trên thiết bị. Đã khôi phục camera cũ.");
+   }catch{
+    setError("Không thể mở lại camera. Hãy bấm Bật camera để thử lại.");
+    stop(true);
+   }
+  }finally{switchingRef.current=false;setSwitching(false);}
  }
  function pauseToggle(){if(!active.current)return;isPaused.current=!isPaused.current;setPaused(isPaused.current);setFeedback(isPaused.current?"Đã tạm dừng đếm và thời gian.":"Đã tiếp tục đếm động tác.");}
  function downloadCsv(){
