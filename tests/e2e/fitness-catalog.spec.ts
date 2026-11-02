@@ -30,7 +30,8 @@ for(const width of [320,375,390,430,760]){
 test("Search and difficulty filter do not label guided workouts as AI",async({page})=>{
  await page.setViewportSize({width:390,height:844});
  await page.goto("/app?mode=demo&view=fitness");
- await page.getByRole("combobox",{name:"Lọc độ khó"}).selectOption("Dễ");
+ await page.getByRole("button",{name:"Lọc độ khó"}).click();
+ await page.getByRole("option",{name:"Dễ",exact:true}).click();
  await page.getByRole("button",{name:/Giãn cơ/}).first().click();
  await expect(page.getByText(/\d+ bài phù hợp/)).toBeVisible();
  await expect(page.locator("button[aria-pressed]")).not.toHaveCount(0);
