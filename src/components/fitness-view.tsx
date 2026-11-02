@@ -289,6 +289,12 @@ export function FitnessView({accountId,onSessionSaved}:{accountId:string;onSessi
    <div className={styles.stat}><strong>{totalMinutes}</strong><span>Phút vận động</span></div>
    <div className={styles.stat}><strong>{totalPoints}</strong><span>Điểm vận động</span></div>
   </div>
+      <section className={styles.panel+" "+styles.exercisePicker}><div className={styles.panelPad}>
+     <div className={styles.sectionHead}><div><h2>Chọn bài tập</h2><p>7 động tác · tự đếm bằng chuyển động khớp</p></div><span className={styles.chip}><Zap size={13}/> + điểm</span></div>
+     <div className={styles.exerciseGrid}>{EXERCISES.map(ex=><button key={ex.id} className={styles.exercise} aria-pressed={exerciseId===ex.id} onClick={()=>changeExercise(ex.id)}><span className={styles.exerciseSymbol}><Dumbbell size={17}/></span><span><b>{ex.name}</b><small>{ex.short}</small></span></button>)}</div>
+     <p className={styles.note}><b>Điểm Nắng:</b> buổi tập từ 30 giây và ít nhất 4 lần hợp lệ được +4 điểm. Tối đa 2 bài khác nhau/ngày (8 điểm), không thưởng thêm khi tập quá nhiều. <ShieldCheck size={14} style={{verticalAlign:"middle",marginRight:4}}/> Số lần là ước lượng dựa trên pose + bộ quy tắc hình học. Không phải đánh giá y khoa hay huấn luyện viên chuyên nghiệp. Hãy dừng nếu cảm thấy đau.</p>
+    </div></section>
+
   <div className={styles.layout}>
    <section className={styles.panel}>
     <div className={styles.panelPad}>
@@ -331,11 +337,6 @@ export function FitnessView({accountId,onSessionSaved}:{accountId:string;onSessi
     </div>
    </section>
    <div style={{display:"grid",gap:16,minWidth:0}}>
-    <section className={styles.panel}><div className={styles.panelPad}>
-     <div className={styles.sectionHead}><div><h2>Chọn bài tập</h2><p>7 động tác · tự đếm bằng chuyển động khớp</p></div><span className={styles.chip}><Zap size={13}/> + điểm</span></div>
-     <div className={styles.exerciseGrid}>{EXERCISES.map(ex=><button key={ex.id} className={styles.exercise} aria-pressed={exerciseId===ex.id} onClick={()=>changeExercise(ex.id)}><span className={styles.exerciseSymbol}><Dumbbell size={17}/></span><span><b>{ex.name}</b><small>{ex.short}</small></span></button>)}</div>
-     <p className={styles.note}><b>Điểm Nắng:</b> buổi tập từ 30 giây và ít nhất 4 lần hợp lệ được +4 điểm. Tối đa 2 bài khác nhau/ngày (8 điểm), không thưởng thêm khi tập quá nhiều. <ShieldCheck size={14} style={{verticalAlign:"middle",marginRight:4}}/> Số lần là ước lượng dựa trên pose + bộ quy tắc hình học. Không phải đánh giá y khoa hay huấn luyện viên chuyên nghiệp. Hãy dừng nếu cảm thấy đau.</p>
-    </div></section>
     <section className={styles.panel}><div className={styles.panelPad}>
      <div className={styles.sectionHead}><div><h2><Timer size={17} style={{verticalAlign:"middle",marginRight:6}}/> Lịch sử tập luyện</h2><p>{todayCount} buổi hôm nay · {cloud?"đồng bộ Turso":"lưu tại trình duyệt"}</p></div>{history.length>0&&<div style={{display:"flex",gap:7}}><button className={styles.control} onClick={downloadCsv} title="Tải CSV" aria-label="Tải lịch sử CSV"><Download size={16}/></button><button className={styles.danger} onClick={removeHistory} title="Xóa lịch sử">Xóa</button></div>}</div>
      <div className={styles.list}>{!storageReady?<div className={styles.empty}>Đang tải lịch sử…</div>:history.length===0?<div className={styles.empty}>Chưa có buổi tập. Hoàn thành vài động tác và bấm Kết thúc & lưu để ghi lại.</div>:history.slice(0,8).map(h=><div className={styles.history} key={h.id}><div><strong>{EXERCISES.find(e=>e.id===h.exercise)?.name||h.exercise}</strong><span>{new Date(h.at).toLocaleString("vi-VN")} · {duration(h.seconds)}</span></div><b>{h.reps} lần</b></div>)}</div>
