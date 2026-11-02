@@ -155,5 +155,5 @@ export function searchFitnessLibrary(query:string,category:FitnessCategory="all"
  const q=query.trim().normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLocaleLowerCase("vi");
  return FITNESS_LIBRARY.filter(ex=>(category==="all"||category==="ai"&&ex.kind==="ai"||ex.category===category)
  &&(level==="all"||ex.level===level)
- &&(!q||[ex.name,ex.short,ex.instruction,ex.id].some(v=>v.normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLocaleLowerCase("vi").includes(q))));
+ &&(!q||[ex.name,ex.short,ex.instruction,ex.id,FITNESS_CATEGORIES.find(c=>c.id===ex.category)?.label||""].some(v=>v.normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLocaleLowerCase("vi").includes(q))));
 }
