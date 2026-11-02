@@ -70,7 +70,7 @@ export function processMotion(id:ExerciseId,l:Landmark[],current:MotionState,now
    }else{
      const spreadL=distance(shoulderL,wristL),spreadR=distance(shoulderR,wristR);
      down=ok&&Math.abs(wristL!.y-shoulderL!.y)<0.11&&Math.abs(wristR!.y-shoulderR!.y)<0.11&&spreadL>torso*0.6&&spreadR>torso*0.6;
-     up=ok&&wristL!.y>hipL!.y-0.05&&wristR!.y>hipR!.y-0.05;
+     up=ok&&wristL!.y>shoulderL!.y+torso*0.9&&wristR!.y>shoulderR!.y+torso*0.9;
      message=down?"Đúng tầm vai · hạ tay xuống":"Giơ cả hai tay ngang vai";
    }
    metric=isNumber(left)?Math.round(left)+"° khuỷu trái":"Theo dõi hai tay";interval=700;
