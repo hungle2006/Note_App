@@ -77,7 +77,7 @@ export function SmartSelect({id,label,value,options,onChange,disabled=false,icon
        if(e.key==="Enter"||e.key===" "){e.preventDefault();if(options[active])choose(options[active].value);}
       }}>
       {options.map((o,i)=><button type="button" key={o.value} id={listId+"-option-"+i} data-index={i}
-       role="option" aria-selected={value===o.value} className={"smart-select-option"+(value===o.value?" is-selected":"")+(i===active?" is-active":"")}
+       role="option" data-value={o.value} aria-selected={value===o.value} className={"smart-select-option"+(value===o.value?" is-selected":"")+(i===active?" is-active":"")}
        onMouseMove={()=>setActive(i)} onClick={()=>choose(o.value)}>
         <span className="smart-select-option-main"><strong>{o.label}</strong>{o.description&&<small>{o.description}</small>}</span>
         {value===o.value&&<span className="smart-select-check"><Check size={16}/></span>}
