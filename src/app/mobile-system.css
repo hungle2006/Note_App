@@ -1,0 +1,161 @@
+/* SmartNotes mobile refinement — applied after original and Orange Pastel styles.
+   One consistent icon/control scale across start, notes, games, rewards and FitMotion. */
+.landing-quickstart{width:min(1196px,calc(100% - 84px));margin:0 auto 48px;display:grid;gap:21px;align-items:stretch}
+.quickstart-heading{text-align:left}
+.quickstart-heading h2{font-size:clamp(23px,3.1vw,34px);line-height:1.22;letter-spacing:-.8px;color:var(--ink)}
+.quickstart-heading p{font-size:13px;line-height:1.55;color:var(--muted);margin-top:6px}
+.quickstart-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:13px}
+.quickstart-card{position:relative;min-width:0;min-height:156px;display:flex;flex-direction:column;align-items:flex-start;padding:19px;border-radius:21px;border:1px solid var(--line);color:var(--ink);background:var(--paper);transition:transform .2s,border-color .2s,box-shadow .2s}
+.quickstart-card:hover{transform:translateY(-2px);border-color:var(--sun-accent);box-shadow:0 7px 18px #a8682820}
+.quickstart-card .quickstart-icon{width:44px;height:44px;border-radius:14px;display:grid;place-items:center;background:var(--soft);color:var(--purple-ink);margin-bottom:11px}
+.quickstart-card.mint .quickstart-icon{background:var(--teal-soft);color:var(--teal)}
+.quickstart-card.cream .quickstart-icon{background:var(--sun-peach-light);color:var(--orange)}
+.quickstart-card.lavender .quickstart-icon{background:var(--orange-soft);color:var(--orange)}
+.quickstart-card strong{font-size:15px;font-weight:800;line-height:1.4}
+.quickstart-card small{font-size:12px;color:var(--muted);line-height:1.55;padding-right:15px;margin-top:4px}
+.quickstart-card .quickstart-arrow{position:absolute;right:15px;bottom:16px;color:var(--purple-ink);width:17px;height:17px}
+.app-shell button,.landing button{font-family:inherit}
+.app-shell select{border:1px solid var(--line);border-radius:13px;background-color:var(--paper);color:var(--ink)}
+.app-shell select:focus-visible{outline:2px solid var(--sun-accent);outline-offset:1px}
+.app-shell .form-row label+label,.app-shell .chat-context label+label{margin-top:0}
+.app-shell :is(.panel,.note-card,.subject-card,.game-card,.setting-card){min-width:0}
+@media(max-width:1000px){
+ .quickstart-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .landing-quickstart{width:min(760px,calc(100% - 40px));margin-bottom:33px}
+}
+@media(max-width:760px){
+ /* Startup: reduce the 3D hero's vertical footprint; user tasks should be visible quickly. */
+ .landing{overflow-x:clip}
+ .landing-nav{padding:15px 16px 11px!important;gap:8px;flex-wrap:nowrap;min-height:68px}
+ .landing-nav .brand{font-size:19px!important;letter-spacing:-.55px;min-width:0}
+ .landing-nav .brand-wordmark{gap:4px}
+ .landing-nav .brand-icon{width:33px;height:33px;flex-shrink:0;border-radius:11px}
+ .landing-nav .brand-ai{font-size:8px;padding:3px 4px}
+ .landing-nav .nav-actions{gap:6px;flex-shrink:0}
+ .landing-nav .appearance-controls{gap:4px}
+ .landing-nav .appearance-button{min-width:36px;height:36px;border-radius:11px}
+ .landing-nav .nav-actions>.button{padding:8px 10px;min-height:37px;gap:5px;font-size:11px}
+ .landing-nav .nav-actions>.button svg{width:13px;height:13px}
+ .landing-hero{display:flex;flex-direction:column;min-height:0!important;padding:26px 19px 8px!important;gap:4px!important;overflow:hidden}
+ .hero-copy{min-width:0;width:100%}
+ .hero-copy h1{font-size:clamp(34px,9.3vw,44px)!important;line-height:1.19!important;margin:18px auto 14px!important;max-width:460px;letter-spacing:-1.65px!important}
+ .hero-copy>p{font-size:13px!important;line-height:1.7!important;max-width:390px;margin:0 auto 17px!important}
+ .hero-copy .pill{display:inline-flex;justify-content:center;align-items:center;font-size:9px!important;letter-spacing:.35px;max-width:100%;line-height:1.5;padding:7px 10px}
+ .hero-actions{width:100%;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px!important;align-items:stretch;max-width:490px;margin:0 auto}
+ .hero-actions .button{min-width:0;width:100%;padding:11px 9px!important;font-size:11px!important;min-height:47px;line-height:1.35}
+ .hero-actions .button svg{width:15px;height:15px}
+ .hero-proof{margin-top:15px!important;gap:10px}
+ .hero-proof div>span,.hero-proof strong{line-height:1.4}
+ .landing-hero .scene-blender,.landing-hero .learning-scene{width:min(100%,320px)!important;max-width:320px!important;height:230px!important;min-height:0;margin:0 auto!important;transform:none!important;overflow:hidden;flex:0 0 230px}
+ .landing-hero .atelier-chip{padding:8px 10px}
+ .landing-hero .atelier-chip strong{font-size:9px}
+ .landing-hero .atelier-chip small{font-size:8px}
+ .landing-quickstart{width:auto;margin:9px 15px 28px;gap:13px}
+ .quickstart-heading h2{font-size:23px}
+ .quickstart-heading p{font-size:12px}
+ .quickstart-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+ .quickstart-card{min-height:138px;padding:14px;border-radius:17px}
+ .quickstart-card .quickstart-icon{width:39px;height:39px;border-radius:13px;margin-bottom:9px}
+ .quickstart-card .quickstart-icon svg{width:21px;height:21px}
+ .quickstart-card strong{font-size:13px;line-height:1.35}
+ .quickstart-card small{font-size:10px;line-height:1.42;padding-right:9px}
+ .quickstart-card .quickstart-arrow{width:15px;height:15px;bottom:11px;right:10px}
+ .subject-ribbon{margin-top:0}
+ /* Workspace app */
+ .app-shell{min-width:0;overflow-x:clip}
+ .app-main{min-width:0;width:100%!important;max-width:100vw;overflow-x:clip}
+ .workspace-content{padding:15px 14px 24px!important;min-width:0}
+ .workspace-content .section-title{margin-bottom:17px;gap:8px}
+ .section-title h1{font-size:clamp(23px,6vw,28px)!important;line-height:1.25}
+ .section-title p{font-size:12px;line-height:1.6;margin-top:6px}
+ .section-title .eyebrow{font-size:10px}
+ .app-header{position:sticky;top:0;z-index:22;height:58px!important;min-height:58px!important;padding:0 13px!important;background:color-mix(in srgb,var(--paper) 95%,transparent);backdrop-filter:blur(16px)}
+ .app-header .header-left{min-width:0;gap:8px}
+ .app-header .header-right{gap:6px}
+ .app-header .hamburger{border:1px solid var(--line);border-radius:12px;min-width:39px;width:39px;height:39px;justify-content:center}
+ .app-header .breadcrumb{max-width:min(32vw,155px);min-width:0;display:flex;align-items:center}
+ .app-header .breadcrumb strong{font-size:13px;line-height:1.3;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+ .app-header .mobile-points-chip{height:36px;min-height:36px;gap:4px;padding:6px 9px}
+ .app-header .appearance-controls{gap:5px}
+ .app-header .appearance-button{width:35px;min-width:35px;height:36px;border-radius:11px}
+ .app-header .motion-control{min-width:46px;width:auto;padding:0 6px;gap:3px}
+ .app-header .motion-control .appearance-glyph svg{width:14px;height:14px}
+ .sidebar{z-index:36;width:min(86vw,320px)!important;padding:18px 17px max(18px,env(safe-area-inset-bottom));border-radius:0 20px 20px 0;overscroll-behavior:contain;box-shadow:12px 0 40px #281a1425}
+ .sidebar-scrim{z-index:35;background:#24160c78}
+ .sidebar-brand{margin-bottom:16px;padding:0 4px 14px}
+ .sidebar .sidebar-label{font-size:10px;letter-spacing:.8px;color:var(--muted)}
+ .sidebar .side-nav{gap:4px}
+ .sidebar .side-nav button{display:flex;align-items:center;min-height:47px;font-size:13px;font-weight:700;gap:12px;padding:10px 12px;border-radius:13px;line-height:1.4}
+ .sidebar .side-nav button svg{width:19px;height:19px}
+ .sidebar .side-nav button.active{border-color:var(--line);background:var(--soft);color:var(--purple-ink)}
+ .sidebar .side-subjects{padding-top:14px}
+ .sidebar .sidebar-bottom{padding-bottom:4px}
+ .demo-banner,.cloud-sync-note{padding:8px 13px!important;font-size:10px;line-height:1.45;gap:7px}
+ /* Responsive cards: readable, not oversized, with consistent padding/radii. */
+ .workspace-content .panel{border-radius:17px}
+ .dashboard-hero{border-radius:21px!important}
+ .dashboard-hero h2{font-size:clamp(25px,6.6vw,30px)!important}
+ .dashboard-hero p{font-size:12px!important;line-height:1.6!important}
+ .fitness-home-cta{border-radius:17px;padding:15px!important}
+ .fitness-home-cta h3{font-size:17px}
+ .fitness-home-cta p{font-size:12px}
+ .stats-grid{gap:9px}
+ .stat-card{min-height:0;padding:13px!important;border-radius:16px}
+ .stat-card strong{font-size:24px}
+ .note-card{padding:15px!important;border-radius:17px}
+ .subject-cards,.note-grid,.subject-preview{min-width:0}
+ .game-card{border-radius:18px;min-height:0;padding:17px!important}
+ .game-icon{width:45px!important;height:48px!important;min-width:45px}
+ .game-card h2{font-size:18px!important;line-height:1.3}
+ .game-card p{font-size:12px!important;line-height:1.55}
+ .scan-layout,.chat-layout,.detail-layout,.settings-grid{grid-template-columns:minmax(0,1fr)!important;gap:12px}
+ .scan-main{padding:15px!important}
+ .scan-tabs button,.capture-tabs button{min-height:44px;font-size:12px;gap:5px}
+ .chat-context,.chat-panel,.note-editor,.settings-card{min-width:0}
+ .library-filters{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));align-items:stretch;gap:9px;padding:12px!important}
+ .library-filters .search-input{grid-column:1/-1;min-width:0;min-height:46px}
+ .library-filters select{width:100%;max-width:100%;min-width:0;min-height:46px;font-size:14px;padding:8px 11px}
+ .library-filters #chapter-filter{grid-column:1/-1;flex-basis:auto}
+ .app-shell input,.app-shell select,.app-shell textarea{font-size:16px}
+ .app-shell label:has(>select){min-width:0}
+ .mobile-tabbar{height:calc(65px + env(safe-area-inset-bottom))!important;z-index:23;padding:3px max(4px,env(safe-area-inset-right)) max(4px,env(safe-area-inset-bottom)) max(4px,env(safe-area-inset-left));gap:0;grid-template-columns:repeat(6,minmax(0,1fr));box-shadow:0 -6px 22px #5a35151a}
+ .mobile-tabbar button{min-height:56px;gap:1px;border-radius:13px;justify-content:center}
+ .mobile-tabbar .tabbar-icon{width:38px;height:31px;min-height:31px;border-radius:11px}
+ .mobile-tabbar .tabbar-icon svg{width:19px;height:19px}
+ .mobile-tabbar .tabbar-label{font-size:10px;line-height:1.2;font-weight:750;letter-spacing:-.25px}
+ .mobile-tabbar button.active .tabbar-icon{background:var(--sun-peach-light);color:var(--purple-ink)}
+ .mobile-tabbar .tabbar-create .tabbar-icon{background:var(--sun-accent);color:#fff}
+ .mobile-tabbar button.active .tabbar-label{color:var(--purple-ink)}
+ .workspace-footer{padding-bottom:calc(74px + env(safe-area-inset-bottom))!important}
+ /* Forms, select triggers and dialogs share one interactive geometry */
+ .app-shell select{border-radius:12px;border:1px solid var(--line);background:var(--paper);font-weight:650;min-height:44px}
+ .app-shell select:focus-visible{outline:2px solid var(--sun-accent);outline-offset:1px}
+ .app-shell .form-row{gap:10px}
+ .app-shell .form-row label+label{margin-top:0}
+ .app-shell dialog,.confirm-dialog{max-width:calc(100vw - 24px);max-height:calc(100dvh - 35px);overflow-y:auto;border-radius:19px}
+ .toast{left:14px;right:14px;bottom:calc(76px + env(safe-area-inset-bottom));transform:none;max-width:none;z-index:34}
+}
+@media(max-width:380px){
+ .landing-nav{padding:12px!important;gap:5px}
+ .landing-nav .brand{font-size:17px!important}
+ .landing-nav .nav-actions>.button{font-size:10px;padding:8px}
+ .landing-hero{padding-inline:14px!important}
+ .hero-actions .button{font-size:10px!important}
+ .quickstart-card{padding:12px;min-height:134px}
+ .quickstart-card strong{font-size:12px}
+ .app-header .breadcrumb{max-width:28vw}
+ .app-header .motion-control{display:none}
+ .mobile-tabbar .tabbar-icon{width:34px}
+ .mobile-tabbar .tabbar-label{font-size:9px}
+ .workspace-content{padding-inline:11px!important}
+ .library-filters{grid-template-columns:minmax(0,1fr)}
+ .library-filters .search-input,.library-filters #chapter-filter{grid-column:auto}
+}
+@media(max-width:760px){
+ /* Focused text entry should not be covered by the pinned navigation and keyboard. */
+ .app-shell:has(input:focus) .mobile-tabbar,
+ .app-shell:has(textarea:focus) .mobile-tabbar{opacity:0;pointer-events:none;transform:translateY(100%);transition:opacity .14s,transform .14s}
+}
+@media(prefers-reduced-motion:reduce){
+ .quickstart-card,.mobile-tabbar{transition:none!important}
+}
