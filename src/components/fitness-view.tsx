@@ -36,7 +36,7 @@ function paint(canvas:HTMLCanvasElement,landmarks:Landmark[]){
 }
 const duration=(s:number)=>String(Math.floor(s/60)).padStart(2,"0")+":"+String(s%60).padStart(2,"0");
 const storageKey=(account:string)=>"smartnotes-fitness-v1:"+account;
-export function FitnessView({accountId}:{accountId:string}){
+export function FitnessView({accountId,onSessionSaved}:{accountId:string;onSessionSaved?:(workout:{id:string;exercise:ExerciseId;reps:number;seconds:number},awarded:number)=>Promise<unknown>|void}){
  const [exerciseId,setExerciseId]=useState<ExerciseId>("squat");
  const [goal,setGoal]=useState(12);
  const [running,setRunning]=useState(false);
@@ -46,6 +46,7 @@ export function FitnessView({accountId}:{accountId:string}){
  const [seconds,setSeconds]=useState(0);
  const [history,setHistory]=useState<Workout[]>([]);
  const [cloudError,setCloudError]=useState("");
+ const [rewardFeedback,setRewardFeedback]=useState("");
  const cloud=accountId!=="demo"&&accountId!=="guest";
  const [feedback,setFeedback]=useState("Chọn bài tập, đặt thiết bị cố định và bấm Bật camera.");
  const [metric,setMetric]=useState("—");
@@ -100,11 +101,13 @@ export function FitnessView({accountId}:{accountId:string}){
    return next;
   });
   if(cloud){
-   void api<{session:Workout}>("/fitness",{method:"POST",body:JSON.stringify({id:entry.id,exercise:entry.exercise,reps:entry.reps,seconds:entry.seconds})})
-    .then(()=>setCloudError(""))
+   void api<{session:Workout;awarded:number}>("/fitness",{method:"POST",body:JSON.stringify({id:entry.id,exercise:entry.exercise,reps:entry.reps,seconds:entry.seconds})})
+    .then(result=>{setCloudError("");setRewardFeedback(result.awarded>0?"+4 Điểm Nắng! Em đã hoàn thành một hoạt động nhẹ.":"Đã lưu buổi tập. Hãy nghỉ ngơi khi cần.");return onSessionSaved?.(entry,result.awarded);})
     .catch(()=>setCloudError("Chưa đồng bộ được buổi tập vừa lưu. Dữ liệu vẫn nằm trên thiết bị này."));
+  }else{
+   void Promise.resolve(onSessionSaved?.(entry,0)).then(v=>setRewardFeedback(v===4?"+4 Điểm Nắng!":"Đã lưu buổi tập trên thiết bị.")).catch(()=>setRewardFeedback("Đã lưu buổi tập trên thiết bị."));
   }
- },[accountId,cloud]);
+ },[accountId,cloud,onSessionSaved]);
  async function removeHistory(){
   if(!window.confirm("Xóa toàn bộ lịch sử tập thể dục của bạn? Thao tác này không thể hoàn tác."))return;
   try{
@@ -139,7 +142,7 @@ export function FitnessView({accountId}:{accountId:string}){
   const ex=EXERCISES.find(item=>item.id===id)||EXERCISES[0];
   exerciseRef.current=id;setExerciseId(id);setGoal(ex.goal);
   motion.current=newMotionState();counted.current=0;elapsed.current=0;
-  setReps(0);setSeconds(0);setError("");setMetric("—");setFeedback("Chuẩn bị tư thế cho bài "+ex.name+".");
+  setReps(0);setSeconds(0);setError("");setMetric("—");setRewardFeedback("");setFeedback("Chuẩn bị tư thế cho bài "+ex.name+".");
  }
  function reset(){
   if(active.current||isLoading.current)stop(true);
@@ -242,6 +245,7 @@ export function FitnessView({accountId}:{accountId:string}){
       {(running||reps>0)&&<div className={styles.countOverlay}><strong>{reps}</strong><span>lần hợp lệ</span></div>}
      </div>
      <div className={styles.legend}><span><i className={styles.dot}/> Khớp được nhận diện</span><span><i className={styles.bar}/> Đường nối xương</span><span>Không ghi hoặc tải video lên server</span></div>
+     {rewardFeedback&&<div className={styles.rewardNotice} role="status"><Zap size={16}/>{rewardFeedback}</div>}
      <div className={styles.feedback} role="status" aria-live="polite"><Activity size={20} color="#6c57c5"/><div><strong>{feedback}</strong><span>{metric} · {exercise.name} · {duration(seconds)}</span></div></div>
      {error&&<div role="alert" className={styles.error}>{error}</div>}
      <div className={styles.controls}>
@@ -259,7 +263,7 @@ export function FitnessView({accountId}:{accountId:string}){
     <section className={styles.panel}><div className={styles.panelPad}>
      <div className={styles.sectionHead}><div><h2>Chọn bài tập</h2><p>7 động tác · tự đếm bằng chuyển động khớp</p></div><span className={styles.chip}><Zap size={13}/> + điểm</span></div>
      <div className={styles.exerciseGrid}>{EXERCISES.map(ex=><button key={ex.id} className={styles.exercise} aria-pressed={exerciseId===ex.id} onClick={()=>changeExercise(ex.id)}><span className={styles.exerciseSymbol}><Dumbbell size={17}/></span><span><b>{ex.name}</b><small>{ex.short}</small></span></button>)}</div>
-     <p className={styles.note}><ShieldCheck size={14} style={{verticalAlign:"middle",marginRight:4}}/> Số lần là ước lượng dựa trên pose + bộ quy tắc hình học. Không phải đánh giá y khoa hay huấn luyện viên chuyên nghiệp. Hãy dừng nếu cảm thấy đau.</p>
+     <p className={styles.note}><b>Điểm Nắng:</b> buổi tập từ 30 giây và ít nhất 4 lần hợp lệ được +4 điểm. Tối đa 2 bài khác nhau/ngày (8 điểm), không thưởng thêm khi tập quá nhiều. <ShieldCheck size={14} style={{verticalAlign:"middle",marginRight:4}}/> Số lần là ước lượng dựa trên pose + bộ quy tắc hình học. Không phải đánh giá y khoa hay huấn luyện viên chuyên nghiệp. Hãy dừng nếu cảm thấy đau.</p>
     </div></section>
     <section className={styles.panel}><div className={styles.panelPad}>
      <div className={styles.sectionHead}><div><h2><Timer size={17} style={{verticalAlign:"middle",marginRight:6}}/> Lịch sử tập luyện</h2><p>{todayCount} buổi hôm nay · {cloud?"đồng bộ Turso":"lưu tại trình duyệt"}</p></div>{history.length>0&&<div style={{display:"flex",gap:7}}><button className={styles.control} onClick={downloadCsv} title="Tải CSV" aria-label="Tải lịch sử CSV"><Download size={16}/></button><button className={styles.danger} onClick={removeHistory} title="Xóa lịch sử">Xóa</button></div>}</div>
