@@ -1,6 +1,6 @@
 import {test,expect} from "@playwright/test";
 
-for(const width of [320,375,390,430,768]){
+for(const width of [320,375,390,430,760]){
  test("Orange Pastel and navigation at "+width+"px",async({page})=>{
   const errors:string[]=[];page.on("pageerror",error=>errors.push(error.message));
   await page.setViewportSize({width,height:844});
