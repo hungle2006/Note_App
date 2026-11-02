@@ -3,6 +3,9 @@ import {useCallback,useEffect,useRef,useState} from "react";
 import {Activity,CheckCircle2,Download,Dumbbell,Info,Pause,Play,RefreshCcw,ShieldCheck,Target,Timer,Video,VideoOff,Zap,SwitchCamera,ScanLine} from "lucide-react";
 import {CONNECTIONS,EXERCISES,newMotionState,processMotion,type ExerciseId,type Landmark,type MotionState} from "@/lib/fitness-engine";
 import {api} from "@/lib/client-api";
+import {FITNESS_LIBRARY,getFitnessExercise} from "@/lib/fitness-catalog";
+import {FitnessLibraryPicker} from "./fitness-library";
+import {GuidedExerciseSession} from "./guided-exercise-session";
 import styles from "./fitness.module.css";
 
 type Model={detectForVideo(video:HTMLVideoElement,time:number):{landmarks:Landmark[][]};close():void};
@@ -46,8 +49,12 @@ function paint(canvas:HTMLCanvasElement,landmarks:Landmark[]){
 }
 const duration=(s:number)=>String(Math.floor(s/60)).padStart(2,"0")+":"+String(s%60).padStart(2,"0");
 const storageKey=(account:string)=>"smartnotes-fitness-v1:"+account;
+const guideKey=(account:string)=>"smartnotes-guided-v1:"+account;
+type GuideEntry={id:string;exercise:string;seconds:number;at:string};
 export function FitnessView({accountId,onSessionSaved}:{accountId:string;onSessionSaved?:(workout:{id:string;exercise:ExerciseId;reps:number;seconds:number},awarded:number)=>Promise<unknown>|void}){
  const [exerciseId,setExerciseId]=useState<ExerciseId>("squat");
+ const [selectedId,setSelectedId]=useState("squat");
+ const [guideHistory,setGuideHistory]=useState<GuideEntry[]>([]);
  const [goal,setGoal]=useState(12);
  const [running,setRunning]=useState(false);
  const [loading,setLoading]=useState(false);
@@ -87,6 +94,7 @@ export function FitnessView({accountId,onSessionSaved}:{accountId:string;onSessi
  const firstFrame=useRef(0);
  const [storageReady,setStorageReady]=useState(false);
  const exercise=EXERCISES.find(e=>e.id===exerciseId)||EXERCISES[0];
+ const selected=getFitnessExercise(selectedId)||FITNESS_LIBRARY[0];
 
  useEffect(()=>{
   try{const raw=localStorage.getItem(storageKey(accountId));if(raw){const parsed=JSON.parse(raw);if(Array.isArray(parsed))setHistory(parsed.filter((s:Workout)=>s&&EXERCISES.some(x=>x.id===s.exercise)&&Number.isFinite(s.reps)).slice(0,100));}}
@@ -108,6 +116,19 @@ export function FitnessView({accountId,onSessionSaved}:{accountId:string;onSessi
    return ()=>{disposed=true;};
   }
  },[accountId,cloud]);
+ useEffect(()=>{
+  try{const raw=localStorage.getItem(guideKey(accountId));setGuideHistory(raw?JSON.parse(raw).filter((h:GuideEntry)=>getFitnessExercise(h.exercise)?.kind==="guided").slice(0,100):[]);}catch{setGuideHistory([]);}
+ },[accountId]);
+ const completeGuide=useCallback((id:string,seconds:number)=>{
+  if(!getFitnessExercise(id)||seconds<30)return;
+  const entry:GuideEntry={id:crypto.randomUUID(),exercise:id,seconds,at:new Date().toISOString()};
+  setGuideHistory(previous=>{
+   const next=[entry,...previous].slice(0,100);
+   try{localStorage.setItem(guideKey(accountId),JSON.stringify(next));}catch{/* storage unavailable */}
+   return next;
+  });
+  setRewardFeedback("Đã ghi nhận bài hướng dẫn trên thiết bị. Không cộng Điểm Nắng.");
+ },[accountId]);
  const saveHistory=useCallback((entry:Workout)=>{
   setHistory(previous=>{
    const next=[entry,...previous].slice(0,100);
@@ -126,7 +147,7 @@ export function FitnessView({accountId,onSessionSaved}:{accountId:string;onSessi
   if(!window.confirm("Xóa toàn bộ lịch sử tập thể dục của bạn? Thao tác này không thể hoàn tác."))return;
   try{
    if(cloud)await api("/fitness",{method:"DELETE"});
-   setHistory([]);localStorage.removeItem(storageKey(accountId));setCloudError("");
+   setHistory([]);setGuideHistory([]);localStorage.removeItem(storageKey(accountId));localStorage.removeItem(guideKey(accountId));setCloudError("");
   }catch{setCloudError("Không xóa được dữ liệu trên máy chủ. Hãy thử lại.");}
  }
  const clearCamera=useCallback(()=>{
@@ -151,13 +172,15 @@ export function FitnessView({accountId,onSessionSaved}:{accountId:string;onSessi
   clearCamera();setRunning(false);setLoading(false);setPaused(false);setFps(0);setSwitching(false);
   if(save)setFeedback(completed>0?"Đã lưu buổi tập trên thiết bị. Chúc mừng bạn!":"Buổi tập chưa có lần lặp hợp lệ.");
  }
- function changeExercise(id:ExerciseId){
-  if(id===exerciseId)return;
+ function changeExercise(id:string){
+  if(id===selectedId)return;
   if(active.current||isLoading.current)stop(true);
-  const ex=EXERCISES.find(item=>item.id===id)||EXERCISES[0];
-  exerciseRef.current=id;setExerciseId(id);setGoal(ex.goal);
+  const choice=getFitnessExercise(id);if(!choice)return;
+  setSelectedId(id);
+  if(choice.kind==="ai"&&choice.aiId){exerciseRef.current=choice.aiId;setExerciseId(choice.aiId);setGoal(choice.goal);}
   motion.current=newMotionState();counted.current=0;elapsed.current=0;
-  setReps(0);setSeconds(0);setError("");setMetric("—");setRewardFeedback("");setFeedback("Chuẩn bị tư thế cho bài "+ex.name+".");
+  setReps(0);setSeconds(0);setError("");setMetric("—");setRewardFeedback("");setFeedback("Chuẩn bị tư thế cho bài "+choice.name+".");
+  document.getElementById("fitness-session")?.scrollIntoView({behavior:"smooth",block:"start"});
  }
  function reset(){
   if(active.current||isLoading.current)stop(true);
@@ -267,34 +290,32 @@ export function FitnessView({accountId,onSessionSaved}:{accountId:string;onSessi
  }
  function pauseToggle(){if(!active.current)return;isPaused.current=!isPaused.current;setPaused(isPaused.current);setFeedback(isPaused.current?"Đã tạm dừng đếm và thời gian.":"Đã tiếp tục đếm động tác.");}
  function downloadCsv(){
-  const columns=["time","exercise","reps","duration_seconds","points"];
-  const rows=history.map(h=>[h.at,h.exercise,h.reps,h.seconds,h.points]);
+  const columns=["time","exercise","reps","duration_seconds","points","mode"];
+  const rows=[...history.map(h=>[h.at,h.exercise,h.reps,h.seconds,h.points,"AI"]),...guideHistory.map(h=>[h.at,h.exercise,0,h.seconds,0,"Hướng dẫn"])];
   const csv=[columns,...rows].map(row=>row.join(",")).join("\r\n");
   const url=URL.createObjectURL(new Blob(["\uFEFF",csv],{type:"text/csv;charset=utf-8"}));
   const link=document.createElement("a");link.href=url;link.download="smartnotes-fitness-history.csv";link.click();URL.revokeObjectURL(url);
  }
+ const mergedHistory=[...history.map(h=>({...h,guided:false})),...guideHistory.map(h=>({...h,reps:0,points:0,guided:true}))].sort((a,b)=>b.at.localeCompare(a.at));
  const totalReps=history.reduce((sum,h)=>sum+h.reps,0);
- const totalMinutes=Math.floor(history.reduce((sum,h)=>sum+h.seconds,0)/60);
+ const totalMinutes=Math.floor(mergedHistory.reduce((sum,h)=>sum+h.seconds,0)/60);
  const totalPoints=Math.round(history.reduce((sum,h)=>sum+h.points,0));
  const today=new Date().toLocaleDateString("en-CA");
- const todayCount=history.filter(h=>new Date(h.at).toLocaleDateString("en-CA")===today).length;
+ const todayCount=mergedHistory.filter(h=>new Date(h.at).toLocaleDateString("en-CA")===today).length;
  return <div className={styles.root}>
   <section className={styles.hero}>
-   <div><span className={styles.kicker}>THỂ CHẤT & CÔNG NGHỆ AI</span><h1>FitMotion · Tập khỏe cùng AI</h1><p>Camera nhận diện 33 điểm khớp, vẽ bộ khung chuyển động và đếm từng lần hoàn thành. Tất cả hình ảnh được xử lý ngay trên thiết bị.</p></div>
+   <div><span className={styles.kicker}>THỂ CHẤT & CÔNG NGHỆ AI</span><h1>FitMotion · 100 bài vận động</h1><p>Khám phá bài phù hợp, tập cùng đồng hồ hoặc bật MediaPipe nhận diện 33 điểm khớp ở các bài hỗ trợ AI. Không cần cố gắng quá sức.</p></div>
    <div className={styles.heroMark}><Dumbbell size={34}/></div>
   </section>
   <div className={styles.stats}>
-   <div className={styles.stat}><strong>{history.length}</strong><span>Buổi tập đã lưu</span></div>
+   <div className={styles.stat}><strong>{mergedHistory.length}</strong><span>Buổi tập đã lưu</span></div>
    <div className={styles.stat}><strong>{totalReps}</strong><span>Động tác hợp lệ</span></div>
    <div className={styles.stat}><strong>{totalMinutes}</strong><span>Phút vận động</span></div>
    <div className={styles.stat}><strong>{totalPoints}</strong><span>Điểm vận động</span></div>
   </div>
-      <section className={styles.panel+" "+styles.exercisePicker}><div className={styles.panelPad}>
-     <div className={styles.sectionHead}><div><h2>Chọn bài tập</h2><p>7 động tác · tự đếm bằng chuyển động khớp</p></div><span className={styles.chip}><Zap size={13}/> + điểm</span></div>
-     <div className={styles.exerciseGrid}>{EXERCISES.map(ex=><button key={ex.id} className={styles.exercise} aria-pressed={exerciseId===ex.id} onClick={()=>changeExercise(ex.id)}><span className={styles.exerciseSymbol}><Dumbbell size={17}/></span><span><b>{ex.name}</b><small>{ex.short}</small></span></button>)}</div>
-     <p className={styles.note}><b>Điểm Nắng:</b> buổi tập từ 30 giây và ít nhất 4 lần hợp lệ được +4 điểm. Tối đa 2 bài khác nhau/ngày (8 điểm), không thưởng thêm khi tập quá nhiều. <ShieldCheck size={14} style={{verticalAlign:"middle",marginRight:4}}/> Số lần là ước lượng dựa trên pose + bộ quy tắc hình học. Không phải đánh giá y khoa hay huấn luyện viên chuyên nghiệp. Hãy dừng nếu cảm thấy đau.</p>
-    </div></section>
-
+  <FitnessLibraryPicker selectedId={selectedId} onSelect={changeExercise}/>
+  <div className={styles.selectedWorkout} id="fitness-session"><span className={styles.kicker}>BÀI ĐÃ CHỌN</span><strong>{selected.name}</strong><span className={selected.kind==="ai"?styles.kindAI:styles.kindTimer}>{selected.kind==="ai"?"◎ AI đếm chuyển động":"◷ Hướng dẫn theo giờ"}</span></div>
+  {selected.kind==="guided"?<GuidedExerciseSession key={selected.id} exercise={selected} onComplete={completeGuide}/>:
   <div className={styles.layout}>
    <section className={styles.panel}>
     <div className={styles.panelPad}>
@@ -338,11 +359,11 @@ export function FitnessView({accountId,onSessionSaved}:{accountId:string;onSessi
    </section>
    <div style={{display:"grid",gap:16,minWidth:0}}>
     <section className={styles.panel}><div className={styles.panelPad}>
-     <div className={styles.sectionHead}><div><h2><Timer size={17} style={{verticalAlign:"middle",marginRight:6}}/> Lịch sử tập luyện</h2><p>{todayCount} buổi hôm nay · {cloud?"đồng bộ Turso":"lưu tại trình duyệt"}</p></div>{history.length>0&&<div style={{display:"flex",gap:7}}><button className={styles.control} onClick={downloadCsv} title="Tải CSV" aria-label="Tải lịch sử CSV"><Download size={16}/></button><button className={styles.danger} onClick={removeHistory} title="Xóa lịch sử">Xóa</button></div>}</div>
-     <div className={styles.list}>{!storageReady?<div className={styles.empty}>Đang tải lịch sử…</div>:history.length===0?<div className={styles.empty}>Chưa có buổi tập. Hoàn thành vài động tác và bấm Kết thúc & lưu để ghi lại.</div>:history.slice(0,8).map(h=><div className={styles.history} key={h.id}><div><strong>{EXERCISES.find(e=>e.id===h.exercise)?.name||h.exercise}</strong><span>{new Date(h.at).toLocaleString("vi-VN")} · {duration(h.seconds)}</span></div><b>{h.reps} lần</b></div>)}</div>
-     <p className={styles.footer}>{cloud?"Lịch sử đồng bộ với tài khoản qua Turso; bản sao trên máy hỗ trợ khi mạng lỗi.":"Bản mẫu chỉ lưu lịch sử trên thiết bị này."} Không lưu video hoặc ảnh cơ thể.</p>{cloudError&&<p className={styles.error} role="alert">{cloudError}</p>}
+     <div className={styles.sectionHead}><div><h2><Timer size={17} style={{verticalAlign:"middle",marginRight:6}}/> Lịch sử tập luyện</h2><p>{todayCount} buổi hôm nay · {cloud?"đồng bộ Turso":"lưu tại trình duyệt"}</p></div>{mergedHistory.length>0&&<div style={{display:"flex",gap:7}}><button className={styles.control} onClick={downloadCsv} title="Tải CSV" aria-label="Tải lịch sử CSV"><Download size={16}/></button><button className={styles.danger} onClick={removeHistory} title="Xóa lịch sử">Xóa</button></div>}</div>
+     <div className={styles.list}>{!storageReady?<div className={styles.empty}>Đang tải lịch sử…</div>:mergedHistory.length===0?<div className={styles.empty}>Chưa có buổi tập. Hoàn thành vài động tác và bấm Kết thúc & lưu để ghi lại.</div>:mergedHistory.slice(0,8).map(h=><div className={styles.history} key={h.id}><div><strong>{getFitnessExercise(h.exercise)?.name||h.exercise}</strong><span>{new Date(h.at).toLocaleString("vi-VN")} · {duration(h.seconds)} {h.guided?"· Hướng dẫn (trên máy)":"· AI đếm"}</span></div><b>{h.guided?"Đã tập":h.reps+" lần"}</b></div>)}</div>
+     <p className={styles.footer}>{cloud?"Lịch sử đồng bộ với tài khoản qua Turso; bản sao trên máy hỗ trợ khi mạng lỗi.":"Bản mẫu chỉ lưu lịch sử trên thiết bị này."} Bài hướng dẫn lưu tại máy, không đồng bộ hoặc cộng điểm; không lưu video hay ảnh cơ thể.</p>{cloudError&&<p className={styles.error} role="alert">{cloudError}</p>}
     </div></section>
    </div>
-  </div>
+  </div>}
  </div>;
 }
