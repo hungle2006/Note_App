@@ -1,26 +1,20 @@
 import {test,expect} from "@playwright/test";
 
 for(const width of [320,390,760,1280]){
- test("Soft two-drop bounce without merging and 3D logo at "+width+"px",async({page})=>{
+ test("Blender 3D soft-body droplets and logo at "+width+"px",async({page})=>{
   await page.setViewportSize({width,height:844});
   const errors:string[]=[];page.on("pageerror",e=>errors.push(e.message));
   await page.goto("/");
   await expect(page.locator("html")).toHaveAttribute("data-motion","on");
-  await expect(page.locator(".water-atmosphere[data-effect='slow-bounce-droplets']")).toHaveCount(1);
-  await expect(page.locator(".water-atmosphere[data-renderer='canvas-soft-collisions']")).toHaveCount(1);
-  await expect(page.locator(".water-atmosphere")).toHaveAttribute("data-shapes","round-oval-tall-pear-organic-pillow");
+  await expect(page.locator(".water-atmosphere[data-effect='soft-body-water-3d']")).toHaveCount(1);
+  await expect(page.locator(".water-atmosphere[data-renderer='webgl-blender-surface']")).toHaveCount(1);
   await expect(page.locator(".water-atmosphere")).toHaveAttribute("data-size-mix","large-medium-small");
   const canvas=page.locator(".liquid-canvas");
   await expect(page.locator(".water-drop, .water-pair, .water-bridge")).toHaveCount(0);
   await expect(canvas).toBeVisible();
-  await expect.poll(()=>canvas.evaluate((c:HTMLCanvasElement)=>{
-   if(!c.width||!c.height)return false;
-   const ctx=c.getContext("2d");if(!ctx)return false;
-   const pixels=ctx.getImageData(0,0,c.width,c.height).data;
-   // Sparse sampling: an animated, translucent raster must have visible alpha.
-   for(let i=3;i<pixels.length;i+=4*73)if(pixels[i]>5)return true;
-   return false;
-  }),{timeout:5000}).toBe(true);
+  await expect(canvas).toHaveAttribute("data-surface","blender");
+  const firstFrame=await canvas.getAttribute("data-frames");
+  await expect.poll(()=>canvas.getAttribute("data-frames")).not.toBe(firstFrame);
   const logo=page.locator(".landing-nav .brand-icon");
   await expect(logo).toBeVisible();
   expect(await logo.evaluate(el=>getComputedStyle(el).animationName)).toContain("liquid-logo-orbit");

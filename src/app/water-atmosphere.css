@@ -1,5 +1,5 @@
-/* Slow-motion independent droplets: touch, softly rebound and separate.
-   The toggle unmounts the transparent canvas; no connecting/merging liquid. */
+/* Blender surface + live WebGL soft-body contacts. Transparent studio
+   reflections stay quiet behind the content in both themes. */
 :root{
  --water-opacity:.62;
  --liquid-halo:rgba(237,148,99,.25);
@@ -32,9 +32,9 @@
 .liquid-canvas{
  position:absolute;inset:0;
  display:block;width:100%;height:100%;
- pointer-events:none;filter:saturate(1.17) contrast(1.06);
+ pointer-events:none;
 }
-:root[data-theme="dark"] .liquid-canvas{filter:saturate(1.05) brightness(.91)}
+
 /* Glossy extruded SmartNotes emblem, with a translucent rotating lens,
    metallic book icon, deeper side wall and soft orbital reflections. */
 .brand{perspective:540px;overflow:visible}
@@ -88,7 +88,7 @@
 @media(max-width:760px){
  :root{--water-opacity:.48}
  :root[data-theme="dark"]{--water-opacity:.34}
- .liquid-canvas{filter:saturate(1.04)}
+
  :root[data-motion="on"] .brand-icon{animation-duration:12s!important}
  .app-header .appearance-controls .motion-control{
   display:flex!important;min-width:47px;height:39px;padding:0 5px;
