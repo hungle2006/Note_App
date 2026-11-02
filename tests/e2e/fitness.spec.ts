@@ -37,3 +37,29 @@ test("FitMotion accessible from mobile navigation and dashboard",async({page})=>
  await page.getByRole("button",{name:"Mở menu"}).click();
  await expect(page.getByRole("button",{name:/Tập thể dục AI/})).toBeVisible();
 });
+
+
+for(const width of [320,375,390,430,760]){
+ test("Camera and animated pose are distinct, side-by-side at "+width+"px",async({page})=>{
+  await page.setViewportSize({width,height:844});
+  await page.goto("/app?mode=demo&view=fitness");
+  const videoPanel=page.getByRole("region",{name:"Camera thật"});
+  const posePanel=page.getByRole("region",{name:"Bộ khung AI độc lập"});
+  await expect(videoPanel).toBeVisible();
+  await expect(posePanel).toBeVisible();
+  await expect(videoPanel.locator("video")).toHaveCount(1);
+  await expect(videoPanel.locator("canvas")).toHaveCount(0);
+  await expect(posePanel.locator("video")).toHaveCount(0);
+  await expect(posePanel.locator("canvas")).toHaveCount(1);
+  const cameraBox=await videoPanel.boundingBox(),poseBox=await posePanel.boundingBox();
+  expect(cameraBox).not.toBeNull();expect(poseBox).not.toBeNull();
+  expect(poseBox!.x).toBeGreaterThan(cameraBox!.x+cameraBox!.width-2);
+  expect(Math.abs(poseBox!.y-cameraBox!.y)).toBeLessThan(3);
+  expect(await page.evaluate(()=>document.documentElement.scrollWidth)).toBeLessThanOrEqual(width+2);
+  await page.getByRole("button",{name:/Đổi camera trước sau, hiện đang dùng camera trước/}).click();
+  await expect(page.getByText("Camera sau",{exact:true})).toBeVisible();
+  await expect(page.getByRole("button",{name:/Đổi camera trước sau, hiện đang dùng camera sau/})).toBeVisible();
+  await page.getByRole("button",{name:/Đổi camera trước sau, hiện đang dùng camera sau/}).click();
+  await expect(page.getByText("Camera trước",{exact:true})).toBeVisible();
+ });
+}
