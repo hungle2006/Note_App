@@ -8,6 +8,8 @@ for(const width of [320,390,760,1280]){
   await expect(page.locator("html")).toHaveAttribute("data-motion","on");
   await expect(page.locator(".water-atmosphere[data-effect='slow-bounce-droplets']")).toHaveCount(1);
   await expect(page.locator(".water-atmosphere[data-renderer='canvas-soft-collisions']")).toHaveCount(1);
+  await expect(page.locator(".water-atmosphere")).toHaveAttribute("data-shapes","round-oval-tall-pear-organic-pillow");
+  await expect(page.locator(".water-atmosphere")).toHaveAttribute("data-size-mix","large-medium-small");
   const canvas=page.locator(".liquid-canvas");
   await expect(page.locator(".water-drop, .water-pair, .water-bridge")).toHaveCount(0);
   await expect(canvas).toBeVisible();
