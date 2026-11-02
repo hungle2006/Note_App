@@ -1,6 +1,6 @@
 "use client";
 import {useEffect,useState,useCallback} from "react";import {api} from "./client-api";import {cloneDemo} from "./demo";import {gradeAttempt,type Note,type NoteInput,type StudySet,type Attempt,type OcrEvaluation,type attemptSchema} from "./schemas";import type {z} from "zod";
-import {emptyWallet,rewardCatalog,type RewardWallet} from "./rewards";
+import {emptyWallet,rewardCatalog,eligibleFitnessReward,fitnessAward,type WorkoutRewardInput,type RewardWallet} from "./rewards";
 import {mergeEvaluation} from "./review";
 import {needsReview} from "./review";
 const key="notelab-thcs-demo-v2";
@@ -19,10 +19,21 @@ const n=[note,...notes.filter(n=>n.id!==note.id)];const a=id?attempts.filter(a=>
 async function remove(id:string){if(!demo)await api("/notes/"+id,{method:"DELETE"});const n=notes.filter(n=>n.id!==id);const a=attempts.filter(a=>a.noteId!==id);persist(n,a);setNotes(n);setAttempts(a);}
 async function study(note:Note){if(needsReview(note))throw new Error("Hãy soát chữ và xác nhận bài học trước khi tạo bộ ôn.");if(note.study)return note.study;if(demo)throw new Error("Bản mẫu có bộ ôn cho Cộng và rút gọn phân số. Bài khác cần kết nối Gemini.");const {study}=await api<{study:StudySet}>("/study",{method:"POST",body:JSON.stringify({noteId:note.id})});setNotes(old=>old.map(n=>n.id===note.id?{...n,study}:n));return study;}
 async function record(input:z.infer<typeof attemptSchema>,study:StudySet){const attempt:Attempt=demo?{id:crypto.randomUUID(),noteId:input.noteId,mode:input.mode,...gradeAttempt(study,input),createdAt:new Date().toISOString()}:(await api<{attempt:Attempt}>("/attempts",{method:"POST",body:JSON.stringify(input)})).attempt;const a=[attempt,...attempts].slice(0,200);let w=wallet;if(demo&&input.mode!=="flashcards"&&attempt.score>0){const id=`practice:${input.noteId}:${input.mode}:${new Date().toISOString().slice(0,10)}`;if(!w.history.some(e=>e.id===id)){const amount=attempt.score*2;w={...w,balance:w.balance+amount,earned:w.earned+amount,history:[{id,amount,kind:'practice',label:input.mode==='quiz'?'Hoàn thành quiz':'Hoàn thành ghép đôi',createdAt:new Date().toISOString()},...w.history]};}}else if(!demo){try{w=(await api<{wallet:RewardWallet}>("/rewards")).wallet;}catch{setWalletError("Kết quả đã lưu; chưa tải được số điểm mới.");}}persist(notes,a,w);setWallet(w);setAttempts(a);return attempt;}
+async function creditFitness(workout:WorkoutRewardInput){
+ if(!demo){try{setWallet((await api<{wallet:RewardWallet}>("/rewards")).wallet);setWalletError("");}catch{setWalletError("Lịch sử vận động đã lưu nhưng chưa cập nhật được Điểm Nắng.");}return 0;}
+ if(!eligibleFitnessReward(workout))return 0;
+ const day=new Date().toISOString().slice(0,10);
+ const source=`fitness:${day}:${workout.exercise}`;
+ if(wallet.history.some(event=>event.id===source))return 0;
+ if(wallet.history.filter(event=>event.id.startsWith(`fitness:${day}:`)).length>=fitnessAward.maxDistinctPerUtcDay)return 0;
+ const award=fitnessAward.perSession;
+ const next:RewardWallet={...wallet,balance:wallet.balance+award,earned:wallet.earned+award,history:[{id:source,amount:award,kind:"practice",label:"Vận động nhẹ · "+workout.exercise,createdAt:new Date().toISOString()},...wallet.history]};
+ persist(notes,attempts,next);setWallet(next);return award;
+}
 async function more(){if(next===null)return;const r=await api<{notes:Note[];nextOffset:number|null}>("/notes?offset="+next);setNotes(old=>[...old,...r.notes.filter(n=>!old.some(x=>x.id===n.id))]);setNext(r.nextOffset);}
 async function evaluate(note:Note,evaluation:OcrEvaluation){const updated=demo?{...mergeEvaluation(note,evaluation),id:note.id,createdAt:note.createdAt,updatedAt:note.updatedAt,study:note.study}:(await api<{note:Note}>("/notes/"+note.id+"/evaluations",{method:"POST",body:JSON.stringify({evaluation,version:note.updatedAt})})).note;const n=notes.map(x=>x.id===note.id?updated:x);persist(n,attempts);setNotes(n);return updated;}
 async function claimReward(rewardId:string){let next:RewardWallet;if(demo){const r=rewardCatalog.find(r=>r.id===rewardId);if(!r||wallet.redeemed.some(x=>x.rewardId===rewardId))throw new Error("Huy hiệu này không thể đổi lại.");if(wallet.balance<r.cost)throw new Error("Em chưa đủ điểm.");const now=new Date().toISOString();next={...wallet,balance:wallet.balance-r.cost,redeemed:[{rewardId,createdAt:now},...wallet.redeemed],history:[{id:crypto.randomUUID(),amount:-r.cost,kind:'redeem',label:'Đổi '+r.name,createdAt:now},...wallet.history]};}else next=(await api<{wallet:RewardWallet}>("/rewards",{method:"POST",body:JSON.stringify({rewardId})})).wallet;persist(notes,attempts,next);setWallet(next);return next;}
 function reset(){const w=emptyWallet();persist(cloneDemo(),[],w);setNotes(cloneDemo());setAttempts([]);setWallet(w);}
 async function evaluationIndex(){return demo?notes.map(n=>({id:n.id,title:n.title,review:n.review})):(await api<{notes:import("./review").EvaluationNote[]}>("/evaluations")).notes;}
-return {notes,attempts,wallet,walletError,claimReward,evaluate,evaluationIndex,loading,error,load,get,save,remove,study,record,more,hasMore:next!==null,reset};
+return {notes,attempts,wallet,walletError,claimReward,creditFitness,evaluate,evaluationIndex,loading,error,load,get,save,remove,study,record,more,hasMore:next!==null,reset};
 }export type Learning=ReturnType<typeof useLearning>;
