@@ -177,7 +177,9 @@ export function FitnessView({accountId}:{accountId:string}){
     if(!active.current||token!==sessionToken.current)return;
     raf.current=requestAnimationFrame(loop);
     if(isPaused.current||!video.current||video.current.readyState<2||now-lastFrame.current<90)return;
+    const frameDelta=lastFrame.current>0?now-lastFrame.current:0;
     lastFrame.current=now;
+    if(frameDelta>0&&now-firstFrame.current>500){setFps(Math.round(1000/frameDelta));firstFrame.current=now;}
     try{
      const output=model.current?.detectForVideo(video.current,now);
      const points=output?.landmarks?.[0];
@@ -190,7 +192,7 @@ export function FitnessView({accountId}:{accountId:string}){
       const key=result.message+"|"+result.metric;
       if(key!==lastStatus.current){lastStatus.current=key;setFeedback(result.message);setMetric(result.metric);}
      }else if(lastStatus.current!=="not-found"){lastStatus.current="not-found";setFeedback("Không thấy người trong camera. Lùi lại để AI nhận diện.");setMetric("—");}
-     if(now-firstFrame.current>500){setFps(Math.min(11,Math.round(1000/Math.max(90,now-lastFrame.current+90))));firstFrame.current=now;}
+
     }catch(e){setFeedback(e instanceof Error?"Đang kiểm tra lại khung hình: "+e.message:"Không xử lý được hình ảnh.");}
    };
    raf.current=requestAnimationFrame(loop);
