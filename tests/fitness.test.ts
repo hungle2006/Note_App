@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import {test} from "node:test";
 import {angle,EXERCISES,newMotionState,processMotion,type Landmark} from "../src/lib/fitness-engine";
+import {FITNESS_LIBRARY,AI_EXERCISES,GUIDED_EXERCISES,searchFitnessLibrary} from "../src/lib/fitness-catalog";
 function shape(bent:boolean):Landmark[]{
  const data=Array.from({length:33},()=>({x:0,y:0,visibility:0}));
  const assign=(i:number,x:number,y:number)=>{data[i]={x,y,visibility:1};};
@@ -30,4 +31,23 @@ test("out of frame landmarks never count",()=>{
  const result=processMotion("squat",[],state,1000);
  assert.equal(result.accepted,false);
  assert.equal(result.ready,false);
+});
+
+test("catalog includes exactly 100 unique documented workouts",()=>{
+ assert.equal(FITNESS_LIBRARY.length,100);
+ assert.equal(AI_EXERCISES.length,7);
+ assert.equal(GUIDED_EXERCISES.length,93);
+ assert.equal(new Set(FITNESS_LIBRARY.map(x=>x.id)).size,100);
+ assert.ok(FITNESS_LIBRARY.every(x=>x.instruction.length>32&&x.name.length>4));
+});
+test("only validated seven pose modes claim AI counting",()=>{
+ assert.deepEqual(new Set(AI_EXERCISES.map(x=>x.aiId)),new Set(EXERCISES.map(x=>x.id)));
+ assert.ok(GUIDED_EXERCISES.every(x=>x.kind==="guided"&&!x.aiId));
+ assert.equal(searchFitnessLibrary("","ai").length,7);
+});
+test("Vietnamese accent insensitive search and category filtering",()=>{
+ assert.ok(searchFitnessLibrary("gian co").length>0);
+ assert.ok(searchFitnessLibrary("squat").some(x=>x.id==="squat"));
+ assert.ok(searchFitnessLibrary("","balance").length>=10);
+ assert.equal(searchFitnessLibrary("","all","Nâng cao").every(x=>x.level==="Nâng cao"),true);
 });
