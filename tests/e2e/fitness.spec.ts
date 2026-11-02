@@ -33,7 +33,7 @@ test("FitMotion accessible from mobile navigation and dashboard",async({page})=>
  await expect(page.getByRole("button",{name:/Bắt đầu tập/})).toBeVisible();
  await page.getByRole("button",{name:/Bắt đầu tập/}).click();
  await expect(page).toHaveURL(/view=fitness/);
- await expect(page.getByText("Camera đang tắt")).toBeVisible();
+ await expect(page.getByText("Chưa bật camera")).toBeVisible();
  await page.getByRole("button",{name:"Mở menu"}).click();
  await expect(page.getByRole("button",{name:/Tập thể dục AI/})).toBeVisible();
 });
