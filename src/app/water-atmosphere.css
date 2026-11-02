@@ -127,3 +127,16 @@
  .water-atmosphere{display:none!important}
  .brand-icon{animation:none!important;transform:none!important}
 }
+
+/* Always keep the 3D switch reachable on narrow phones. The previous
+   responsive layout hid it below 380px, making the effect impossible to stop. */
+@media(max-width:760px){
+ .app-header .appearance-controls .motion-control{
+  display:flex!important;min-width:47px;height:39px;padding:0 5px;
+  align-items:center;justify-content:center;gap:4px;
+ }
+}
+@media(max-width:360px){
+ .app-header .mobile-points-chip{display:none!important}
+ .app-header .appearance-controls{gap:4px}
+}
