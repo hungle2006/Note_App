@@ -2,6 +2,7 @@
 import {useCallback,useEffect,useRef,useState} from "react";
 import {Activity,CheckCircle2,Download,Dumbbell,Info,Pause,Play,RefreshCcw,ShieldCheck,Target,Timer,Video,VideoOff,Zap} from "lucide-react";
 import {CONNECTIONS,EXERCISES,newMotionState,processMotion,type ExerciseId,type Landmark,type MotionState} from "@/lib/fitness-engine";
+import {api} from "@/lib/client-api";
 import styles from "./fitness.module.css";
 
 type Model={detectForVideo(video:HTMLVideoElement,time:number):{landmarks:Landmark[][]};close():void};
@@ -44,6 +45,8 @@ export function FitnessView({accountId}:{accountId:string}){
  const [reps,setReps]=useState(0);
  const [seconds,setSeconds]=useState(0);
  const [history,setHistory]=useState<Workout[]>([]);
+ const [cloudError,setCloudError]=useState("");
+ const cloud=accountId!=="demo"&&accountId!=="guest";
  const [feedback,setFeedback]=useState("Chọn bài tập, đặt thiết bị cố định và bấm Bật camera.");
  const [metric,setMetric]=useState("—");
  const [error,setError]=useState("");
@@ -74,14 +77,41 @@ export function FitnessView({accountId}:{accountId:string}){
   try{const raw=localStorage.getItem(storageKey(accountId));if(raw){const parsed=JSON.parse(raw);if(Array.isArray(parsed))setHistory(parsed.filter((s:Workout)=>s&&EXERCISES.some(x=>x.id===s.exercise)&&Number.isFinite(s.reps)).slice(0,100));}}
   catch{/* no browser storage */}
   setStorageReady(true);
- },[accountId]);
+  if(cloud){
+   let disposed=false;
+   api<{sessions:Workout[]}>("/fitness").then(result=>{
+    if(disposed)return;
+    setHistory(previous=>{
+     const map=new Map<string,Workout>();
+     for(const row of [...result.sessions,...previous])map.set(row.id,row);
+     const merged=[...map.values()].sort((a,b)=>b.at.localeCompare(a.at)).slice(0,100);
+     try{localStorage.setItem(storageKey(accountId),JSON.stringify(merged));}catch{/* browser disabled storage */}
+     return merged;
+    });
+    setCloudError("");
+   }).catch(()=>{if(!disposed)setCloudError("Không kết nối được lịch sử trên máy chủ. Dữ liệu trên thiết bị vẫn còn.");});
+   return ()=>{disposed=true;};
+  }
+ },[accountId,cloud]);
  const saveHistory=useCallback((entry:Workout)=>{
   setHistory(previous=>{
    const next=[entry,...previous].slice(0,100);
    try{localStorage.setItem(storageKey(accountId),JSON.stringify(next));}catch{/* storage disabled */}
    return next;
   });
- },[accountId]);
+  if(cloud){
+   void api<{session:Workout}>("/fitness",{method:"POST",body:JSON.stringify({id:entry.id,exercise:entry.exercise,reps:entry.reps,seconds:entry.seconds})})
+    .then(()=>setCloudError(""))
+    .catch(()=>setCloudError("Chưa đồng bộ được buổi tập vừa lưu. Dữ liệu vẫn nằm trên thiết bị này."));
+  }
+ },[accountId,cloud]);
+ async function removeHistory(){
+  if(!window.confirm("Xóa toàn bộ lịch sử tập thể dục của bạn? Thao tác này không thể hoàn tác."))return;
+  try{
+   if(cloud)await api("/fitness",{method:"DELETE"});
+   setHistory([]);localStorage.removeItem(storageKey(accountId));setCloudError("");
+  }catch{setCloudError("Không xóa được dữ liệu trên máy chủ. Hãy thử lại.");}
+ }
  const clearCamera=useCallback(()=>{
   active.current=false;isPaused.current=false;isLoading.current=false;
   sessionToken.current++;
@@ -230,9 +260,9 @@ export function FitnessView({accountId}:{accountId:string}){
      <p className={styles.note}><ShieldCheck size={14} style={{verticalAlign:"middle",marginRight:4}}/> Số lần là ước lượng dựa trên pose + bộ quy tắc hình học. Không phải đánh giá y khoa hay huấn luyện viên chuyên nghiệp. Hãy dừng nếu cảm thấy đau.</p>
     </div></section>
     <section className={styles.panel}><div className={styles.panelPad}>
-     <div className={styles.sectionHead}><div><h2><Timer size={17} style={{verticalAlign:"middle",marginRight:6}}/> Lịch sử tập luyện</h2><p>{todayCount} buổi hôm nay · chỉ lưu trên trình duyệt này</p></div>{history.length>0&&<button className={styles.control} onClick={downloadCsv} title="Tải CSV"><Download size={16}/></button>}</div>
+     <div className={styles.sectionHead}><div><h2><Timer size={17} style={{verticalAlign:"middle",marginRight:6}}/> Lịch sử tập luyện</h2><p>{todayCount} buổi hôm nay · {cloud?"đồng bộ Turso":"lưu tại trình duyệt"}</p></div>{history.length>0&&<div style={{display:"flex",gap:7}}><button className={styles.control} onClick={downloadCsv} title="Tải CSV" aria-label="Tải lịch sử CSV"><Download size={16}/></button><button className={styles.danger} onClick={removeHistory} title="Xóa lịch sử">Xóa</button></div>}</div>
      <div className={styles.list}>{!storageReady?<div className={styles.empty}>Đang tải lịch sử…</div>:history.length===0?<div className={styles.empty}>Chưa có buổi tập. Hoàn thành vài động tác và bấm Kết thúc & lưu để ghi lại.</div>:history.slice(0,8).map(h=><div className={styles.history} key={h.id}><div><strong>{EXERCISES.find(e=>e.id===h.exercise)?.name||h.exercise}</strong><span>{new Date(h.at).toLocaleString("vi-VN")} · {duration(h.seconds)}</span></div><b>{h.reps} lần</b></div>)}</div>
-     <p className={styles.footer}>Dữ liệu này tách biệt theo tài khoản trên từng trình duyệt, chưa đồng bộ Turso. Không lưu video hoặc ảnh cơ thể.</p>
+     <p className={styles.footer}>{cloud?"Lịch sử đồng bộ với tài khoản qua Turso; bản sao trên máy hỗ trợ khi mạng lỗi.":"Bản mẫu chỉ lưu lịch sử trên thiết bị này."} Không lưu video hoặc ảnh cơ thể.</p>{cloudError&&<p className={styles.error} role="alert">{cloudError}</p>}
     </div></section>
    </div>
   </div>
