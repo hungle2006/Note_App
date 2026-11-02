@@ -1,0 +1,86 @@
+/* Sunny, calm reward center: encouragement without rankings or streak pressure. */
+.sun-hero{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(240px,.8fr);gap:18px;align-items:stretch;margin:12px 0 18px}
+.sun-balance{position:relative;overflow:hidden;border:1px solid var(--line);border-radius:24px;padding:25px 27px;background:linear-gradient(120deg,var(--sun-peach-light),var(--hero) 80%,var(--paper));min-height:240px}
+.sun-balance:after{content:"";position:absolute;right:-45px;top:-50px;width:205px;height:205px;background:radial-gradient(circle,#ffd891 0 35%,#ffedca66 36% 55%,transparent 56%);border-radius:50%;opacity:.6;pointer-events:none}
+.sun-kicker{display:inline-flex;align-items:center;gap:6px;color:var(--purple-ink);font-size:10px;font-weight:850;letter-spacing:1.3px;text-transform:uppercase}
+.sun-balance h2{font-size:clamp(30px,4vw,47px);font-weight:850;line-height:1.2;letter-spacing:-1.5px;margin:13px 0 7px;color:var(--ink)}
+.sun-balance h2 small{font-size:14px;color:var(--muted);font-weight:650;letter-spacing:0;margin-left:5px}
+.sun-balance p{font-size:13px;line-height:1.6;max-width:420px;color:var(--muted)}
+.sun-actions{display:flex;flex-wrap:wrap;gap:9px;margin-top:21px;position:relative;z-index:1}
+.sun-actions .button{min-height:43px;font-size:12px;padding:9px 14px}
+.sun-tier{background:var(--paper);border:1px solid var(--line);border-radius:24px;padding:24px;display:flex;flex-direction:column;justify-content:space-between;gap:13px}
+.sun-tier-kicker{font-size:11px;color:var(--muted);font-weight:700}.sun-tier-name{display:flex;align-items:center;gap:11px}
+.sun-tier-emoji{width:53px;height:53px;border-radius:18px;background:var(--soft);display:grid;place-items:center;font-size:29px;flex-shrink:0}
+.sun-tier-name strong{font-size:18px;line-height:1.25;display:block}.sun-tier-name small{display:block;color:var(--muted);font-size:11px;margin-top:3px}
+.sun-tier-next{font-size:12px;color:var(--muted);display:flex;align-items:center;justify-content:space-between;gap:8px;line-height:1.5}
+.sun-track{height:11px;border-radius:99px;background:var(--paper-alt);border:1px solid var(--line);overflow:hidden}
+.sun-track>span{display:block;height:100%;background:linear-gradient(90deg,#d8804b,#f1b66d);border-radius:99px;transition:width .35s ease}
+.sun-rule{display:flex;gap:11px;align-items:flex-start;color:var(--muted);background:var(--paper);border:1px solid var(--line);border-radius:15px;padding:14px 17px;margin-bottom:22px;font-size:12px;line-height:1.7}
+.sun-rule svg{color:var(--teal);margin-top:2px;flex-shrink:0}
+.sun-quests{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:18px 0 24px}
+.sun-quest{border-radius:20px;border:1px solid var(--line);background:var(--paper);padding:18px;display:flex;align-items:flex-start;gap:15px;min-width:0}
+.sun-quest-icon{width:48px;height:48px;border-radius:15px;background:var(--soft);color:var(--purple-ink);display:grid;place-items:center;flex-shrink:0}
+.sun-quest h3{font-size:15px;line-height:1.35;margin-bottom:4px}
+.sun-quest p{font-size:12px;color:var(--muted);line-height:1.6;margin-bottom:9px}
+.sun-quest button{border:0;background:transparent;padding:0;font-size:12px;font-weight:850;color:var(--purple-ink);display:inline-flex;gap:5px;align-items:center}
+.sun-collection{margin:24px 0}
+.sun-collection-head{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap;margin-bottom:13px}
+.sun-collection-head h2{font-size:22px}
+.sun-collection-head p{font-size:12px;color:var(--muted);margin-top:2px}
+.sun-filters{display:flex;gap:7px;flex-wrap:wrap}
+.sun-filters button{border:1px solid var(--line);background:var(--paper);color:var(--muted);font-size:12px;font-weight:750;padding:8px 12px;border-radius:999px;min-height:39px}
+.sun-filters button[aria-pressed=true]{background:var(--soft);border-color:var(--purple);color:var(--purple-ink)}
+.sun-reward-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:13px}
+.sun-reward{position:relative;display:flex;flex-direction:column;align-items:flex-start;min-width:0;border:1px solid var(--line);background:var(--paper);border-radius:20px;padding:20px;gap:8px}
+.sun-reward.owned{border-color:color-mix(in srgb,var(--teal) 48%,var(--line))}
+.sun-reward-art{display:grid;place-items:center;width:60px;height:60px;background:linear-gradient(145deg,var(--sun-peach-light),var(--soft));border:1px solid var(--line);border-radius:18px;font-size:38px;color:var(--sun-accent)}
+.sun-reward:nth-child(3n+2) .sun-reward-art{background:var(--teal-soft);color:var(--teal)}
+.sun-reward:nth-child(3n+3) .sun-reward-art{background:var(--orange-soft)}
+.sun-reward-meta{font-size:10px;font-weight:800;letter-spacing:.4px;color:var(--purple-ink);margin-top:4px}
+.sun-reward h3{font-size:17px;margin:0;line-height:1.35}
+.sun-reward p{font-size:12px;color:var(--muted);line-height:1.6;flex:1;min-height:40px}
+.sun-reward-bottom{width:100%;display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:12px;color:var(--muted);font-weight:750}
+.sun-reward-bottom strong{color:var(--purple-ink);font-size:14px;white-space:nowrap}
+.sun-reward .button{min-height:42px;width:100%;font-size:12px;margin-top:6px}
+.sun-reward .button:disabled{opacity:.6}
+.sun-archive{padding:20px;border-radius:20px;background:var(--paper);border:1px solid var(--line);margin:22px 0}
+.sun-archive header{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px;flex-wrap:wrap}
+.sun-archive h2{font-size:19px}
+.sun-log{display:flex;align-items:center;gap:11px;border-top:1px solid var(--line);padding:12px 2px}
+.sun-log-icon{width:36px;height:36px;border-radius:12px;display:grid;place-items:center;background:var(--soft);color:var(--purple-ink);flex-shrink:0}
+.sun-log>div{min-width:0;flex:1}
+.sun-log strong{display:block;font-size:12px;overflow-wrap:anywhere}
+.sun-log small{display:block;color:var(--muted);font-size:11px}
+.sun-log b{font-size:14px;white-space:nowrap;font-variant-numeric:tabular-nums}
+.sun-empty{font-size:13px;color:var(--muted);padding:18px 0}
+@media(max-width:1100px){.sun-reward-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:760px){
+ .sun-hero{grid-template-columns:minmax(0,1fr);gap:10px;margin:8px 0 12px}
+ .sun-balance{min-height:0;padding:19px;border-radius:20px}
+ .sun-balance:after{width:150px;height:150px;top:-35px;right:-45px}
+ .sun-balance h2{font-size:38px}
+ .sun-balance p{font-size:12px;max-width:88%}
+ .sun-tier{padding:17px 19px;border-radius:19px;gap:10px}
+ .sun-tier-name strong{font-size:16px}.sun-tier-emoji{width:45px;height:45px;font-size:25px}
+ .sun-rule{font-size:11px;padding:12px 13px;line-height:1.65;margin-bottom:16px}
+ .sun-quests{grid-template-columns:minmax(0,1fr);gap:10px;margin:14px 0 18px}
+ .sun-quest{padding:14px;border-radius:17px;gap:12px}
+ .sun-quest-icon{width:42px;height:42px}
+ .sun-collection-head{align-items:flex-start}
+ .sun-reward-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+ .sun-reward{padding:13px;border-radius:16px;gap:7px}
+ .sun-reward-art{width:49px;height:49px;border-radius:15px;font-size:30px}
+ .sun-reward h3{font-size:15px}.sun-reward p{font-size:11px;min-height:53px}
+ .sun-reward .button{padding:8px 5px;font-size:11px}
+ .sun-reward-bottom{font-size:10px}.sun-reward-bottom strong{font-size:12px}
+ .sun-archive{padding:15px}
+}
+@media(max-width:360px){
+ .sun-reward-grid{grid-template-columns:minmax(0,1fr)}
+ .sun-reward p{min-height:0}
+ .sun-reward{display:grid;grid-template-columns:56px minmax(0,1fr);gap:6px 12px}
+ .sun-reward-art{grid-row:1/4}
+ .sun-reward-meta,.sun-reward h3,.sun-reward p,.sun-reward-bottom,.sun-reward .button{grid-column:2}
+ .sun-balance h2{font-size:32px}
+ .sun-actions .button{flex:1}
+}
