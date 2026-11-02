@@ -80,7 +80,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
  .breadcrumb-root,.breadcrumb>svg{display:none}
  .breadcrumb strong{font-size:12px;font-weight:800;text-overflow:ellipsis;overflow:hidden;white-space:nowrap}
  .mobile-points-chip{display:flex;min-height:37px}
- .app-header .appearance-controls .motion-control{display:none}
+ .app-header .appearance-controls .motion-control{min-width:43px;height:39px;padding:0 5px}
  .app-header .appearance-button{width:39px;min-width:39px;height:39px}
  .demo-banner,.cloud-sync-note{font-size:11px;padding:8px 14px;line-height:1.45}
  .demo-banner span{max-width:100%;overflow-wrap:anywhere}
@@ -127,6 +127,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
  .header-right{gap:5px}
  .breadcrumb{max-width:27vw}
  .app-header .appearance-button{width:34px;min-width:34px;height:34px}
+ .app-header .appearance-controls .motion-control{display:none}
  .mobile-points-chip{padding:5px 8px}
  .achievement-balance .tag{max-width:100%}
  .library-filters{grid-template-columns:minmax(0,1fr)}
