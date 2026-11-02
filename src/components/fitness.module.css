@@ -251,3 +251,86 @@
  .selectedWorkout{scroll-margin-top:77px}
  .libraryPanel,.guideStudio,.historyPanel{max-width:100%}
 }
+
+
+/* Mobile fit-and-finish: undo the generic column-based <label> rules.
+   Previously the search/filter glyphs were on their own rows in iOS Safari. */
+.catalogTools{display:grid;grid-template-columns:minmax(0,1fr) 190px;gap:10px;align-items:stretch;margin:12px 0 15px}
+.catalogSearch,.levelFilter{
+ display:flex!important;flex-direction:row!important;flex-wrap:nowrap!important;
+ align-items:center!important;justify-content:flex-start;gap:10px!important;
+ width:100%;min-width:0;height:49px;min-height:49px;
+ margin:0!important;padding:0 13px!important;border:1.5px solid var(--line)!important;
+ border-radius:14px!important;background:var(--paper)!important;color:var(--muted);
+ box-sizing:border-box;overflow:hidden;
+}
+.catalogSearch:focus-within,.levelFilter:focus-within{border-color:var(--sun-accent)!important;box-shadow:0 0 0 3px #e9985d1b}
+.catalogSearch>svg,.levelFilter>svg{flex:0 0 auto!important;position:static!important;color:var(--purple-ink);margin:0!important}
+.catalogSearch input{
+ display:block;flex:1 1 auto;box-sizing:border-box;
+ margin:0!important;padding:0!important;height:45px!important;min-height:0!important;
+ width:100%!important;min-width:0!important;max-width:100%;
+ border:0!important;border-radius:0!important;box-shadow:none!important;outline:0!important;
+ background:transparent!important;color:var(--ink);font-size:15px!important;line-height:normal;
+}
+.catalogSearch input::-webkit-search-decoration{display:none}
+.catalogSearch input::placeholder{font-size:13px;color:var(--muted);opacity:.85}
+.levelFilter select{
+ display:block;flex:1 1 auto;width:100%;min-width:0;max-width:none!important;
+ margin:0!important;padding:0!important;height:46px!important;min-height:0!important;
+ border:0!important;box-shadow:none!important;outline:none!important;background:transparent!important;
+ color:var(--ink);font-size:13px!important;font-weight:750;line-height:1.25;
+ -webkit-appearance:none;appearance:none;
+}
+.levelFilter .filterChevron{color:var(--purple-ink);pointer-events:none;margin:0!important}
+.levelFilter select option{color:var(--ink);background:var(--paper)}
+.categoryRail button{gap:7px;flex-direction:row;align-items:center;white-space:nowrap}
+.categoryRail button>svg{color:var(--purple-ink);width:16px;height:16px;flex:0 0 auto}
+.categoryRail button[aria-pressed=true]>svg{color:var(--sun-accent)}
+.catalogCard{transition:border-color .16s,background .16s,box-shadow .16s;box-shadow:0 2px 8px #97512808}
+.catalogCard .catalogIcon{background:var(--sun-peach-light);color:var(--purple-ink)}
+.catalogCard:nth-child(3n+2) .catalogIcon{background:var(--teal-soft);color:var(--teal)}
+.catalogCard:nth-child(3n+3) .catalogIcon{background:var(--orange-soft);color:var(--orange)}
+.catalogMeta .kindAI,.catalogMeta .kindTimer{display:inline-flex;align-items:center;gap:4px;padding:5px 7px}
+.catalogMeta .kindAI svg,.catalogMeta .kindTimer svg{width:12px;height:12px}
+@media(max-width:760px){
+ .catalogTools{grid-template-columns:minmax(0,1fr) 156px;gap:8px;margin:11px 0}
+ .catalogSearch{grid-column:1/-1}
+ .levelFilter{grid-column:1/-1;max-width:220px}
+ .catalogSearch,.levelFilter{height:48px!important;min-height:48px!important;padding:0 13px!important;gap:10px!important}
+ .catalogSearch input{height:46px!important;min-height:0!important;font-size:16px!important}
+ .catalogSearch input::placeholder{font-size:13px}
+ .levelFilter select{height:46px!important;font-size:14px!important}
+ .categoryRail{gap:7px}
+ .categoryRail button{height:42px;min-height:42px;gap:7px;font-size:11px}
+ .catalogGrid{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+ .catalogCard{min-height:136px;padding:12px;border-radius:16px}
+ .catalogIcon{width:36px;height:36px;flex-basis:36px}
+ .catalogCardCopy strong{font-size:12.5px}
+ .catalogCardCopy small{font-size:10.5px;line-height:1.35}
+ .catalogMeta{margin-top:auto;gap:6px;font-size:10px}
+ .catalogSummary{margin:10px 0 12px}
+ .hero{padding:16px 17px;margin-bottom:12px;border-radius:19px}
+ .hero h1{font-size:23px;line-height:1.2;margin:4px 0 6px}
+ .hero p{font-size:11.5px;line-height:1.55}
+ .heroMark{width:47px;height:47px;flex:0 0 47px;border-radius:15px}
+ .heroMark svg{width:24px;height:24px}
+ .stats{gap:8px;margin-bottom:12px}
+ .stat{padding:11px 12px;min-height:76px;border-radius:15px}
+ .stat strong{font-size:23px;line-height:1.15}
+ .stat span{font-size:10px;line-height:1.45;margin-top:3px}
+ .libraryPanel{margin:12px 0;border-radius:19px}
+ .libraryPanel .panelPad{padding:15px}
+ .libraryHeading h2{font-size:20px}
+ .libraryHeading p{font-size:11px}
+}
+@media(max-width:365px){
+ .heroMark{display:none}
+ .catalogGrid{grid-template-columns:minmax(0,1fr)}
+ .catalogCard{display:grid;grid-template-columns:38px minmax(0,1fr);align-items:center;gap:9px;min-height:86px}
+ .catalogCardCopy{gap:3px}
+ .catalogIcon{grid-column:1;grid-row:1}
+ .catalogMeta{margin-top:2px}
+ .catalogCard[aria-pressed=true] .catalogCardCopy strong{padding-right:15px}
+ .catalogTools .levelFilter{max-width:100%}
+}
