@@ -4,6 +4,7 @@ import {Activity,Check,ChevronDown,Clock,Dumbbell,Flower2,Footprints,HeartPulse,
 import type {LucideIcon} from "lucide-react";
 import {FITNESS_CATEGORIES,FITNESS_LIBRARY,searchFitnessLibrary,type FitnessCategory,type FitnessLevel} from "@/lib/fitness-catalog";
 import styles from "./fitness.module.css";
+import {SmartSelect} from "./smart-select";
 const CATEGORY_ICONS:Record<FitnessCategory,LucideIcon>={all:Sparkles,ai:ScanLine,warmup:Sun,cardio:HeartPulse,legs:Footprints,upper:Dumbbell,core:Activity,mobility:Move,balance:Scale,stretch:Flower2,recovery:Wind};
 const PAGE_SIZE=6;
 export function FitnessLibraryPicker({selectedId,onSelect}:{selectedId:string;onSelect:(id:string)=>void}){
@@ -25,9 +26,7 @@ export function FitnessLibraryPicker({selectedId,onSelect}:{selectedId:string;on
    </div>
    <div className={styles.catalogTools}>
     <label className={styles.catalogSearch}><Search size={19} strokeWidth={2.1} aria-hidden="true"/><input type="search" disabled={!hydrated} value={query} onChange={e=>search(e.target.value)} aria-label="Tìm bài tập" placeholder="Tên bài tập hoặc nhóm vận động…"/></label>
-    <label className={styles.levelFilter}><SlidersHorizontal size={17} strokeWidth={2} aria-hidden="true"/><select aria-label="Lọc độ khó" disabled={!hydrated} value={level} onChange={e=>{setLevel(e.target.value as "all"|FitnessLevel);setShow(PAGE_SIZE);}}>
-      <option value="all">Mọi độ khó</option><option value="Dễ">Dễ</option><option value="Vừa">Vừa</option><option value="Nâng cao">Nâng cao</option>
-    </select><ChevronDown size={16} aria-hidden="true" className={styles.filterChevron}/></label>
+    <SmartSelect className="fitness-smart-filter" label="Lọc độ khó" showLabel={false} icon={<SlidersHorizontal size={17} strokeWidth={2}/>} disabled={!hydrated} value={level} onChange={v=>{setLevel(v as "all"|FitnessLevel);setShow(PAGE_SIZE);}} options={[{value:"all",label:"Mọi độ khó"},{value:"Dễ",label:"Dễ"},{value:"Vừa",label:"Vừa"},{value:"Nâng cao",label:"Nâng cao"}]}/>
    </div>
    <div className={styles.categoryRail} role="group" aria-label="Nhóm bài tập">
     {FITNESS_CATEGORIES.map(c=>{const Icon=CATEGORY_ICONS[c.id];return <button type="button" key={c.id} disabled={!hydrated} aria-pressed={category===c.id} onClick={()=>pickCategory(c.id)}><Icon size={16} strokeWidth={2} aria-hidden="true"/><span>{c.label}</span>{c.id==="ai"&&<span className={styles.categoryNumber}>7</span>}</button>;})}
