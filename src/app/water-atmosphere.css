@@ -1,5 +1,5 @@
-/* SmartNotes liquid laboratory — layered canvas gel with subtle optical sheen.
-   The motion toggle unmounts the simulation. The layer cannot intercept taps. */
+/* Slow-motion independent droplets: touch, softly rebound and separate.
+   The toggle unmounts the transparent canvas; no connecting/merging liquid. */
 :root{
  --water-opacity:.62;
  --liquid-halo:rgba(237,148,99,.25);
@@ -57,20 +57,20 @@
  filter:drop-shadow(0 2px 1px rgba(114,53,24,.36));}
 :root[data-motion="on"] .brand-icon{
  transform-origin:center;transform-style:preserve-3d;
- animation:liquid-logo-orbit 6.6s cubic-bezier(.42,.07,.58,.94) infinite!important;
+ animation:liquid-logo-orbit 10.5s ease-in-out infinite!important;
  box-shadow:inset 1px 2px 3px #fff9ecc2,inset -5px -6px 8px #6f351b58,
   0 13px 23px #b7653f48,0 0 23px var(--liquid-halo);
 }
 :root[data-motion="on"] .brand-icon::after{
  border-color:rgba(255,232,204,.37);
- animation:liquid-logo-ring 5.6s linear infinite;
+ animation:liquid-logo-ring 11s linear infinite;
 }
 :root[data-motion="on"] .brand-icon>svg{animation:liquid-book-glimmer 3.7s ease-in-out infinite}
 @keyframes liquid-logo-orbit{
- 0%,100%{transform:perspective(420px) rotateX(-13deg) rotateY(-24deg) rotateZ(-4deg) translateY(0) scale(1.08)}
- 22%{transform:perspective(420px) rotateX(8deg) rotateY(15deg) rotateZ(3deg) translateY(-4px) scale(1.18)}
- 47%{transform:perspective(420px) rotateX(-5deg) rotateY(26deg) rotateZ(4deg) translateY(-1px) scale(1.11)}
- 72%{transform:perspective(420px) rotateX(12deg) rotateY(-13deg) rotateZ(-3deg) translateY(3px) scale(1.15)}
+ 0%,100%{transform:perspective(420px) rotateX(-8deg) rotateY(-16deg) rotateZ(-3deg) translateY(0) scale(1.05)}
+ 22%{transform:perspective(420px) rotateX(6deg) rotateY(11deg) rotateZ(2deg) translateY(-2px) scale(1.1)}
+ 47%{transform:perspective(420px) rotateX(-3deg) rotateY(18deg) rotateZ(3deg) translateY(-1px) scale(1.08)}
+ 72%{transform:perspective(420px) rotateX(8deg) rotateY(-10deg) rotateZ(-2deg) translateY(2px) scale(1.08)}
 }
 @keyframes liquid-logo-ring{
  0%,100%{transform:translateZ(13px) rotateZ(0deg) scale(1);opacity:.56}
@@ -89,7 +89,7 @@
  :root{--water-opacity:.48}
  :root[data-theme="dark"]{--water-opacity:.34}
  .liquid-canvas{filter:saturate(1.04)}
- :root[data-motion="on"] .brand-icon{animation-duration:8.4s!important}
+ :root[data-motion="on"] .brand-icon{animation-duration:12s!important}
  .app-header .appearance-controls .motion-control{
   display:flex!important;min-width:47px;height:39px;padding:0 5px;
   align-items:center;justify-content:center;gap:4px;
