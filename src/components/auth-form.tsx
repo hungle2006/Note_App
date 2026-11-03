@@ -23,7 +23,7 @@ import {
 import { firebaseAuth, firebaseConfigured, authError } from "@/lib/firebase";
 import { Logo } from "./ui";
 import { useAuth } from "./auth-provider";
-export function AuthForm({ mode }: { mode: "login" | "register" | "reset" }) {
+export function AuthForm({ mode, quickStart=false }: { mode: "login" | "register" | "reset";quickStart?:boolean }) {
   const router = useRouter();
   const { user, loading, error: sessionError } = useAuth();
   const [completed, setCompleted] = useState(false);
@@ -142,6 +142,7 @@ export function AuthForm({ mode }: { mode: "login" | "register" | "reset" }) {
                 : "Tiếp tục hành trình học"}
           </h1>
           <p>Một vũ trụ nhỏ cho hành trình học tập THCS.</p>
+          {quickStart&&mode==="register"&&<div className="auth-quick-google"><strong>Đăng ký nhanh bằng Google</strong><p>Đồng ý quyền riêng tư bên dưới, bấm “Tiếp tục với Google” và chọn tài khoản của bạn. Đăng nhập thành công sẽ tự mở không gian học tập.</p></div>}
           {!firebaseConfigured && (
             <div className="notice">
               <strong>Dịch vụ tài khoản chưa được kết nối.</strong>
@@ -172,7 +173,7 @@ export function AuthForm({ mode }: { mode: "login" | "register" | "reset" }) {
           {mode !== "reset" && (
             <>
               <button
-                className="button secondary full"
+                className="button secondary full auth-google-button"
                 disabled={
                   Boolean(busy) ||
                   !firebaseConfigured ||
@@ -191,6 +192,7 @@ export function AuthForm({ mode }: { mode: "login" | "register" | "reset" }) {
                   ? "Đang kết nối Google…"
                   : "Tiếp tục với Google"}
               </button>
+              {mode==="register"&&<p className="auth-google-hint">Dùng Google để tạo tài khoản hoặc đăng nhập, không cần điền mật khẩu ở biểu mẫu email bên dưới.</p>}
               {busy === "google" && (
                 <p className="auth-progress" role="status">
                   Hoàn tất đăng nhập trong cửa sổ Google đang mở.

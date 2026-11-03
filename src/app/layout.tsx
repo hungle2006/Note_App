@@ -15,6 +15,7 @@ import "./story-system.css";
 import "./smart-select.css";
 import "./water-atmosphere.css";
 import "./pets.css";
+import "./start-qr.css";
 const siteTitle="SmartNotes AI · Vũ trụ học tập THCS";
 const siteDescription="Không gian học tập lớp 6–9. Chụp vở với Gemini, ghi chép bằng giọng nói, hỏi gia sư Groq và ôn bằng trò chơi.";
 export const metadata:Metadata={
