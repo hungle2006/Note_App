@@ -2,6 +2,7 @@
 import {useState} from "react";
 import {ArrowRight,ArrowUpRight,BookOpen,Check,Gift,Heart,Loader2,ShieldCheck,Sun,Trophy,Dumbbell} from "lucide-react";
 import type {Learning} from "@/lib/use-learning";
+import {petCatalog} from "@/lib/pets";
 import {rewardCatalog,tierProgress} from "@/lib/rewards";
 import {PetShop} from "./pet-habitat";
 import {Title,formatDate} from "./ui";
@@ -14,6 +15,7 @@ export function RewardsView({learning,demo,onNavigate}:{learning:Learning;demo:b
  const wallet=learning.wallet;
  const tier=tierProgress(wallet.earned);
  const ownedCount=wallet.redeemed.filter(r=>rewardCatalog.some(c=>c.id===r.rewardId)).length;
+ const ownedPetCount=wallet.redeemed.filter(r=>petCatalog.some(p=>p.id===r.rewardId)).length;
  const catalog=rewardCatalog.filter(item=>{
   const owned=wallet.redeemed.some(r=>r.rewardId===item.id);
   return filter==="all"||(filter==="owned"?owned:!owned&&wallet.balance>=item.cost);
@@ -25,12 +27,14 @@ export function RewardsView({learning,demo,onNavigate}:{learning:Learning;demo:b
   finally{setBusy("");}
  }
  return <div className="sun-page">
-  <Title eyebrow="SÂN CHƠI THÀNH TÍCH · KHÔNG CẦN SO SÁNH VỚI AI" title="Góc thành tích" description="Tích Điểm Nắng bằng kiến thức và vận động nhẹ, rồi mở khóa huy hiệu và những bạn pet 3D của riêng em."/>
+  <Title eyebrow="SÂN CHƠI THÀNH TÍCH · KHÔNG CẦN SO SÁNH VỚI AI" title="Góc thành tích" description="Quiz, ghép đôi và buổi tập AI đủ điều kiện góp thêm Điểm Nắng cho em. Dùng điểm để sưu tầm huy hiệu hoặc đón pet, rồi chọn những bạn nhỏ đồng hành."/>
+  <ol className="sun-reward-path" aria-label="Hành trình Điểm Nắng"><li><b>01</b><span>Ôn tập & vận động<small>Quiz, ghép đôi hoặc tập AI đủ điều kiện</small></span></li><li><b>02</b><span>Tích Điểm Nắng<small>Ghi nhận từng bước tiến của em</small></span></li><li><b>03</b><span>Huy hiệu hoặc pet<small>Chọn cách ghi nhận em yêu thích</small></span></li><li><b>04</b><span>Thêm bạn đồng hành<small>Tối đa 3 pet cùng xuất hiện</small></span></li></ol>
+  <nav className="sun-section-nav" aria-label="Khám phá Góc thành tích"><a href="#pet-shop">Đón pet đồng hành</a><a href="#rewards-collection">Sưu tầm huy hiệu</a><a href="#points-history">Nhật ký điểm</a></nav>
   <div className="sun-hero">
    <section className="sun-balance" aria-label="Số Điểm Nắng">
     <span className="sun-kicker"><Sun size={15}/> VÍ ĐIỂM NẮNG CỦA EM</span>
     <h2>{wallet.balance.toLocaleString("vi-VN")}<small>Điểm Nắng ☀️</small></h2>
-    <p>Em đã nhận tổng cộng <strong>{wallet.earned} điểm</strong> và mở khóa <strong>{ownedCount}/{rewardCatalog.length}</strong> huy hiệu. Dành thời gian nghỉ ngơi cũng là một phần của việc học tốt.</p>
+    <p>Em đã tích lũy <strong>{wallet.earned} điểm</strong>, sở hữu <strong>{ownedCount}/{rewardCatalog.length} huy hiệu</strong> và <strong>{ownedPetCount}/{petCatalog.length} pet</strong>. Điểm dùng để mở khóa sẽ trừ vào ví; cấp độ vẫn dựa trên tổng điểm từng nhận.</p>
     <div className="sun-actions">
      <button className="button primary" onClick={()=>onNavigate?.("games")}><BookOpen size={15}/> Ôn tập nhận điểm</button>
      <button className="button secondary" onClick={()=>onNavigate?.("fitness")}><Dumbbell size={15}/> Vận động cùng AI</button>
@@ -52,7 +56,7 @@ export function RewardsView({learning,demo,onNavigate}:{learning:Learning;demo:b
   </div>
   <PetShop learning={learning} demo={demo}/>
   <section className="sun-collection" id="rewards-collection">
-   <div className="sun-collection-head"><div><span className="sun-kicker">BỘ SƯU TẬP NHO NHỎ</span><h2>Chọn một huy hiệu em thích</h2><p>Huy hiệu chỉ là biểu tượng ảo để ghi nhận nỗ lực.</p></div><div className="sun-filters" role="group" aria-label="Lọc huy hiệu">
+   <div className="sun-collection-head"><div><span className="sun-kicker">BỘ SƯU TẬP NHO NHỎ</span><h2>Một dấu mốc của riêng em</h2><p>Chọn huy hiệu để ghi nhận nỗ lực, hoặc dành điểm đón pet ở khu phía trên. Cả hai dùng chung ví Điểm Nắng.</p></div><div className="sun-filters" role="group" aria-label="Lọc huy hiệu">
     <button aria-pressed={filter==="all"} onClick={()=>setFilter("all")}>Tất cả ({rewardCatalog.length})</button>
     <button aria-pressed={filter==="available"} onClick={()=>setFilter("available")}>Có thể đổi</button>
     <button aria-pressed={filter==="owned"} onClick={()=>setFilter("owned")}>Đã sở hữu ({ownedCount})</button>
@@ -72,9 +76,9 @@ export function RewardsView({learning,demo,onNavigate}:{learning:Learning;demo:b
     </article>;
    })}</div>:<p className="sun-empty">Chưa có huy hiệu nào ở bộ lọc này. Em có thể chọn “Tất cả” để khám phá nhé.</p>}
   </section>
-  <section className="sun-archive">
+  <section className="sun-archive" id="points-history">
    <header><h2>Nhật ký Điểm Nắng</h2><span className="sun-kicker">{demo?"LƯU Ở THIẾT BỊ":"LƯU TRÊN TURSO"}</span></header>
-   {wallet.history.length?<div>{wallet.history.slice(0,35).map(event=><div className="sun-log" key={event.id}><span className="sun-log-icon">{event.amount>0?<ArrowUpRight size={17}/>:<Gift size={17}/>}</span><div><strong>{event.label}</strong><small>{formatDate(event.createdAt)}</small></div><b>{event.amount>0?"+":""}{event.amount}</b></div>)}</div>:<p className="sun-empty"><Trophy size={18} style={{verticalAlign:"middle",marginRight:6}}/> Chưa có điểm. Em có thể thử một lượt quiz ngắn bất cứ khi nào sẵn sàng.</p>}
+   {wallet.history.length?<div>{wallet.history.slice(0,35).map(event=><div className="sun-log" key={event.id}><span className="sun-log-icon">{event.amount>0?<ArrowUpRight size={17}/>:<Gift size={17}/>}</span><div><strong>{event.label}</strong><small>{formatDate(event.createdAt)}</small></div><b>{event.amount>0?"+":""}{event.amount}</b></div>)}</div>:<p className="sun-empty"><Trophy size={18} style={{verticalAlign:"middle",marginRight:6}}/> Chưa có giao dịch. Bắt đầu bằng một lượt quiz, ghép đôi hoặc buổi tập AI đủ điều kiện; Điểm Nắng sẽ giúp em đón pet và sưu tầm huy hiệu.</p>}
   </section>
  </div>;
 }

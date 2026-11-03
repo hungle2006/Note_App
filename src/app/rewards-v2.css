@@ -84,3 +84,12 @@
  .sun-balance h2{font-size:32px}
  .sun-actions .button{flex:1}
 }
+.sun-reward-path{list-style:none;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:20px 0 15px;padding:0}
+.sun-reward-path li{display:flex;align-items:flex-start;gap:9px;padding:13px;border:1px solid var(--line);border-radius:15px;background:var(--paper);min-width:0}
+.sun-reward-path b{font-size:11px;color:var(--purple);background:var(--soft);padding:6px;border-radius:9px;line-height:1;flex-shrink:0}
+.sun-reward-path span{font-size:12px;font-weight:850;line-height:1.5;color:var(--ink)}.sun-reward-path small{display:block;font-size:10px;font-weight:500;line-height:1.6;margin-top:4px;color:var(--muted)}
+.sun-section-nav{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 20px}.sun-section-nav a{display:inline-flex;align-items:center;min-height:38px;padding:8px 13px;border-radius:30px;border:1px solid var(--line);background:var(--paper);font-size:11px;font-weight:800;color:var(--purple)}.sun-section-nav a:hover{background:var(--soft)}
+#rewards-collection,#points-history{scroll-margin-top:150px}
+.companion-home-cta{margin-top:16px}.pet-care-note{font-size:11px;line-height:1.7;color:var(--muted);padding:12px 14px;background:var(--bg);border-radius:12px;margin:12px 0}
+@media(max-width:1000px){.sun-reward-path{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:400px){.sun-reward-path{gap:8px}.sun-reward-path li{padding:10px;gap:7px}.sun-reward-path span{font-size:11px}.sun-section-nav{gap:6px}.sun-section-nav a{font-size:10px;padding:7px 10px}}

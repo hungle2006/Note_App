@@ -10,8 +10,8 @@ export const JOURNEY_STEPS:Step[]=[
  {id:"library",chapter:"03",title:"Gom thành kho báu",subtitle:"Sắp xếp bài học thành thư viện dễ tìm.",nextLine:"Hỏi điều em chưa hiểu",icon:BookOpen,tone:"sage"},
  {id:"chat",chapter:"04",title:"Gỡ rối một ý",subtitle:"Hỏi gia sư AI và đối chiếu với bài gốc.",nextLine:"Thử sức cùng trò chơi",icon:MessageCircle,tone:"sand"},
  {id:"games",chapter:"05",title:"Chơi để nhớ lâu",subtitle:"Lật thẻ, làm quiz, ghép những ý tưởng.",nextLine:"Nạp năng lượng cùng em",icon:Gamepad2,tone:"peach"},
- {id:"fitness",chapter:"06",title:"Nạp năng lượng",subtitle:"Chọn vận động vừa sức, tập và nghỉ theo nhịp riêng.",nextLine:"Xem thành tích của mình",icon:Dumbbell,tone:"sage"},
- {id:"rewards",chapter:"07",title:"Nhìn lại tiến bộ",subtitle:"Nhận Điểm Nắng và sưu tầm những huy hiệu nhỏ.",nextLine:"Bắt đầu một hành trình mới",icon:Trophy,tone:"apricot"}
+ {id:"fitness",chapter:"06",title:"Nạp năng lượng",subtitle:"Chọn vận động vừa sức, tập và nghỉ theo nhịp riêng.",nextLine:"Đổi điểm, đón bạn nhỏ",icon:Dumbbell,tone:"sage"},
+ {id:"rewards",chapter:"07",title:"Ghi nhận và đồng hành",subtitle:"Tích Điểm Nắng, đổi huy hiệu hoặc đón pet; chọn tối đa 3 bạn cùng học.",nextLine:"Bắt đầu một hành trình mới",icon:Trophy,tone:"apricot"}
 ];
 export function StoryRoadmap({onNavigate,compact=false}:{onNavigate?:(id:string)=>void;compact?:boolean}){
  return <section className={"story-roadmap"+(compact?" compact":"")} aria-label="Hành trình SmartNotes gồm 7 chặng">

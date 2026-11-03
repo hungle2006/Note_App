@@ -141,7 +141,7 @@ export function AuthForm({ mode, quickStart=false }: { mode: "login" | "register
                 ? "Quên mật khẩu?"
                 : "Tiếp tục hành trình học"}
           </h1>
-          <p>Một vũ trụ nhỏ cho hành trình học tập THCS.</p>
+          <p>{mode==="reset"?"Một vũ trụ nhỏ cho hành trình học tập THCS.":"Lưu bài học, tích Điểm Nắng và đón pet đồng hành trong không gian của riêng bạn."}</p>
           {quickStart&&mode==="register"&&<div className="auth-quick-google"><strong>Đăng ký nhanh bằng Google</strong><p>Đồng ý quyền riêng tư bên dưới, bấm “Tiếp tục với Google” và chọn tài khoản của bạn. Đăng nhập thành công sẽ tự mở không gian học tập.</p></div>}
           {!firebaseConfigured && (
             <div className="notice">

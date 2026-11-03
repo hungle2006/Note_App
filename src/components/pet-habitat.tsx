@@ -44,14 +44,14 @@ export function PetCompanion({onShop}:{onShop:()=>void}){
  if(!h.pets.length)return null;
  return <section className={'pet-lane pet-lane-group '+(!motion?'pet-lane-still':'')} aria-label="Bạn pet đồng hành" style={{gridTemplateColumns:`repeat(${h.pets.length},minmax(0,1fr))`}}>
   {h.pets.map(({pet,previewing,action,bond})=><div className="pet-companion" key={pet.id}>
-   <div className="pet-lane-label"><PawPrint size={14}/><button onClick={onShop} title={pet.name}>{pet.name}</button>{previewing?<span>Xem thử</span>:<span><Heart size={11}/> {bond}</span>}</div>
+   <div className="pet-lane-label"><PawPrint size={14}/><button onClick={onShop} title={pet.name}>{pet.name}</button>{previewing?<span>Xem thử</span>:<span title="Mức gắn bó khi chăm sóc · Lưu trên thiết bị" aria-label={"Mức gắn bó: "+bond}><Heart size={11}/> {bond}</span>}</div>
    <div className="pet-walk-track"><div className="pet-walker"><PetStage pet={pet} action={action} onInteract={()=>h.care(pet.id,'pet')} small/></div></div>
    <div className="pet-lane-actions"><button onClick={()=>h.care(pet.id,'feed')} aria-label={'Cho '+pet.name+' ăn'} title="Cho ăn"><Apple size={16}/></button><button onClick={()=>h.care(pet.id,'play')} aria-label={'Chơi cùng '+pet.name} title="Chơi cùng"><Sparkles size={16}/></button><button onClick={()=>h.remove(pet.id)} aria-label={'Cất '+pet.name} title="Cất pet"><X size={15}/></button></div>
    {h.message?.id===pet.id&&<span className="pet-speech" role="status">{h.message.text}</span>}
   </div>)}
  </section>;
 }
-function PetDialog({pet,onClose}:{pet:Pet;onClose:()=>void}){
+function PetDialog({pet,onClose,demo}:{pet:Pet;onClose:()=>void;demo:boolean}){
  const dialog=useRef<HTMLDialogElement>(null);
  const [action,setAction]=useState<{kind:PetAction;tick:number}>({kind:'hello',tick:0}),[mood,setMood]=useState('Chạm vào pet để làm quen nhé!');
  const h=useHabitat();
@@ -63,7 +63,7 @@ function PetDialog({pet,onClose}:{pet:Pet;onClose:()=>void}){
   <div className="pet-preview-world" style={{background:`radial-gradient(ellipse at 50% 80%,${pet.color},transparent 70%)`}}><PetStage pet={pet} action={action} onInteract={()=>play('pet')}/></div>
   <p className="pet-dialog-mood" role="status">{mood}</p>
   <div className="pet-care-buttons"><button onClick={()=>play('pet')}><Heart size={17}/>Vuốt ve</button><button onClick={()=>play('feed')}><Apple size={17}/>Cho ăn</button><button onClick={()=>play('play')}><Sparkles size={17}/>Chơi cùng</button></div>
-  <p className="pet-dialog-note">Cho ăn và chơi cùng miễn phí. Bạn nhỏ không mất đi khi em nghỉ học.</p>
+  <p className="pet-dialog-note">Chăm sóc miễn phí, không trừ hay cộng Điểm Nắng. {demo?"Đóng cửa sổ và bấm “Thử trên đầu trang” để thử pet trong Không gian mẫu.":"Chọn “Chọn đồng hành” trong bộ sưu tập để đưa pet đã mở khóa lên đầu trang."}</p>
   {h.pets.some(p=>p.pet.id===pet.id&&p.previewing)&&<p className="notice">Đang xem thử trên đầu trang.</p>}
  </dialog>;
 }
@@ -72,15 +72,16 @@ export function PetShop({learning,demo}:{learning:Learning;demo:boolean}){
  function equip(p:Pet){setError('');if(!h.select(p.id))setError('Chỉ hiển thị tối đa 3 pet. Hãy cất một bạn trước khi thêm pet mới.');}
  function tryOnTop(p:Pet){setError('');if(!h.tryPet(p.id)){setError('Đang có đủ 3 pet trên đầu trang. Cất một bạn để thử pet khác nhé.');return;}setStatus('Đang xem thử '+p.name+' ở đầu trang trong 90 giây.');window.scrollTo({top:0,behavior:'smooth'});}
  const owned=petCatalog.filter(p=>ownsPet(learning.wallet.redeemed,p.id));
- const companionCount=h.pets.filter(p=>!p.previewing).length;
+ const companionCount=h.pets.length;
  const canPreview=(p:Pet)=>demo||ownsPet(learning.wallet.redeemed,p.id);
  const list=petCatalog.filter(p=>filter==='all'||(filter==='owned'?ownsPet(learning.wallet.redeemed,p.id):!ownsPet(learning.wallet.redeemed,p.id)&&learning.wallet.balance>=p.cost));
  function openPreview(p:Pet){if(demo||ownsPet(learning.wallet.redeemed,p.id))setPreview(p);}
  async function buy(p:Pet){if(busy)return;setBusy(p.id);setError('');setStatus('');try{await learning.claimReward(p.id);const equipped=h.select(p.id);setStatus(equipped?'Đã mở khóa '+p.name+'! Bạn nhỏ đang ở phía trên trang.':'Đã mở khóa '+p.name+'. Em đang hiển thị đủ 3 pet; cất một bạn để thêm bạn mới.');}catch(e){setError(e instanceof Error?e.message:'Chưa mở khóa được pet.');}finally{setBusy('');}}
  return <section className="pet-shop" id="pet-shop" aria-label="Cửa hàng pet">
-  <div className="pet-shop-intro"><div><span className="pet-eyebrow"><PawPrint size={15}/> NHỮNG NGƯỜI BẠN BÉ NHỎ</span><h2>Một người bạn, thêm niềm vui.</h2><p>Tích Điểm Nắng, đón pet về và cùng nhau khám phá mỗi ngày. Đã có <strong>{owned.length}/10</strong> bạn nhỏ trong bộ sưu tập.</p></div><span className="pet-shop-note">{demo?"10 pet 3D · Chạm để tương tác":"Mở khóa để chơi cùng pet"}</span></div>
-  {demo&&<div className="pet-demo-note"><Eye size={18}/><span><strong>Khám phá trong bản demo.</strong> Xem trước cả 10 pet hoặc bấm “Thử trên đầu trang”. Xem thử không trừ điểm và không mở khóa pet thật.</span></div>}
-  <p className="pet-team-count">Đồng hành: <strong>{companionCount}/{maxCompanionPets}</strong> · Chọn tối đa 3 pet đã mở khóa cùng xuất hiện ở đầu trang.</p>
+  <div className="pet-shop-intro"><div><span className="pet-eyebrow"><PawPrint size={15}/> NHỮNG NGƯỜI BẠN BÉ NHỎ</span><h2>Đón bạn nhỏ bằng Điểm Nắng</h2><p>Chọn một trong 10 pet em thích, dùng điểm mở khóa một lần và giữ trong bộ sưu tập. Em đã đón <strong>{owned.length}/10</strong> bạn nhỏ.</p></div><span className="pet-shop-note">{demo?"10 pet 3D · Chạm để tương tác":"Mở khóa để chơi cùng pet"}</span></div>
+  {demo&&<div className="pet-demo-note"><Eye size={18}/><span><strong>Khám phá trong bản demo.</strong> Xem trước cả 10 pet và thử tối đa 3 bạn trên đầu trang trong 90 giây. Lượt thử không trừ điểm; điểm và pet trong Không gian mẫu không chuyển sang tài khoản thật.</span></div>}
+  <p className="pet-team-count">Đang hiển thị: <strong>{companionCount}/{maxCompanionPets}</strong> · {demo?"Có thể thử pet trong Không gian mẫu; tài khoản thật cần mở khóa trước.":"Mở khóa bằng điểm, sau đó bấm “Chọn đồng hành” để đưa pet lên đầu trang."} Cất một pet chỉ ẩn bạn ấy, không mất quyền sở hữu.</p>
+  <p className="pet-care-note">Chạm pet để vuốt ve, dùng nút táo để cho ăn hoặc ngôi sao để chơi cùng. Chăm sóc miễn phí, không cộng Điểm Nắng; pet không mất đi khi em nghỉ học.</p>
   <div className="sun-filters pet-filters" role="group" aria-label="Lọc pet"><button aria-pressed={filter==='all'} onClick={()=>setFilter('all')}>Tất cả (10)</button><button aria-pressed={filter==='available'} onClick={()=>setFilter('available')}>Đủ điểm</button><button aria-pressed={filter==='owned'} onClick={()=>setFilter('owned')}>Đã nuôi ({owned.length})</button></div>
   {error&&<p role="alert" className="form-error">{error}</p>}{status&&<p role="status" className="notice">{status}</p>}
   <div className="pet-grid">{list.map(p=>{const has=ownsPet(learning.wallet.redeemed,p.id),active=h.pets.some(item=>item.pet.id===p.id&&!item.previewing),canBuy=learning.wallet.balance>=p.cost;return <article className={'pet-card '+(active?'pet-card-active':'')} key={p.id}>
@@ -90,6 +91,6 @@ export function PetShop({learning,demo}:{learning:Learning;demo:boolean}){
    {demo&&<button className="pet-try" onClick={()=>tryOnTop(p)}>Thử trên đầu trang <span>↗</span></button>}</div>
   </article>;})}</div>
   {!list.length&&<p className="sun-empty">Chưa có pet ở bộ lọc này. Chọn “Tất cả” để gặp các bạn nhỏ nhé.</p>}
-  {preview&&canPreview(preview)&&<PetDialog key={preview.id} pet={preview} onClose={()=>setPreview(null)}/>}
+  {preview&&canPreview(preview)&&<PetDialog key={preview.id} pet={preview} demo={demo} onClose={()=>setPreview(null)}/>}
  </section>;
 }
