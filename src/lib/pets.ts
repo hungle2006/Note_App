@@ -14,3 +14,20 @@ export type Pet=typeof petCatalog[number];
 export type PetAction='hello'|'feed'|'play'|'pet';
 export function findPet(id:string|null|undefined){return petCatalog.find(p=>p.id===id);}
 export function ownsPet(redeemed:{rewardId:string}[],id:string){return Boolean(findPet(id)&&redeemed.some(r=>r.rewardId===id));}
+
+export const maxCompanionPets=3;
+export function normalizePetSelection(value:unknown):string[]{
+ const candidates=Array.isArray(value)?value:typeof value==='string'?[value]:[];
+ return [...new Set(candidates.filter((id):id is string=>typeof id==='string'&&Boolean(findPet(id))))].slice(0,maxCompanionPets);
+}
+export function addCompanionPet(selected:string[],previews:string[],id:string,trial=false){
+ const ownedIds=normalizePetSelection(selected),trialIds=normalizePetSelection(previews).filter(x=>!ownedIds.includes(x));
+ if(!findPet(id))return null;
+ if(ownedIds.includes(id)||trialIds.includes(id))return {selected:ownedIds,previews:trialIds};
+ if(ownedIds.length+trialIds.length>=maxCompanionPets)return null;
+ return trial?{selected:ownedIds,previews:[...trialIds,id]}:{selected:[...ownedIds,id],previews:trialIds};
+}
+export function visibleCompanionPets(selected:string[],previews:string[],redeemed:{rewardId:string}[],demo:boolean){
+ const owned=normalizePetSelection(selected).filter(id=>ownsPet(redeemed,id));
+ return [...owned,...(demo?normalizePetSelection(previews).filter(id=>!owned.includes(id)):[])].slice(0,maxCompanionPets);
+}

@@ -26,3 +26,31 @@
 
 /* Account pets stay locked until the server wallet confirms ownership. */
 .pet-card-art>button:disabled{cursor:default}.pet-card-art>button:disabled img{filter:grayscale(1);opacity:.46;transform:none}.pet-card-art>button:disabled>span{color:var(--muted)}
+/* Three independent companions share one compact strip. */
+.pet-team-count{font-size:12px;line-height:1.7;color:var(--muted);margin:16px 0 0}
+.pet-lane-group{display:grid;height:88px;gap:12px;padding-inline:18px}
+.pet-companion{position:relative;min-width:0;height:88px;display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-rows:22px 64px;align-items:center;border-right:1px solid var(--line);padding-right:10px}
+.pet-companion:last-child{border-right:0;padding-right:0}
+.pet-companion .pet-lane-label{grid-column:1/-1;max-width:none;min-width:0;flex-wrap:nowrap;gap:4px}
+.pet-companion .pet-lane-label>button{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+.pet-companion .pet-lane-label>span{width:auto;padding-left:4px;white-space:nowrap;font-size:9px}
+.pet-companion .pet-lane-label>svg{flex-shrink:0}
+.pet-companion .pet-walk-track{width:100%;min-width:64px}
+.pet-companion .pet-walker{animation-duration:19s}
+.pet-companion:nth-child(2) .pet-walker{animation-duration:25s;animation-delay:-9s}
+.pet-companion:nth-child(3) .pet-walker{animation-duration:22s;animation-delay:-14s}
+.pet-companion .pet-speech{top:85px;font-size:10px;z-index:2;width:180px}
+@media(max-width:760px){
+ .pet-lane-group{height:106px;gap:6px;padding-inline:9px}
+ .pet-companion{height:106px;grid-template-columns:1fr;grid-template-rows:21px 57px 28px;padding-right:5px}
+ .pet-companion .pet-lane-label{justify-content:center;gap:2px}
+ .pet-companion .pet-lane-label>svg,.pet-companion .pet-lane-label>span{display:none}
+ .pet-companion .pet-walk-track{height:57px;min-width:0;overflow:hidden}
+ .pet-companion .pet-walker{width:62px;height:62px;top:-3px}
+ .pet-companion .pet-lane-actions{justify-content:center;gap:3px}
+ .pet-companion .pet-lane-actions button{width:24px;height:26px}
+ .pet-companion .pet-lane-actions svg{width:13px;height:13px}
+ .pet-companion .pet-speech{top:103px;width:145px}
+ @keyframes pet-stroll{0%,8%{left:0}45%,55%{left:calc(50% - 31px)}92%,100%{left:calc(100% - 62px)}}
+ .pet-lane-still .pet-walker{left:calc(50% - 31px)}
+}
