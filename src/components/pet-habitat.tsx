@@ -1,6 +1,6 @@
 "use client";
 import {createContext,useContext,useEffect,useRef,useState,type ReactNode} from 'react';
-import {PawPrint,Heart,Apple,Sparkles,X,Eye,Check,Loader2,Sun} from 'lucide-react';
+import {PawPrint,Heart,Apple,Sparkles,X,Eye,Check,Loader2,Sun,Lock} from 'lucide-react';
 import {petCatalog,findPet,ownsPet,type Pet,type PetAction} from '@/lib/pets';
 import type {RewardWallet} from '@/lib/rewards';
 import type {Learning} from '@/lib/use-learning';
@@ -58,20 +58,22 @@ function PetDialog({pet,onClose}:{pet:Pet;onClose:()=>void}){
 export function PetShop({learning,demo}:{learning:Learning;demo:boolean}){
  const h=useHabitat();const [preview,setPreview]=useState<Pet|null>(null),[filter,setFilter]=useState('all'),[busy,setBusy]=useState(''),[status,setStatus]=useState(''),[error,setError]=useState('');
  const owned=petCatalog.filter(p=>ownsPet(learning.wallet.redeemed,p.id));
+ const canPreview=(p:Pet)=>demo||ownsPet(learning.wallet.redeemed,p.id);
  const list=petCatalog.filter(p=>filter==='all'||(filter==='owned'?ownsPet(learning.wallet.redeemed,p.id):!ownsPet(learning.wallet.redeemed,p.id)&&learning.wallet.balance>=p.cost));
+ function openPreview(p:Pet){if(demo||ownsPet(learning.wallet.redeemed,p.id))setPreview(p);}
  async function buy(p:Pet){if(busy)return;setBusy(p.id);setError('');setStatus('');try{await learning.claimReward(p.id);h.select(p.id);setStatus('Đã mở khóa '+p.name+'! Bạn nhỏ đang ở phía trên trang.');}catch(e){setError(e instanceof Error?e.message:'Chưa mở khóa được pet.');}finally{setBusy('');}}
  return <section className="pet-shop" id="pet-shop" aria-label="Cửa hàng pet">
-  <div className="pet-shop-intro"><div><span className="pet-eyebrow"><PawPrint size={15}/> NHỮNG NGƯỜI BẠN BÉ NHỎ</span><h2>Một người bạn, thêm niềm vui.</h2><p>Tích Điểm Nắng, đón pet về và cùng nhau khám phá mỗi ngày. Đã có <strong>{owned.length}/10</strong> bạn nhỏ trong bộ sưu tập.</p></div><span className="pet-shop-note">10 pet 3D · Chạm để tương tác</span></div>
+  <div className="pet-shop-intro"><div><span className="pet-eyebrow"><PawPrint size={15}/> NHỮNG NGƯỜI BẠN BÉ NHỎ</span><h2>Một người bạn, thêm niềm vui.</h2><p>Tích Điểm Nắng, đón pet về và cùng nhau khám phá mỗi ngày. Đã có <strong>{owned.length}/10</strong> bạn nhỏ trong bộ sưu tập.</p></div><span className="pet-shop-note">{demo?"10 pet 3D · Chạm để tương tác":"Mở khóa để chơi cùng pet"}</span></div>
   {demo&&<div className="pet-demo-note"><Eye size={18}/><span><strong>Khám phá trong bản demo.</strong> Xem trước cả 10 pet hoặc bấm “Thử trên đầu trang”. Xem thử không trừ điểm và không mở khóa pet thật.</span></div>}
   <div className="sun-filters pet-filters" role="group" aria-label="Lọc pet"><button aria-pressed={filter==='all'} onClick={()=>setFilter('all')}>Tất cả (10)</button><button aria-pressed={filter==='available'} onClick={()=>setFilter('available')}>Đủ điểm</button><button aria-pressed={filter==='owned'} onClick={()=>setFilter('owned')}>Đã nuôi ({owned.length})</button></div>
   {error&&<p role="alert" className="form-error">{error}</p>}{status&&<p role="status" className="notice">{status}</p>}
   <div className="pet-grid">{list.map(p=>{const has=ownsPet(learning.wallet.redeemed,p.id),active=h.pet?.id===p.id&&!h.previewing,canBuy=learning.wallet.balance>=p.cost;return <article className={'pet-card '+(active?'pet-card-active':'')} key={p.id}>
-   <div className="pet-card-art" style={{background:`radial-gradient(ellipse at 50% 75%,${p.color},transparent 75%)`}}><button onClick={()=>setPreview(p)} aria-label={'Xem trước '+p.name}><img src={'/pets/'+p.animal+'.png'} alt={p.species+' 3D '+p.name} loading="lazy" width={240} height={240}/><span><Eye size={13}/> Xem 3D</span></button>{has&&<b className="pet-owned"><Check size={12}/>{active?'Đồng hành':'Đã mở khóa'}</b>}</div>
+   <div className="pet-card-art" style={{background:`radial-gradient(ellipse at 50% 75%,${p.color},transparent 75%)`}}><button disabled={!canPreview(p)} onClick={()=>openPreview(p)} aria-label={canPreview(p)?'Xem trước '+p.name:p.name+' · Chưa mở khóa'}><img src={'/pets/'+p.animal+'.png'} alt={p.species+' 3D '+p.name} loading="lazy" width={240} height={240}/><span>{canPreview(p)?<><Eye size={13}/> Xem 3D</>:<><Lock size={13}/> Chưa mở khóa</>}</span></button>{has&&<b className="pet-owned"><Check size={12}/>{active?'Đồng hành':'Đã mở khóa'}</b>}</div>
    <div className="pet-card-info"><span className="pet-species">{p.species}</span><h3>{p.name}</h3><p>{p.description}</p><div className="pet-price"><strong><Sun size={14}/>{p.cost} điểm</strong><small>{has?'Nuôi lâu dài':canBuy?'Sẵn sàng đón về':'Còn '+(p.cost-learning.wallet.balance)+' điểm'}</small></div>
    {has?<button className={'button '+(active?'secondary':'primary')} onClick={()=>h.select(active?null:p.id)}>{active?'Cất pet':'Chọn đồng hành'}</button>:<button className="button primary" disabled={!canBuy||Boolean(busy)||learning.loading||Boolean(learning.walletError)} onClick={()=>buy(p)}>{busy===p.id?<Loader2 size={15} className="spin"/>:<PawPrint size={15}/>} {canBuy?'Mở khóa · '+p.cost+' điểm':'Chưa đủ điểm'}</button>}
    {demo&&<button className="pet-try" onClick={()=>{h.tryPet(p.id);setStatus('Đang xem thử '+p.name+' ở đầu trang trong 90 giây.');window.scrollTo({top:0,behavior:'smooth'});}}>Thử trên đầu trang <span>↗</span></button>}</div>
   </article>;})}</div>
   {!list.length&&<p className="sun-empty">Chưa có pet ở bộ lọc này. Chọn “Tất cả” để gặp các bạn nhỏ nhé.</p>}
-  {preview&&<PetDialog key={preview.id} pet={preview} onClose={()=>setPreview(null)}/>}
+  {preview&&canPreview(preview)&&<PetDialog key={preview.id} pet={preview} onClose={()=>setPreview(null)}/>}
  </section>;
 }
