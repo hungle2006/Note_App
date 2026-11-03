@@ -1,6 +1,6 @@
 "use client";
 import {useEffect,useState,useCallback} from "react";import {api} from "./client-api";import {cloneDemo} from "./demo";import {gradeAttempt,type Note,type NoteInput,type StudySet,type Attempt,type OcrEvaluation,type attemptSchema} from "./schemas";import type {z} from "zod";
-import {emptyWallet,rewardCatalog,eligibleFitnessReward,fitnessAward,type WorkoutRewardInput,type RewardWallet} from "./rewards";
+import {emptyWallet,redeemCatalog,eligibleFitnessReward,fitnessAward,type WorkoutRewardInput,type RewardWallet} from "./rewards";
 import {mergeEvaluation} from "./review";
 import {needsReview} from "./review";
 const key="notelab-thcs-demo-v2";
@@ -32,7 +32,7 @@ async function creditFitness(workout:WorkoutRewardInput){
 }
 async function more(){if(next===null)return;const r=await api<{notes:Note[];nextOffset:number|null}>("/notes?offset="+next);setNotes(old=>[...old,...r.notes.filter(n=>!old.some(x=>x.id===n.id))]);setNext(r.nextOffset);}
 async function evaluate(note:Note,evaluation:OcrEvaluation){const updated=demo?{...mergeEvaluation(note,evaluation),id:note.id,createdAt:note.createdAt,updatedAt:note.updatedAt,study:note.study}:(await api<{note:Note}>("/notes/"+note.id+"/evaluations",{method:"POST",body:JSON.stringify({evaluation,version:note.updatedAt})})).note;const n=notes.map(x=>x.id===note.id?updated:x);persist(n,attempts);setNotes(n);return updated;}
-async function claimReward(rewardId:string){let next:RewardWallet;if(demo){const r=rewardCatalog.find(r=>r.id===rewardId);if(!r||wallet.redeemed.some(x=>x.rewardId===rewardId))throw new Error("Huy hiệu này không thể đổi lại.");if(wallet.balance<r.cost)throw new Error("Em chưa đủ điểm.");const now=new Date().toISOString();next={...wallet,balance:wallet.balance-r.cost,redeemed:[{rewardId,createdAt:now},...wallet.redeemed],history:[{id:crypto.randomUUID(),amount:-r.cost,kind:'redeem',label:'Đổi '+r.name,createdAt:now},...wallet.history]};}else next=(await api<{wallet:RewardWallet}>("/rewards",{method:"POST",body:JSON.stringify({rewardId})})).wallet;persist(notes,attempts,next);setWallet(next);return next;}
+async function claimReward(rewardId:string){let next:RewardWallet;if(demo){const r=redeemCatalog.find(r=>r.id===rewardId);if(!r||wallet.redeemed.some(x=>x.rewardId===rewardId))throw new Error("Phần thưởng này không thể đổi lại.");if(wallet.balance<r.cost)throw new Error("Em chưa đủ điểm.");const now=new Date().toISOString();next={...wallet,balance:wallet.balance-r.cost,redeemed:[{rewardId,createdAt:now},...wallet.redeemed],history:[{id:crypto.randomUUID(),amount:-r.cost,kind:'redeem',label:'Đổi '+r.name,createdAt:now},...wallet.history]};}else next=(await api<{wallet:RewardWallet}>("/rewards",{method:"POST",body:JSON.stringify({rewardId})})).wallet;persist(notes,attempts,next);setWallet(next);return next;}
 function reset(){const w=emptyWallet();persist(cloneDemo(),[],w);setNotes(cloneDemo());setAttempts([]);setWallet(w);}
 async function evaluationIndex(){return demo?notes.map(n=>({id:n.id,title:n.title,review:n.review})):(await api<{notes:import("./review").EvaluationNote[]}>("/evaluations")).notes;}
 return {notes,attempts,wallet,walletError,claimReward,creditFitness,evaluate,evaluationIndex,loading,error,load,get,save,remove,study,record,more,hasMore:next!==null,reset};

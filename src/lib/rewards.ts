@@ -1,3 +1,4 @@
+import {petCatalog} from "./pets";
 /** Virtual-only rewards: no money, leaderboards or required streaks. */
 export const rewardCatalog=[
  {id:'curious-star',name:'Ngôi sao tò mò',cost:10,emoji:'✦',description:'Dành cho khoảnh khắc em bắt đầu khám phá điều mới.',theme:'Học hỏi'},
@@ -7,6 +8,7 @@ export const rewardCatalog=[
  {id:'learning-universe',name:'Vũ trụ của em',cost:60,emoji:'✧',description:'Một dấu mốc khám phá kiến thức và niềm vui.',theme:'Khám phá'},
  {id:'little-garden',name:'Khu vườn nhỏ',cost:90,emoji:'❀',description:'Mỗi bước nhỏ vun đắp một hành trình thú vị.',theme:'Bền bỉ'}
 ] as const;
+export const redeemCatalog=[...rewardCatalog,...petCatalog];
 export type RewardId=typeof rewardCatalog[number]['id'];
 export type PointsEvent={id:string;amount:number;kind:'practice'|'redeem';label:string;createdAt:string};
 export type RewardWallet={balance:number;earned:number;redeemed:{rewardId:string;createdAt:string}[];history:PointsEvent[]};

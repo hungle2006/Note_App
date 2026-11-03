@@ -3,6 +3,7 @@ import {useState} from "react";
 import {ArrowRight,ArrowUpRight,BookOpen,Check,Gift,Heart,Loader2,ShieldCheck,Sun,Trophy,Dumbbell} from "lucide-react";
 import type {Learning} from "@/lib/use-learning";
 import {rewardCatalog,tierProgress} from "@/lib/rewards";
+import {PetShop} from "./pet-habitat";
 import {Title,formatDate} from "./ui";
 
 type Filter="all"|"available"|"owned";
@@ -24,7 +25,7 @@ export function RewardsView({learning,demo,onNavigate}:{learning:Learning;demo:b
   finally{setBusy("");}
  }
  return <div className="sun-page">
-  <Title eyebrow="SÂN CHƠI THÀNH TÍCH · KHÔNG CẦN SO SÁNH VỚI AI" title="Góc thành tích" description="Tích Điểm Nắng bằng kiến thức và vận động nhẹ, rồi đổi thành những huy hiệu ảo của riêng em."/>
+  <Title eyebrow="SÂN CHƠI THÀNH TÍCH · KHÔNG CẦN SO SÁNH VỚI AI" title="Góc thành tích" description="Tích Điểm Nắng bằng kiến thức và vận động nhẹ, rồi mở khóa huy hiệu và những bạn pet 3D của riêng em."/>
   <div className="sun-hero">
    <section className="sun-balance" aria-label="Số Điểm Nắng">
     <span className="sun-kicker"><Sun size={15}/> VÍ ĐIỂM NẮNG CỦA EM</span>
@@ -49,6 +50,7 @@ export function RewardsView({learning,demo,onNavigate}:{learning:Learning;demo:b
    <article className="sun-quest"><span className="sun-quest-icon"><BookOpen size={23}/></span><div><h3>Khám phá kiến thức</h3><p>Trả lời quiz hoặc ghép đôi để củng cố bài học. Không cần đạt điểm tối đa.</p><button onClick={()=>onNavigate?.("games")}>Mở sân chơi kiến thức <ArrowRight size={14}/></button></div></article>
    <article className="sun-quest"><span className="sun-quest-icon"><Heart size={23}/></span><div><h3>Vận động vừa sức</h3><p>Một bài tập nhẹ cũng đáng khen. Đủ điều kiện: +4 Điểm Nắng; giới hạn 8 điểm/ngày.</p><button onClick={()=>onNavigate?.("fitness")}>Tập với bộ khung AI <ArrowRight size={14}/></button></div></article>
   </div>
+  <PetShop learning={learning} demo={demo}/>
   <section className="sun-collection" id="rewards-collection">
    <div className="sun-collection-head"><div><span className="sun-kicker">BỘ SƯU TẬP NHO NHỎ</span><h2>Chọn một huy hiệu em thích</h2><p>Huy hiệu chỉ là biểu tượng ảo để ghi nhận nỗ lực.</p></div><div className="sun-filters" role="group" aria-label="Lọc huy hiệu">
     <button aria-pressed={filter==="all"} onClick={()=>setFilter("all")}>Tất cả ({rewardCatalog.length})</button>

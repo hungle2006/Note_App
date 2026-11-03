@@ -4,7 +4,7 @@ import {ApiError} from "./http";
 import {noteSearchText,queryTerms,type TutorMessage} from "../tutor-context";
 import type {Note,NoteInput,StudySet,Attempt,OcrEvaluation} from "../schemas";
 
-import {rewardCatalog,type RewardWallet} from "../rewards";
+import {redeemCatalog,type RewardWallet} from "../rewards";
 import {mergeEvaluation,createReview} from "../review";
 
 function asNote(r:Row):Note {
@@ -97,10 +97,10 @@ export function createRepository(client:Client) {
    return {balance:Number(totals.rows[0].balance),earned:Number(totals.rows[0].earned),redeemed:rewards.rows.map(r=>({rewardId:String(r.reward_id),createdAt:String(r.created_at)})),history:events.rows.map(r=>({id:String(r.event_id),amount:Number(r.amount),kind:r.kind as 'practice'|'redeem',label:String(r.label),createdAt:String(r.created_at)}))};
   },
   async redeemReward(uid:string,rewardId:string){
-   const reward=rewardCatalog.find(r=>r.id===rewardId);if(!reward)throw new ApiError(400,"REWARD_INVALID","Huy hiệu không tồn tại.");
+   const reward=redeemCatalog.find(r=>r.id===rewardId);if(!reward)throw new ApiError(400,"REWARD_INVALID","Phần thưởng không tồn tại.");
    await write(client,async tx=>{
-    const owned=await tx.execute({sql:"SELECT reward_id FROM app_redemptions WHERE user_id=:uid AND reward_id=:id",args:{uid,id:reward.id}});if(owned.rows.length)throw new ApiError(409,"ALREADY_REDEEMED","Em đã nhận huy hiệu này.");
-    const balance=await tx.execute({sql:"SELECT COALESCE(SUM(amount),0) balance FROM app_points_ledger WHERE user_id=:uid",args:{uid}});if(Number(balance.rows[0].balance)<reward.cost)throw new ApiError(409,"INSUFFICIENT_POINTS","Em chưa đủ điểm để đổi huy hiệu này.");
+    const owned=await tx.execute({sql:"SELECT reward_id FROM app_redemptions WHERE user_id=:uid AND reward_id=:id",args:{uid,id:reward.id}});if(owned.rows.length)throw new ApiError(409,"ALREADY_REDEEMED","Em đã sở hữu phần thưởng này.");
+    const balance=await tx.execute({sql:"SELECT COALESCE(SUM(amount),0) balance FROM app_points_ledger WHERE user_id=:uid",args:{uid}});if(Number(balance.rows[0].balance)<reward.cost)throw new ApiError(409,"INSUFFICIENT_POINTS","Em chưa đủ Điểm Nắng để mở khóa.");
     await tx.execute({sql:"INSERT INTO app_redemptions(user_id,reward_id) VALUES(:uid,:id)",args:{uid,id:reward.id}});
     await tx.execute({sql:"INSERT INTO app_points_ledger(event_id,user_id,source_key,kind,amount,label) VALUES(:event,:uid,:source,'redeem',:amount,:label)",args:{event:crypto.randomUUID(),uid,source:'reward:'+reward.id,amount:-reward.cost,label:'Đổi '+reward.name}});
    });

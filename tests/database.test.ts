@@ -136,3 +136,25 @@ test('a failed redemption rolls back the badge and debit together',async t=>{
 test('stale practice results cannot award points after the note changes',async t=>{
  const {repo}=await database(t);const n=await repo.saveNote('alice',input);await repo.saveNote('alice',{...input,content:input.content+' Nội dung mới.'},n.id);await assert.rejects(repo.saveAttempt('alice',attempt(n.id),n.updatedAt),rejectsCode('NOTE_CHANGED'));assert.equal((await repo.getWallet('alice')).balance,0);assert.deepEqual(await repo.listAttempts('alice'),[]);
 });
+
+test('pet unlock uses server catalog price, persists ownership, and rejects duplicate or foreign purchases',async t=>{
+ const {repo,client}=await database(t);
+ await client.execute({sql:"INSERT INTO app_points_ledger(event_id,user_id,source_key,kind,amount,label) VALUES('pet-test-credit','alice','pet-test','practice',100,'Test credit')",args:[]});
+ await repo.redeemReward('alice','pet-cat');
+ const wallet=await repo.getWallet('alice');
+ assert.equal(wallet.balance,80);assert.equal(wallet.earned,100);
+ assert.equal(wallet.redeemed.filter(r=>r.rewardId==='pet-cat').length,1);
+ assert.equal(wallet.history.find(e=>e.kind==='redeem')?.amount,-20);
+ await assert.rejects(repo.redeemReward('alice','pet-cat'),rejectsCode('ALREADY_REDEEMED'));
+ await assert.rejects(repo.redeemReward('bob','pet-dog'),rejectsCode('INSUFFICIENT_POINTS'));
+ await assert.rejects(repo.redeemReward('alice','pet-deer'),rejectsCode('INSUFFICIENT_POINTS'));
+ assert.equal((await repo.getWallet('alice')).balance,80);
+ assert.deepEqual((await repo.getWallet('bob')).redeemed,[]);
+});
+test('pet purchase failure rolls back ownership and debit atomically',async t=>{
+ const {repo,client}=await database(t);
+ await client.execute("INSERT INTO app_points_ledger(event_id,user_id,source_key,kind,amount,label) VALUES('pet-rollback','alice','pet-test','practice',100,'Test credit')");
+ await client.execute("CREATE TRIGGER fail_pet BEFORE INSERT ON app_points_ledger WHEN NEW.kind='redeem' BEGIN SELECT RAISE(ABORT,'test failure'); END");
+ await assert.rejects(repo.redeemReward('alice','pet-cat'));
+ const wallet=await repo.getWallet('alice');assert.equal(wallet.balance,100);assert.deepEqual(wallet.redeemed,[]);
+});
