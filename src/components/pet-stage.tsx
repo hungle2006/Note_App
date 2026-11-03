@@ -19,7 +19,7 @@ export function PetStage({pet,action,onInteract,small=false}:{pet:Pet;action:{ki
   void Promise.all([import('three'),import('three/examples/jsm/loaders/GLTFLoader.js')]).then(async([T,{GLTFLoader}])=>{
    if(disposed)return;
    let renderer:THREE.WebGLRenderer;
-   try{renderer=new T.WebGLRenderer({canvas,alpha:true,antialias:!small,powerPreference:'low-power'});}
+   try{const context=canvas.getContext('webgl2',{alpha:true,antialias:!small,powerPreference:'low-power'});if(!context){setFailed(true);return;}renderer=new T.WebGLRenderer({canvas,context,alpha:true,antialias:!small,powerPreference:'low-power'});}
    catch{setFailed(true);return;}
    renderer.setPixelRatio(Math.min(devicePixelRatio||1,small?1.3:1.6));
    renderer.setClearColor(0,0);renderer.outputColorSpace=T.SRGBColorSpace;
@@ -78,8 +78,8 @@ export function PetStage({pet,action,onInteract,small=false}:{pet:Pet;action:{ki
   }).catch(()=>{if(!disposed)setFailed(true);});
   return()=>{disposed=true;dispose?.();};
  },[pet.animal,small]);
- return <button type="button" className={'pet-stage '+(small?'pet-stage-small':'')} onClick={onInteract} aria-label={'Chạm để chơi với '+pet.name}>
-  {(!ready||failed)&&<img src={'/pets/'+pet.animal+'.png'} alt="" draggable={false}/>}
+ return <button type="button" className={'pet-stage '+(small?'pet-stage-small':'')} data-animate={motion?'on':'off'} onClick={onInteract} aria-label={'Chạm để chơi với '+pet.name}>
+  {(!ready||failed)&&<img key={action.tick} className={'pet-poster pet-poster-'+action.kind} src={'/pets/'+pet.animal+'.png'} alt="" draggable={false}/>}
   <canvas ref={canvasRef} aria-hidden="true" style={{opacity:ready&&!failed?1:0}}/>
   {!small&&<span className="pet-touch-hint">{failed?'Chạm để tương tác':'Chạm vào bạn nhỏ nhé'}</span>}
  </button>;

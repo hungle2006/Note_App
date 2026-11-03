@@ -107,15 +107,16 @@ for kind,color in animals:
   ball('Muzzle',(0,-.56,1.54),(.37,.16,.24),cream)
  face(y=-.68 if kind in ['panda','penguin'] else -.63)
  # Keep facial features attached when the browser nods the head.
+ bpy.context.view_layer.update()
  head=next(o for o in parts if o.name=='Head')
  for o in parts:
   if o is not head and o.name.startswith(('Eye','Glint','Blush','Nose','Smile','Ear','InnerEar','Muzzle','Face','Beak','Crest','Antler')):
-   world=o.matrix_world.copy();o.parent=head;o.matrix_world=world
+   o.parent=head;o.matrix_parent_inverse=head.matrix_world.inverted()
  tail=next((o for o in parts if o.name=='Tail'),None)
  if tail:
   for o in parts:
    if o.name.startswith('TailTip'):
-    world=o.matrix_world.copy();o.parent=tail;o.matrix_world=world
+    o.parent=tail;o.matrix_parent_inverse=tail.matrix_world.inverted()
  # Export only geometry, not the render studio. Names support runtime animation.
  bpy.ops.object.select_all(action='DESELECT')
  for o in parts:o.select_set(True)

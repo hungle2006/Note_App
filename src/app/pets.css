@@ -14,3 +14,12 @@
 @media(max-width:900px){.pet-shop{padding:20px}.pet-shop-intro{display:block}.pet-shop-note{display:inline-block;margin-top:8px}.pet-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.pet-shop h2{font-size:25px}}
 @media(max-width:760px){.pet-lane{top:58px;padding:0 12px;height:60px;gap:7px}.pet-lane-label{min-width:75px;max-width:116px}.pet-lane-label>button{font-size:10px}.pet-walk-track{height:60px}.pet-speech{top:57px}.pet-lane-actions{gap:3px}.pet-lane-actions button{width:29px;height:32px}.pet-shop{padding:16px;border-radius:20px;margin-top:24px}.pet-grid{gap:10px}.pet-card-art{height:142px;margin:3px}.pet-card-info{padding:10px}.pet-card h3{font-size:14px}.pet-card-info>p{font-size:11px;min-height:72px}.pet-price{flex-wrap:wrap}.pet-price small{font-size:9px}.pet-card .button{font-size:10px;padding:9px 5px}.pet-owned{font-size:8px;padding:4px}.pet-shop h2{font-size:23px}.pet-filters{gap:5px!important}.pet-filters button{font-size:10px!important;padding:8px 10px!important}.pet-dialog{padding:24px 18px}.pet-preview-world{height:230px}}
 @media(prefers-reduced-motion:reduce){.pet-walker{animation:none;left:calc(50% - 40px)}.pet-card-art img{transition:none}}
+/* Low-power fallback keeps the Blender portrait interactive without WebGL. */
+.pet-stage[data-animate="on"] .pet-poster{animation:pet-poster-greet 1.6s ease-in-out,pet-poster-breathe 4s ease-in-out 1.6s infinite;transform-origin:50% 80%}
+.pet-stage[data-animate="on"] .pet-poster-play{animation-name:pet-poster-play,pet-poster-breathe}
+.pet-stage[data-animate="on"] .pet-poster-feed{animation-name:pet-poster-feed,pet-poster-breathe}
+@keyframes pet-poster-breathe{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-2px) scale(1.015)}}
+@keyframes pet-poster-greet{0%,100%{transform:rotate(0)}25%,65%{transform:translateY(-8px) rotate(-5deg)}45%,85%{transform:rotate(5deg)}}
+@keyframes pet-poster-play{0%,100%{transform:rotate(0)}25%{transform:translateY(-14px) rotate(-13deg)}55%{transform:translateY(-6px) rotate(13deg)}80%{transform:translateY(-10px) rotate(-5deg)}}
+@keyframes pet-poster-feed{0%,100%{transform:rotate(0)}25%,65%{transform:rotate(6deg) scale(.97,1.02)}45%,85%{transform:rotate(-4deg) scale(1.02,.98)}}
+@media(prefers-reduced-motion:reduce){.pet-stage .pet-poster{animation:none!important}}
