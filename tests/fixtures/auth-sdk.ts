@@ -12,6 +12,7 @@ export class GoogleAuthProvider { setCustomParameters() {} }
 export function signInWithPopup() {
   return new Promise((resolve, reject) => { resolveSignIn = resolve; rejectSignIn = reject; });
 }
+export const signInWithRedirect = async () => {};
 export const signInWithEmailAndPassword = signInWithPopup;
 export const createUserWithEmailAndPassword = signInWithPopup;
 export const sendEmailVerification = async () => {};

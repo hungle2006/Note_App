@@ -19,6 +19,7 @@ async function write<T>(client:Client,work:(tx:Transaction)=>Promise<T>):Promise
  finally{tx.close();}
 }
 const missing=()=>new ApiError(404,"NOT_FOUND","Không tìm thấy bài học.");
+const chatMissing=()=>new ApiError(404,"CHAT_NOT_FOUND","Không tìm thấy cuộc trò chuyện.");
 export type Message=TutorMessage;
 
 // Injectable client allows the same production SQL to be exercised against real libSQL in tests.
@@ -55,6 +56,7 @@ export function createRepository(client:Client) {
     // Explicit cleanup also protects installations with foreign_keys disabled.
     await tx.execute({sql:"DELETE FROM app_attempts WHERE user_id=:uid AND note_id=:id",args:{uid,id}});
     await tx.execute({sql:"DELETE FROM app_chats WHERE user_id=:uid AND context_id=:id",args:{uid,id}});
+     await tx.execute({sql:"DELETE FROM app_chat_threads WHERE user_id=:uid AND note_id=:id",args:{uid,id}});
     await tx.execute({sql:"DELETE FROM app_notes WHERE user_id=:uid AND note_id=:id",args:{uid,id}});
    });
   },
@@ -120,6 +122,55 @@ export function createRepository(client:Client) {
      ON CONFLICT(user_id,context_id) DO UPDATE SET messages_json=excluded.messages_json,updated_at=strftime('%Y-%m-%dT%H:%M:%fZ','now')`,args:{uid,context:noteId||"general-"+grade,noteId:noteId||null,messages:JSON.stringify(messages.slice(-30))}});
    });
   },
+
+  async listChatThreads(uid:string,noteId?:string,grade=6) {
+   // Migrate the old context history only once and remove its source transactionally.
+   const context=noteId||"general-"+grade;
+   await write(client,async tx=>{
+    const old=await tx.execute({sql:"SELECT messages_json,updated_at FROM app_chats WHERE user_id=:uid AND context_id=:context",args:{uid,context}});
+    if(!old.rows.length)return;
+    const messages=JSON.parse(String(old.rows[0].messages_json)) as Message[];
+    if(messages.length){
+     const title=messages.find(m=>m.role==="user")?.content.trim().replace(/\s+/g," ").slice(0,65)||"Cuộc trò chuyện trước đây";
+     await tx.execute({sql:"INSERT INTO app_chat_threads(thread_id,user_id,note_id,grade,title,messages_json,created_at,updated_at) VALUES(:id,:uid,:noteId,:grade,:title,:messages,:updated,:updated)",args:{id:crypto.randomUUID(),uid,noteId:noteId||null,grade,title,messages:JSON.stringify(messages.slice(-30)),updated:String(old.rows[0].updated_at)}});
+    }
+    await tx.execute({sql:"DELETE FROM app_chats WHERE user_id=:uid AND context_id=:context",args:{uid,context}});
+   });
+   const r=await client.execute({sql:`SELECT thread_id,title,grade,note_id,updated_at,json_array_length(messages_json) message_count
+     FROM app_chat_threads WHERE user_id=:uid AND grade=:grade AND ((:noteId IS NULL AND note_id IS NULL) OR note_id=:noteId)
+     ORDER BY updated_at DESC,thread_id DESC LIMIT 100`,args:{uid,grade,noteId:noteId||null}});
+   return r.rows.map(row=>({id:String(row.thread_id),title:String(row.title),grade:Number(row.grade),noteId:row.note_id?String(row.note_id):null,updatedAt:String(row.updated_at),messageCount:Number(row.message_count)}));
+  },
+  async createChatThread(uid:string,noteId?:string,grade=6) {
+   const id=crypto.randomUUID();
+   await write(client,async tx=>{
+    if(noteId){
+     const n=await tx.execute({sql:"SELECT grade FROM app_notes WHERE user_id=:uid AND note_id=:noteId",args:{uid,noteId}});
+     if(!n.rows.length)throw missing();
+     if(Number(n.rows[0].grade)!==grade)throw new ApiError(400,"INVALID_GRADE","Lớp không khớp với bài học.");
+    }
+    await tx.execute({sql:"INSERT INTO app_chat_threads(thread_id,user_id,note_id,grade,title,messages_json) VALUES(:id,:uid,:noteId,:grade,'Cuộc trò chuyện mới','[]')",args:{id,uid,noteId:noteId||null,grade}});
+   });
+   return {id,title:"Cuộc trò chuyện mới",noteId:noteId||null,grade,messages:[] as Message[],messageCount:0,updatedAt:new Date().toISOString()};
+  },
+  async getChatThread(uid:string,id:string) {
+   const r=await client.execute({sql:"SELECT thread_id,title,grade,note_id,updated_at,messages_json FROM app_chat_threads WHERE user_id=:uid AND thread_id=:id",args:{uid,id}});
+   if(!r.rows.length)throw chatMissing();
+   const row=r.rows[0],messages=JSON.parse(String(row.messages_json)) as Message[];
+   return {id:String(row.thread_id),title:String(row.title),grade:Number(row.grade),noteId:row.note_id?String(row.note_id):null,updatedAt:String(row.updated_at),messageCount:messages.length,messages};
+  },
+  async saveChatThread(uid:string,id:string,messages:Message[]) {
+   const title=messages.find(m=>m.role==="user")?.content.trim().replace(/\s+/g," ").slice(0,65)||"Cuộc trò chuyện mới";
+   const r=await client.execute({sql:`UPDATE app_chat_threads SET messages_json=:messages,
+    title=CASE WHEN title='Cuộc trò chuyện mới' THEN :title ELSE title END,
+    updated_at=strftime('%Y-%m-%dT%H:%M:%fZ','now') WHERE user_id=:uid AND thread_id=:id`,
+    args:{uid,id,messages:JSON.stringify(messages.slice(-120)),title}});
+   if(!r.rowsAffected)throw chatMissing();
+  },
+  async deleteChatThread(uid:string,id:string) {
+   const r=await client.execute({sql:"DELETE FROM app_chat_threads WHERE user_id=:uid AND thread_id=:id",args:{uid,id}});
+   if(!r.rowsAffected)throw chatMissing();
+  },
   async findTutorNotes(uid:string,question:string,grade:number):Promise<Note[]> {
    const terms=queryTerms(question);if(!terms.length)return [];
    const args:Record<string,string|number>={uid,grade};
@@ -141,6 +192,11 @@ export async function saveAttempt(uid:string,a:Attempt,version?:string){return (
 export async function listAttempts(uid:string){return (await repository()).listAttempts(uid);}
 export async function getChat(uid:string,noteId?:string,grade=6){return (await repository()).getChat(uid,noteId,grade);}
 export async function saveChat(uid:string,messages:Message[],noteId?:string,grade=6){return (await repository()).saveChat(uid,messages,noteId,grade);}
+export async function listChatThreads(uid:string,noteId?:string,grade=6){return (await repository()).listChatThreads(uid,noteId,grade);}
+export async function createChatThread(uid:string,noteId?:string,grade=6){return (await repository()).createChatThread(uid,noteId,grade);}
+export async function getChatThread(uid:string,id:string){return (await repository()).getChatThread(uid,id);}
+export async function saveChatThread(uid:string,id:string,messages:Message[]){return (await repository()).saveChatThread(uid,id,messages);}
+export async function deleteChatThread(uid:string,id:string){return (await repository()).deleteChatThread(uid,id);}
 export async function findTutorNotes(uid:string,question:string,grade:number){return (await repository()).findTutorNotes(uid,question,grade);}
 
 export async function saveEvaluation(uid:string,id:string,evaluation:OcrEvaluation,version:string){return (await repository()).saveEvaluation(uid,id,evaluation,version);}

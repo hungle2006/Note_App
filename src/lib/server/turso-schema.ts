@@ -1,6 +1,6 @@
 import type {Client} from "@libsql/client";
 
-export const schemaVersion = "turso-003";
+export const schemaVersion = "turso-004";
 // Additive, idempotent bootstrap. No existing database is dropped or cleared.
 export const schemaStatements = [
  `CREATE TABLE IF NOT EXISTS app_migrations (
@@ -38,6 +38,16 @@ export const schemaStatements = [
   PRIMARY KEY (user_id, context_id),
   FOREIGN KEY (user_id, note_id) REFERENCES app_notes(user_id, note_id) ON DELETE CASCADE
  )`,
+ `CREATE TABLE IF NOT EXISTS app_chat_threads (
+  thread_id TEXT PRIMARY KEY, user_id TEXT NOT NULL, note_id TEXT,
+  grade INTEGER NOT NULL CHECK (grade BETWEEN 6 AND 9),
+  title TEXT NOT NULL DEFAULT 'Cuộc trò chuyện mới',
+  messages_json TEXT NOT NULL DEFAULT '[]' CHECK (json_valid(messages_json)),
+  created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
+  updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
+  FOREIGN KEY (user_id, note_id) REFERENCES app_notes(user_id, note_id) ON DELETE CASCADE
+ )`,
+ `CREATE INDEX IF NOT EXISTS app_chat_threads_owner ON app_chat_threads(user_id, grade, note_id, updated_at DESC)`,
  `CREATE TABLE IF NOT EXISTS app_ai_usage (
   user_id TEXT NOT NULL, usage_day TEXT NOT NULL, used_count INTEGER NOT NULL CHECK (used_count >= 0),
   PRIMARY KEY (user_id, usage_day)

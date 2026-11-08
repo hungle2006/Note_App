@@ -8,3 +8,17 @@
 .auth-google-button{border-color:color-mix(in srgb,var(--purple) 40%,var(--line))!important;background:var(--paper)!important;color:var(--ink)!important;min-height:48px}.auth-google-hint{font-size:11px;color:var(--muted);line-height:1.6;margin:8px 0 0}
 @media(max-width:760px){.start-qr-card{grid-template-columns:124px minmax(0,1fr);gap:12px;padding:12px;margin:20px 0;border-radius:17px}.start-qr-image{width:124px;height:124px}.start-qr-card h2{font-size:18px;margin:7px 0}.start-qr-eyebrow{font-size:8px;letter-spacing:.25px}.start-qr-eyebrow svg{display:none}.start-qr-card p{font-size:11px!important;line-height:1.55!important;margin-bottom:8px!important}.start-qr-card>div>a{font-size:11px}.start-qr-card small{font-size:8px}}
 @media(max-width:360px){.start-qr-card{grid-template-columns:108px minmax(0,1fr);gap:10px;padding:10px}.start-qr-image{width:108px;height:108px}.start-qr-card h2{font-size:16px}.start-qr-card small{display:none}}
+
+/* Google-first QR: quiet area and high contrast improve scan reliability. */
+.start-qr-card{max-width:560px;grid-template-columns:164px minmax(0,1fr);background:var(--paper);border:1px solid var(--line);box-shadow:0 10px 28px #1613160a;padding:17px;gap:18px}
+.start-qr-image{width:164px;height:164px;padding:8px;background:#fff;border:1px solid #ddd9d2;border-radius:15px;box-shadow:inset 0 0 0 2px white}
+.start-qr-image img{object-fit:contain;image-rendering:pixelated}
+.start-qr-content h2{font-size:20px;margin:8px 0}
+.start-qr-content>p{line-height:1.7!important}
+.start-qr-content>a{display:inline-flex;align-items:center;gap:7px;background:var(--soft);border:1px solid var(--line);border-radius:9px;min-height:34px;padding:6px 10px;text-decoration:none}
+.start-qr-content>small{display:flex;align-items:center;gap:6px;font-size:10px;color:var(--muted);margin-top:9px}
+.auth-quick-google strong{display:flex;align-items:center;gap:9px}.auth-quick-google strong svg{flex-shrink:0}
+.auth-email-toggle{background:transparent;border:0;border-bottom:1px solid var(--line);padding:12px 0;width:100%;text-align:center;margin:14px 0 8px;color:var(--muted);font-size:12px;cursor:pointer}
+.auth-email-toggle:hover{color:var(--purple)}
+@media(max-width:760px){.start-qr-card{grid-template-columns:128px minmax(0,1fr);gap:12px;padding:12px}.start-qr-image{width:128px;height:128px;padding:6px}.start-qr-content h2{font-size:17px}.start-qr-content>small{font-size:9px}}
+@media(max-width:360px){.start-qr-card{grid-template-columns:110px minmax(0,1fr)}.start-qr-image{width:110px;height:110px;padding:5px}.start-qr-content h2{font-size:15px}.start-qr-content>small{display:none}}
