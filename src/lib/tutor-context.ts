@@ -4,6 +4,8 @@ import type {Note} from "./schemas";
 export type TutorSource={noteId:string;title:string;subject:string;chapter:string;grade:number;reference:number;excerpt:string};
 export type TutorMessage={role:"user"|"assistant";content:string;sources?:TutorSource[]};
 export type TutorMode="explain"|"hint"|"practice";
+export type TutorThreadSummary={id:string;title:string;grade:number;noteId:string|null;updatedAt:string;messageCount:number};
+export type TutorThread=TutorThreadSummary & {messages:TutorMessage[]};
 export function foldText(text:string){return text.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/đ/g,"d");}
 const stop=new Set("em minh toi ban oi hay la va cua cho voi mot nhung cac duoc dang nay do thi trong the nao gi khi de ve hoi giup giai thich tai sao lam bai hoc lop anh chi muon nhe".split(" "));
 export function queryTerms(question:string){return [...new Set(foldText(question).match(/[a-z0-9]+/g)||[])].filter(t=>t.length>1&&!stop.has(t)).slice(0,12);}
