@@ -7,6 +7,7 @@ import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   signInWithPopup,
+  signInWithRedirect,
   GoogleAuthProvider,
   sendEmailVerification,
   sendPasswordResetEmail,
@@ -28,14 +29,15 @@ export function AuthForm({ mode, quickStart=false }: { mode: "login" | "register
   const { user, loading, error: sessionError } = useAuth();
   const [completed, setCompleted] = useState(false);
   useEffect(() => {
-    if (completed && user && !loading) router.replace("/app");
-  }, [completed, user, loading, router]);
+    if ((completed || quickStart) && user && !loading) router.replace("/app");
+  }, [completed, quickStart, user, loading, router]);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
   const [show, setShow] = useState(false);
   const [consent, setConsent] = useState(false);
+  const [showEmail, setShowEmail] = useState(!quickStart);
   const [busy, setBusy] = useState<"email" | "google" | null>(null);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
@@ -94,7 +96,11 @@ export function AuthForm({ mode, quickStart=false }: { mode: "login" | "register
       await signInWithPopup(firebaseAuth(), p);
       setCompleted(true);
     } catch (e) {
-      setError(authError(e));
+      const code=(e as {code?:string})?.code;
+      if(code==="auth/popup-blocked"||code==="auth/operation-not-supported-in-this-environment"){
+        try{await signInWithRedirect(firebaseAuth(),new GoogleAuthProvider());return;}
+        catch(redirectError){setError(authError(redirectError));}
+      }else setError(authError(e));
     } finally {
       setBusy(null);
     }
@@ -142,7 +148,7 @@ export function AuthForm({ mode, quickStart=false }: { mode: "login" | "register
                 : "Tiếp tục hành trình học"}
           </h1>
           <p>{mode==="reset"?"Một vũ trụ nhỏ cho hành trình học tập THCS.":"Lưu bài học, tích Điểm Nắng và đón pet đồng hành trong không gian của riêng bạn."}</p>
-          {quickStart&&mode==="register"&&<div className="auth-quick-google"><strong>Đăng ký nhanh bằng Google</strong><p>Đồng ý quyền riêng tư bên dưới, bấm “Tiếp tục với Google” và chọn tài khoản của bạn. Đăng nhập thành công sẽ tự mở không gian học tập.</p></div>}
+          {quickStart&&mode==="register"&&<div className="auth-quick-google"><strong><GoogleIcon/> Bắt đầu bằng tài khoản Google</strong><p>Em đã quét QR thành công. Chấp nhận quyền riêng tư và chạm nút Google bên dưới để chọn tài khoản. Không cần nhập email hay tạo mật khẩu mới.</p></div>}
           {!firebaseConfigured && (
             <div className="notice">
               <strong>Dịch vụ tài khoản chưa được kết nối.</strong>
@@ -198,10 +204,11 @@ export function AuthForm({ mode, quickStart=false }: { mode: "login" | "register
                   Hoàn tất đăng nhập trong cửa sổ Google đang mở.
                 </p>
               )}
-              <div className="divider">hoặc dùng email</div>
+              {quickStart&&!showEmail&&<button type="button" className="auth-email-toggle" onClick={()=>setShowEmail(true)}>Dùng email thay thế</button>}
+              {showEmail&&<div className="divider">hoặc dùng email</div>}
             </>
           )}
-          <form onSubmit={submit} aria-busy={busy === "email"}>
+          {showEmail&&<form onSubmit={submit} aria-busy={busy === "email"}>
             {mode === "register" && (
               <label>
                 Họ và tên
@@ -300,7 +307,7 @@ export function AuthForm({ mode, quickStart=false }: { mode: "login" | "register
                   : "Đăng nhập"}
               <ArrowRight size={17} />
             </button>
-          </form>
+          </form>}
           <p className="auth-switch">
             {mode === "register" ? (
               <>
