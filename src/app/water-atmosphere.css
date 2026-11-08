@@ -34,61 +34,11 @@
  pointer-events:none;
 }
 
-/* Glossy extruded SmartNotes emblem, with a translucent rotating lens,
-   metallic book icon, deeper side wall and soft orbital reflections. */
-.brand{perspective:540px;overflow:visible}
-.brand-icon{position:relative;isolation:isolate;overflow:visible;transform-style:preserve-3d;backface-visibility:hidden;
- background:linear-gradient(135deg,#ffe0ab 0%,#f9a967 25%,#da793e 64%,#aa4d27 100%)!important;
- box-shadow:inset 0 1px 1px #fff9e6b0,inset -3px -5px 9px #793c235a,0 7px 13px #b7663b30;
-}
-.brand-icon::before{
- content:"";position:absolute;inset:2px -2px -4px 3px;z-index:-1;pointer-events:none;
- border-radius:inherit;background:linear-gradient(142deg,#d88749,var(--liquid-logo-depth) 86%);
- box-shadow:0 7px 11px #a8553a30;transform:translateZ(-11px);
-}
-.brand-icon::after{
- content:"";position:absolute;inset:-7px;z-index:1;pointer-events:none;
- border-radius:35%;border:1px solid transparent;
- background:radial-gradient(ellipse at 22% 18%,rgba(255,255,255,.26),transparent 47%);
- transform:translateZ(8px);
-}
-.brand-icon>svg{position:relative;z-index:2;transform:translateZ(14px);stroke-width:2.4;
- filter:drop-shadow(0 2px 1px rgba(114,53,24,.36));}
-:root[data-motion="on"] .brand-icon{
- transform-origin:center;transform-style:preserve-3d;
- animation:liquid-logo-orbit 10.5s ease-in-out infinite!important;
- box-shadow:inset 1px 2px 3px #fff9ecc2,inset -5px -6px 8px #6f351b58,
-  0 13px 23px #b7653f48,0 0 23px var(--liquid-halo);
-}
-:root[data-motion="on"] .brand-icon::after{
- border-color:rgba(255,232,204,.37);
- animation:liquid-logo-ring 11s linear infinite;
-}
-:root[data-motion="on"] .brand-icon>svg{animation:liquid-book-glimmer 3.7s ease-in-out infinite}
-@keyframes liquid-logo-orbit{
- 0%,100%{transform:perspective(420px) rotateX(-8deg) rotateY(-16deg) rotateZ(-3deg) translateY(0) scale(1.05)}
- 22%{transform:perspective(420px) rotateX(6deg) rotateY(11deg) rotateZ(2deg) translateY(-2px) scale(1.1)}
- 47%{transform:perspective(420px) rotateX(-3deg) rotateY(18deg) rotateZ(3deg) translateY(-1px) scale(1.08)}
- 72%{transform:perspective(420px) rotateX(8deg) rotateY(-10deg) rotateZ(-2deg) translateY(2px) scale(1.08)}
-}
-@keyframes liquid-logo-ring{
- 0%,100%{transform:translateZ(13px) rotateZ(0deg) scale(1);opacity:.56}
- 50%{transform:translateZ(13px) rotateZ(180deg) scale(1.15);opacity:.9}
-}
-@keyframes liquid-book-glimmer{
- 0%,100%{filter:drop-shadow(0 2px 2px rgba(95,43,21,.39))}
- 50%{filter:drop-shadow(0 2px 3px rgba(255,238,184,.79))}
-}
 :root[data-motion="off"] .water-atmosphere{display:none!important}
-:root[data-motion="off"] .brand-icon,
-:root[data-motion="off"] .brand-icon::after,
-:root[data-motion="off"] .brand-icon>svg{animation:none!important;transform:none!important;filter:none;will-change:auto!important}
-:root[data-motion="off"] .brand-icon::before{transform:none!important}
 @media(max-width:760px){
  :root{--water-opacity:1}
  :root[data-theme="dark"]{--water-opacity:.88}
 
- :root[data-motion="on"] .brand-icon{animation-duration:12s!important}
  .app-header .appearance-controls .motion-control{
   display:flex!important;min-width:47px;height:39px;padding:0 5px;
   align-items:center;justify-content:center;gap:4px;

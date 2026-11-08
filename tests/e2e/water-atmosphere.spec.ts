@@ -28,7 +28,7 @@ for(const width of [320,390,760,1280]){
   }
   const logo=page.locator(".landing-nav .brand-icon");
   await expect(logo).toBeVisible();
-  expect(await logo.evaluate(el=>getComputedStyle(el).animationName)).toContain("liquid-logo-orbit");
+  expect(await logo.evaluate(el=>getComputedStyle(el).animationName)).toBe("none");
   await page.getByRole("button",{name:"Tắt chuyển động 3D"}).click();
   await expect(page.locator("html")).toHaveAttribute("data-motion","off");
   await expect(page.locator(".water-atmosphere")).toHaveCount(0);
