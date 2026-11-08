@@ -57,7 +57,7 @@ function PetDialog({pet,onClose,demo}:{pet:Pet;onClose:()=>void;demo:boolean}){
  const h=useHabitat();
  useEffect(()=>{const node=dialog.current;node?.showModal();return()=>node?.close();},[]);
  function play(kind:PetAction){setAction(a=>({kind,tick:a.tick+1}));setMood(kind==='feed'?'Măm măm! Ngon quá ♡':kind==='pet'?'Tớ thích được vuốt ve! ♡':'Yay! Chơi cùng nhau nào!');}
- return <dialog className="pet-dialog" ref={dialog} onClose={onClose} onClick={e=>{if(e.target===e.currentTarget)onClose();}} aria-labelledby="pet-dialog-title">
+ return <dialog className="pet-dialog" ref={dialog} onClose={()=>{if(!dialog.current?.open)onClose();}} onClick={e=>{if(e.target===e.currentTarget)onClose();}} aria-labelledby="pet-dialog-title">
   <button className="pet-dialog-close" onClick={onClose} aria-label="Đóng xem trước pet"><X size={20}/></button>
   <span className="pet-eyebrow">LÀM QUEN VỚI BẠN NHỎ</span><h2 id="pet-dialog-title">{pet.name}</h2><p>{pet.description}</p>
   <div className="pet-preview-world" style={{background:`radial-gradient(ellipse at 50% 80%,${pet.color},transparent 70%)`}}><PetStage pet={pet} action={action} onInteract={()=>play('pet')}/></div>

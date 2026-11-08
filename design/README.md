@@ -77,3 +77,30 @@ held books remain connected to their hands. Shop cards use small WebP portraits;
 GLBs load only for selected companions and the preview. Existing reward IDs and
 prices are preserved so previous unlocks remain valid; the former turtle/chick
 slots now carry the hedgehog/owl reference designs.
+
+### Species motion
+
+`src/lib/pet-rig.ts` adds runtime pivots without changing the exported meshes.
+`src/lib/pet-motion.ts` supplies three idle gestures per species and distinct
+care reactions. Blinks use complete eye groups (iris and catchlights included),
+random intervals and occasional double blinks; gaze follows the pointer. Gestures
+blend when interrupted, pause offscreen, and reset when motion is disabled.
+
+| Pet | Idle repertoire |
+| --- | --- |
+| Cat | Paw grooming, listening, stretching |
+| Corgi | Sniffing, tail wagging, offering a paw |
+| Rabbit | Nose twitching, listening with ears, small hops |
+| Fox | Alert head tilt, tail swishing, playful pounce |
+| Bear | Waving, sniffing, stretching |
+| Panda | Gentle sway, slow wave, sleepy nod |
+| Owl | Head scan, wing stretch, head tilt |
+| Penguin | Alternating waddle, flipper movements, preening |
+| Deer | Ear flicks, feeding nod, looking around |
+| Hedgehog | Sniffing, cautious peek, short steps |
+
+These remain stylized plush characters with procedural joint animation rather
+than a soft-body or muscle simulation. Shop portraits stay static; full motion
+is available in the preview and equipped companions on WebGL2 devices. Tests
+bind all ten real GLBs, verify unchanged geometry placement, exercise blinks and
+care sequences, and check that disabling motion restores every original joint.

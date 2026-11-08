@@ -64,3 +64,6 @@
 @media(max-width:760px){.pet-card-art{height:190px}.pet-preview-world{height:285px}}
 @media(max-width:390px){.pet-card-art{height:165px}.pet-preview-world{height:260px}}
 .pet-card-art>button:disabled img{filter:none;opacity:1}
+/* Feet and weight shifts are animated by the species rig, keeping pets grounded. */
+.pet-companion .pet-walker{animation:none;left:calc(50% - 40px)}
+@media(max-width:760px){.pet-companion .pet-walker{left:calc(50% - 31px)}}
