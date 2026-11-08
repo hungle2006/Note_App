@@ -7,36 +7,29 @@ export type WaterBody = {
  squash:number;squashVelocity:number;nx:number;ny:number;nz:number;contacts:number;
 };
 export function createWaterBodies(width:number,height:number,mobile:boolean):WaterBody[]{
- let seed=62741;
- const random=()=>{seed=(Math.imul(seed,1664525)+1013904223)>>>0;return seed/4294967296;};
- const cols=mobile?3:6,rows=mobile?4:5;
- const cellW=width/cols,cellH=height/rows;
- const bodies=Array.from({length:cols*rows},(_,i)=>{
-  const col=i%cols,row=Math.floor(i/cols),tier=i%5;
-  const base=mobile?(tier===0?40:tier<3?25:13):(tier===0?73:tier<3?43:21);
-  const r=Math.min(base*(.86+random()*.28),cellW*.36,cellH*.36);
-  const sx=.85+random()*.35,sy=1.02/sx;
+ // Curated negative space and varied sizes rather than a uniform grid.
+ const layout=[
+  [.52,.17,27,1.15,.84], [.86,.20,21,.91,1.13], [.965,.63,17,1,1.08],
+  [.50,.86,26,1.15,.88], [.03,.29,9,.85,1.12], [.39,.72,13,1,.91],
+  [.72,.91,10,1.12,.87], [.12,.58,15,.87,1.06], [.62,.62,12,1.07,.9],
+  [.655,.62,11,.92,1.08],
+ ];
+ const unit=Math.min(width,height)/760;
+ const selected=mobile?layout.slice(0,6):layout;
+ const bodies=selected.map(([px,py,r,sx,sy],i)=>{
+  const radius=r*Math.min(1.22,Math.max(.65,unit));
   return {
-   x:(col+.5)*cellW-width/2+(random()-.5)*cellW*.12,
-   y:(row+.5)*cellH-height/2+(random()-.5)*cellH*.16,
-   z:(random()-.5)*30,
-   vx:(col%2===0?1:-1)*(mobile?5:8)*( .8+random()*.4),
-   vy:(random()-.5)*5,vz:(random()-.5)*1.2,
-   r,sx,sy,seed:random()*Math.PI*2,mass:r*r*r,
+   x:(px-.5)*width,y:(.5-py)*height,z:(i%3-1)*14,
+   vx:(i%2===0?1:-1)*(mobile?2.1:3.2),vy:Math.sin(i*1.7)*1.6,vz:Math.cos(i)*.22,
+   r:radius,sx,sy,seed:i*2.399+.7,mass:radius**3,
    squash:0,squashVelocity:0,nx:1,ny:0,nz:0,contacts:0,
   };
  });
- // Start a few neighboring drops close enough to meet shortly after enabling
- // the effect. After impact they follow free trajectories, never paired loops.
- for(let row=0;row<rows;row++){
-  const a=bodies[row*cols],b=bodies[row*cols+1];
-  const midpoint=-width/2+cellW;
-  const gap=10+row*3;
-  a.x=midpoint-a.r*a.sx-gap/2;
-  b.x=midpoint+b.r*b.sx+gap/2;
-  a.y=b.y=(row+.5)*cellH-height/2;
-  a.z=b.z=(row%3-1)*14;
- }
+ // A pair of small drops can gently touch and recover through surface tension.
+ const a=bodies[mobile?4:8],b=bodies[mobile?5:9];
+ const midpoint=mobile?width*.24:width*.13;
+ a.x=midpoint-a.r*a.sx-3;b.x=midpoint+b.r*b.sx+3;
+ a.y=b.y=-height*.15;a.z=b.z=0;a.vx=3;b.vx=-3;
  return bodies;
 }
 function radiusAlong(b:WaterBody,nx:number,ny:number,nz:number){

@@ -1,14 +1,13 @@
-/* Blender surface + live WebGL soft-body contacts. Transparent studio
-   reflections stay quiet behind the content in both themes. */
+/* Blender-authored liquid lenses, physical refraction and peach studio light. */
 :root{
- --water-opacity:.62;
+ --water-opacity:1;
  --liquid-halo:rgba(237,148,99,.25);
  --liquid-rim:rgba(255,232,204,.62);
  --liquid-logo-depth:#a64b25;
  --liquid-logo-light:#ffd4a1;
 }
 :root[data-theme="dark"]{
- --water-opacity:.43;
+ --water-opacity:.92;
  --liquid-halo:rgba(243,158,98,.21);
  --liquid-rim:rgba(255,220,182,.42);
  --liquid-logo-depth:#60321d;
@@ -16,8 +15,8 @@
 }
 :root[data-motion="on"] body{
  background:
-  radial-gradient(ellipse at 77% 16%,rgba(247,178,128,.07),transparent 45%),
-  radial-gradient(ellipse at 15% 74%,rgba(190,215,212,.06),transparent 47%),
+  radial-gradient(ellipse at 77% 16%,rgba(255,173,137,.28),transparent 45%),
+  radial-gradient(ellipse at 15% 74%,rgba(255,215,183,.18),transparent 47%),
   var(--bg);
 }
 :root[data-motion="on"] :is(.landing,.app-shell,.auth-page,.policy,.verification){
@@ -86,8 +85,8 @@
 :root[data-motion="off"] .brand-icon>svg{animation:none!important;transform:none!important;filter:none;will-change:auto!important}
 :root[data-motion="off"] .brand-icon::before{transform:none!important}
 @media(max-width:760px){
- :root{--water-opacity:.48}
- :root[data-theme="dark"]{--water-opacity:.34}
+ :root{--water-opacity:1}
+ :root[data-theme="dark"]{--water-opacity:.88}
 
  :root[data-motion="on"] .brand-icon{animation-duration:12s!important}
  .app-header .appearance-controls .motion-control{
@@ -117,3 +116,56 @@
  .landing-nav .brand-wordmark{font-size:19px;letter-spacing:-.65px}
  .landing-nav .brand-icon{width:32px;height:32px;flex-shrink:0}
 }
+
+/* Keep a clean text field while letting the large edge lenses stay visible. */
+:root[data-motion="on"][data-theme="light"] .landing-nav{
+ background:rgba(255,250,245,.65);border:1px solid rgba(255,255,255,.78);
+ border-radius:26px;box-shadow:0 8px 34px #d8815420;backdrop-filter:blur(18px);
+ margin-top:16px;padding-top:15px;padding-bottom:15px;
+}
+:root[data-motion="on"][data-theme="light"] .hero-copy{
+ position:relative;isolation:isolate;
+}
+:root[data-motion="on"][data-theme="light"] .hero-copy::before{
+ content:"";position:absolute;z-index:-1;inset:-35px -8px;
+ background:radial-gradient(ellipse,rgba(255,248,240,.88),rgba(255,248,240,.55) 48%,transparent 73%);
+ pointer-events:none;
+}
+@media(max-width:760px){
+ :root[data-motion="on"][data-theme="light"] .landing-nav{margin:10px 10px 0;padding:14px 12px;border-radius:20px}
+}
+
+/* A Blender-rendered optical fallback also covers WebGL loading or context loss.
+   Each lens floats separately, rather than translating a background screenshot. */
+.water-fallback{position:absolute;inset:0;overflow:hidden;
+ background:radial-gradient(ellipse at 85% 20%,#ffd1bb 0,transparent 53%),
+  radial-gradient(ellipse at 15% 100%,#ffceab 0,transparent 46%),#fff2e7;
+}
+.water-atmosphere[data-mode="webgl"] .water-fallback{display:none}
+.water-atmosphere:not([data-mode="webgl"]) .liquid-canvas{visibility:hidden}
+.peach-water-sprite{position:absolute;width:var(--drop-size);height:calc(var(--drop-size) * 1.25);
+ transform:translate(-50%,-50%) rotate(var(--drop-angle));
+ animation:peach-water-float 22s ease-in-out infinite;animation-delay:var(--drop-delay);
+ will-change:transform;
+}
+.peach-water-sprite img{display:block;width:100%;height:100%;object-fit:contain;mix-blend-mode:screen;opacity:.9}
+.water-lens:nth-child(2),.water-lens:nth-child(4){
+ background:radial-gradient(ellipse,#ffa74375,transparent 64%);border-radius:50%;
+}
+.water-bead{animation-duration:17s}
+.water-lens:nth-child(4){width:calc(var(--drop-size) * 1.6);height:calc(var(--drop-size) * .84)}
+.water-lens:nth-child(5){width:calc(var(--drop-size) * 1.5);height:calc(var(--drop-size) * .85)}
+.water-lens:nth-child(6){width:calc(var(--drop-size) * 1.45);height:calc(var(--drop-size) * .8)}
+@keyframes peach-water-float{
+ 0%,100%{transform:translate(-50%,-50%) rotate(var(--drop-angle)) scale(1,1)}
+ 33%{transform:translate(calc(-50% + 9px),calc(-50% - 12px)) rotate(calc(var(--drop-angle) + 5deg)) scale(1.025,.977)}
+ 68%{transform:translate(calc(-50% - 7px),calc(-50% + 8px)) rotate(calc(var(--drop-angle) - 4deg)) scale(.982,1.019)}
+}
+:root[data-theme="dark"] .water-fallback{background:radial-gradient(ellipse at 85% 20%,#422516,transparent 62%),#140f0d}
+:root[data-theme="dark"] .peach-water-sprite{opacity:.46}
+@media(max-width:760px){
+ .water-fallback .water-lens:nth-child(6),.water-fallback .water-bead:nth-child(n+11){display:none}
+ .peach-water-sprite{width:calc(var(--drop-size) * 1.12);height:calc(var(--drop-size) * 1.4)}
+}
+
+.water-atmosphere[data-paused="true"] .peach-water-sprite{animation-play-state:paused}

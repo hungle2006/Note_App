@@ -11,10 +11,21 @@ for(const width of [320,390,760,1280]){
   await expect(page.locator(".water-atmosphere")).toHaveAttribute("data-size-mix","large-medium-small");
   const canvas=page.locator(".liquid-canvas");
   await expect(page.locator(".water-drop, .water-pair, .water-bridge")).toHaveCount(0);
-  await expect(canvas).toBeVisible();
-  await expect(canvas).toHaveAttribute("data-surface","blender");
-  const firstFrame=await canvas.getAttribute("data-frames");
-  await expect.poll(()=>canvas.getAttribute("data-frames")).not.toBe(firstFrame);
+  const atmosphere=page.locator(".water-atmosphere");
+  await expect(atmosphere).toHaveAttribute("data-mode",/webgl|fallback/);
+  if(await atmosphere.getAttribute("data-mode")==="webgl"){
+   await expect(canvas).toBeVisible();
+   await expect(canvas).toHaveAttribute("data-surface","blender");
+   await expect(canvas).toHaveAttribute("data-lenses",width<=760?"5":"6");
+   const firstFrame=await canvas.getAttribute("data-frames");
+   await expect.poll(()=>canvas.getAttribute("data-frames")).not.toBe(firstFrame);
+  }else{
+   const lens=page.locator(".peach-water-sprite").first();
+   await expect(lens).toBeVisible();
+   await expect.poll(()=>lens.locator("img").evaluate((i:HTMLImageElement)=>i.naturalWidth)).toBe(512);
+   const first=await lens.evaluate(el=>getComputedStyle(el).transform);
+   await expect.poll(()=>lens.evaluate(el=>getComputedStyle(el).transform)).not.toBe(first);
+  }
   const logo=page.locator(".landing-nav .brand-icon");
   await expect(logo).toBeVisible();
   expect(await logo.evaluate(el=>getComputedStyle(el).animationName)).toContain("liquid-logo-orbit");
@@ -38,7 +49,7 @@ test("Independent droplet shading adapts to dark and light modes",async({page})=
  const next=await sample();
  expect(next.theme).not.toBe(first.theme);
  expect(next.opacity).not.toBe(first.opacity);
- await expect(page.locator(".liquid-canvas")).toBeVisible();
+ await expect(page.locator(".water-atmosphere")).toBeVisible();
 });
 test("3D switch is accessible in the phone header at 320px",async({page})=>{
  await page.setViewportSize({width:320,height:760});

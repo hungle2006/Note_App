@@ -28,7 +28,7 @@ test('Surface tension settles impact deformation rather than leaving a flattened
 for(const [w,h,mobile] of [[320,760,true],[390,844,true],[1280,844,false]] as const){
  test('Stable bounded simulation and actual collisions at '+w+'px',()=>{
   const bodies=createWaterBodies(w,h,mobile);
-  assert.equal(bodies.length,mobile?12:30);
+  assert.equal(bodies.length,mobile?6:10);
   assert.ok(Math.max(...bodies.map(b=>b.r))/Math.min(...bodies.map(b=>b.r))>2);
   for(let i=0;i<3600;i++)stepWater(bodies,1/60,w,h,i/60);
   assert.ok(bodies.reduce((n,b)=>n+b.contacts,0)>0);
