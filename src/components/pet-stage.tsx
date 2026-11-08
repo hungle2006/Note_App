@@ -26,7 +26,7 @@ export function PetStage({pet,action,onInteract,small=false}:{pet:Pet;action:{ki
    renderer.setClearColor(0,0);renderer.outputColorSpace=T.SRGBColorSpace;
    renderer.toneMapping=T.ACESFilmicToneMapping;renderer.toneMappingExposure=1.25;
    const scene=new T.Scene(),camera=new T.PerspectiveCamera(32,1,.1,50);
-   camera.position.set(.6,2.3,6.7);camera.lookAt(0,1.45,0);
+   camera.position.set(1.8,2.5,6.7);camera.lookAt(0,1.40,0);
    scene.add(new T.HemisphereLight(0xfff5df,0xb4b6c4,2.6));
    const key=new T.DirectionalLight(0xfff0dd,3);key.position.set(-3,5,4);scene.add(key);
    const fill=new T.DirectionalLight(0xd8eaff,1.5);fill.position.set(4,2,-2);scene.add(fill);
@@ -49,13 +49,13 @@ export function PetStage({pet,action,onInteract,small=false}:{pet:Pet;action:{ki
    const intersection=new IntersectionObserver(entries=>{inView=entries[0]?.isIntersecting??true;last=performance.now();});intersection.observe(canvas);
    document.addEventListener('visibilitychange',visibility);
    function release(root:THREE.Object3D){root.traverse(o=>{const mesh=o as THREE.Mesh;if(mesh.isMesh){mesh.geometry.dispose();const materials=Array.isArray(mesh.material)?mesh.material:[mesh.material];for(const material of materials){for(const value of Object.values(material))if(value&&typeof value==='object'&&(value as THREE.Texture).isTexture)(value as THREE.Texture).dispose();material.dispose();}}});}
-   dispose=()=>{cancelAnimationFrame(raf);observer.disconnect();intersection.disconnect();document.removeEventListener('visibilitychange',visibility);if(model)release(model);renderer.dispose();renderer.forceContextLoss();};
+   dispose=()=>{cancelAnimationFrame(raf);observer.disconnect();intersection.disconnect();document.removeEventListener('visibilitychange',visibility);rig?.dispose();if(model)release(model);renderer.dispose();renderer.forceContextLoss();};
    resize();raf=requestAnimationFrame(frame);
    try{
     const gltf=await new GLTFLoader().loadAsync(petModel(pet.animal));
     if(disposed){release(gltf.scene);return;}
     model=gltf.scene;scene.add(model);
-    rig=createPetRig(model,pet.animal);
+    rig=createPetRig(model,pet.animal,gltf.animations);
     setReady(true);
    }catch{if(!disposed)setFailed(true);}
   }).catch(()=>{if(!disposed)setFailed(true);});

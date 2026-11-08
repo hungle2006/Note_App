@@ -1,102 +1,122 @@
 [
   {
     "animal": "cat",
-    "version": "plush-school-v2",
-    "meshes": 68,
-    "bytes": 1247296,
+    "version": "reference-atelier-v3",
+    "meshes": 127,
+    "bytes": 1730460,
     "portrait": [
-      768,
-      768
-    ]
+      640,
+      640
+    ],
+    "motion": "Blender authored NLA clips",
+    "expression": "smile"
   },
   {
     "animal": "rabbit",
-    "version": "plush-school-v2",
-    "meshes": 67,
-    "bytes": 1169628,
+    "version": "reference-atelier-v3",
+    "meshes": 75,
+    "bytes": 1406832,
     "portrait": [
-      768,
-      768
-    ]
+      640,
+      640
+    ],
+    "motion": "Blender authored NLA clips",
+    "expression": "wink"
   },
   {
     "animal": "fox",
-    "version": "plush-school-v2",
-    "meshes": 64,
-    "bytes": 1166072,
+    "version": "reference-atelier-v3",
+    "meshes": 91,
+    "bytes": 1669012,
     "portrait": [
-      768,
-      768
-    ]
+      640,
+      640
+    ],
+    "motion": "Blender authored NLA clips",
+    "expression": "smile"
   },
   {
     "animal": "bear",
-    "version": "plush-school-v2",
-    "meshes": 107,
-    "bytes": 1564728,
+    "version": "reference-atelier-v3",
+    "meshes": 126,
+    "bytes": 1766704,
     "portrait": [
-      768,
-      768
-    ]
+      640,
+      640
+    ],
+    "motion": "Blender authored NLA clips",
+    "expression": "wink"
   },
   {
     "animal": "owl",
-    "version": "plush-school-v2",
-    "meshes": 93,
-    "bytes": 1791736,
+    "version": "reference-atelier-v3",
+    "meshes": 151,
+    "bytes": 1936104,
     "portrait": [
-      768,
-      768
-    ]
+      640,
+      640
+    ],
+    "motion": "Blender authored NLA clips",
+    "expression": "open"
   },
   {
     "animal": "dog",
-    "version": "plush-school-v2",
-    "meshes": 56,
-    "bytes": 1139220,
+    "version": "reference-atelier-v3",
+    "meshes": 90,
+    "bytes": 1715620,
     "portrait": [
-      768,
-      768
-    ]
+      640,
+      640
+    ],
+    "motion": "Blender authored NLA clips",
+    "expression": "smile"
   },
   {
     "animal": "panda",
-    "version": "plush-school-v2",
-    "meshes": 80,
-    "bytes": 1258412,
+    "version": "reference-atelier-v3",
+    "meshes": 130,
+    "bytes": 1619080,
     "portrait": [
-      768,
-      768
-    ]
+      640,
+      640
+    ],
+    "motion": "Blender authored NLA clips",
+    "expression": "smile"
   },
   {
     "animal": "deer",
-    "version": "plush-school-v2",
-    "meshes": 91,
-    "bytes": 1490480,
+    "version": "reference-atelier-v3",
+    "meshes": 121,
+    "bytes": 1639524,
     "portrait": [
-      768,
-      768
-    ]
+      640,
+      640
+    ],
+    "motion": "Blender authored NLA clips",
+    "expression": "smile"
   },
   {
     "animal": "hedgehog",
-    "version": "plush-school-v2",
-    "meshes": 136,
-    "bytes": 2110932,
+    "version": "reference-atelier-v3",
+    "meshes": 192,
+    "bytes": 2529288,
     "portrait": [
-      768,
-      768
-    ]
+      640,
+      640
+    ],
+    "motion": "Blender authored NLA clips",
+    "expression": "smile"
   },
   {
     "animal": "penguin",
-    "version": "plush-school-v2",
-    "meshes": 83,
-    "bytes": 1387976,
+    "version": "reference-atelier-v3",
+    "meshes": 128,
+    "bytes": 1572336,
     "portrait": [
-      768,
-      768
-    ]
+      640,
+      640
+    ],
+    "motion": "Blender authored NLA clips",
+    "expression": "smile"
   }
 ]

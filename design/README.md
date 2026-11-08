@@ -58,7 +58,7 @@ pause when the document is hidden and are removed when 3D is disabled.
 
 `pets/reference-companions.blend` contains all ten characters in separate named
 collections. `scripts/pets/build_pets.py` authors each model and renders its
-768px transparent WebP portrait from the same geometry. Rebuild the whole set
+640px transparent WebP portrait from the same geometry. Rebuild the whole set
 with `blender --background --python scripts/pets/build_pets.py`, or pass animal
 names after `--` for a partial revision. After partial revisions, synchronize the
 native gallery with `scripts/pets/assemble_gallery.py`.
@@ -78,29 +78,47 @@ GLBs load only for selected companions and the preview. Existing reward IDs and
 prices are preserved so previous unlocks remain valid; the former turtle/chick
 slots now carry the hedgehog/owl reference designs.
 
-### Species motion
+### Reference atelier v3 — Blender source and animation
 
-`src/lib/pet-rig.ts` adds runtime pivots without changing the exported meshes.
-`src/lib/pet-motion.ts` supplies three idle gestures per species and distinct
-care reactions. Blinks use complete eye groups (iris and catchlights included),
-random intervals and occasional double blinks; gaze follows the pointer. Gestures
-blend when interrupted, pause offscreen, and reset when motion is disabled.
+The two supplied reference panels define the faces and accessories. All ten
+characters were rebuilt with a continuous painted head surface, individual
+proportions, planted feet, attached props and reference-specific smiles.
+The original open/wink/smile balance is retained: rabbit and bear wink, owl has
+both eyes open, and the other seven have smiling closed eyes at rest. The web
+player no longer generates replacement eyes or changes the reference expression.
 
-| Pet | Idle repertoire |
+`src/lib/pet-rig.ts` now plays the actual GLB animation clips with AnimationMixer.
+The former procedural whole-model bounce and generic species sinusoids were
+removed. `scripts/pets/build_pets.py` authors the native NLA tracks and morphs.
+
+| Pet | Reference details and acting |
 | --- | --- |
-| Cat | Paw grooming, listening, stretching |
-| Corgi | Sniffing, tail wagging, offering a paw |
-| Rabbit | Nose twitching, listening with ears, small hops |
-| Fox | Alert head tilt, tail swishing, playful pounce |
-| Bear | Waving, sniffing, stretching |
-| Panda | Gentle sway, slow wave, sleepy nod |
-| Owl | Head scan, wing stretch, head tilt |
-| Penguin | Alternating waddle, flipper movements, preening |
-| Deer | Ear flicks, feeding nod, looking around |
-| Hedgehog | Sniffing, cautious peek, short steps |
+| Cat | Apricot/cream blaze, smiling eyelids, pointed ears, striped curved tail, knitted scarf; short listening and tail gestures |
+| Rabbit | Unequal floppy ears, orange star bow, wink, four toe pads, gold-cornered book; ear flex and book-hug response |
+| Fox | Broad cream cheeks, white-tipped bushy tail, plum cape with gold lining, square cap; alert ears and slow tail sweep |
+| Bear | Cream muzzle, wink, raised padded paw, ribbed sweater, diagonal pencil and backpack; two-part arm/wrist greeting |
+| Owl | Glossy large eyes, gold round glasses, layered wing and breast feathers, tassel; wing motion and restrained head glance |
+| Corgi | Pointed ears, white blaze, tongue, four short padded feet, saddle bag and buckles; tail wag with planted feet |
+| Panda | Painted brown eye patches, smile, padded waving paw, scarf, backpack and open-book charm; wrist wave and gentle nod |
+| Deer | Large ears, rounded branched antlers, forehead spots, bow, dark hooves and spiral book; ear flick and held-book response |
+| Hedgehog | Layered caramel quills, soft cream face, sweater cuffs, backpack, pencil held in both hands; small attentive nod |
+| Penguin | Cocoa/cream face, smiling eyelids, spectacles, webbed toes, lined cape and orange open book; book and head response |
 
-These remain stylized plush characters with procedural joint animation rather
-than a soft-body or muscle simulation. Shop portraits stay static; full motion
-is available in the preview and equipped companions on WebGL2 devices. Tests
-bind all ten real GLBs, verify unchanged geometry placement, exercise blinks and
-care sequences, and check that disabling motion restores every original joint.
+Each GLB includes `Idle`, `Hello`, `Feed`, `Pet`, `Play` and `Blink` clips.
+Idle has a short gesture and a long rest; actions ease in and out. Feet remain
+fixed while sitting. Holding palms are parented to the prop to preserve contact.
+Tail and rabbit-ear morphs bend the surface; tassels and charms have delayed
+secondary motion. The web player cross-fades actions and pauses offscreen.
+
+Open `design/pets/reference-companions.blend` for all ten editable collections.
+Enable one NLA track name (e.g. `Play`) across its objects to inspect the action;
+tracks are muted in the saved source to show the reference rest pose. Images
+and normal maps are packed. Rebuild all ten with:
+
+```sh
+blender --background --python scripts/pets/build_pets.py
+```
+
+The meshes approximate the supplied raster references; they are not image
+cutouts or a claim of exact image reconstruction. The native source, shipping
+GLBs, portraits and animation preview all use the same modeled characters.

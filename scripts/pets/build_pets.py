@@ -8,10 +8,10 @@ from mathutils import Vector
 BASE=pathlib.Path(__file__).resolve().parents[2];OUT=BASE/'public/pets';OUT.mkdir(parents=True,exist_ok=True)
 bpy.context.preferences.filepaths.save_version=0
 bpy.ops.object.select_all(action='SELECT');bpy.ops.object.delete(use_global=False)
-scene=bpy.context.scene;scene.render.engine='CYCLES';scene.cycles.samples=64;scene.cycles.use_denoising=False
-scene.render.resolution_x=768;scene.render.resolution_y=768;scene.render.resolution_percentage=100;scene.render.film_transparent=True
+scene=bpy.context.scene;scene.render.engine='CYCLES';scene.cycles.samples=48;scene.cycles.use_denoising=False
+scene.render.resolution_x=640;scene.render.resolution_y=640;scene.render.resolution_percentage=100;scene.render.film_transparent=True
 scene.view_settings.view_transform='AgX';scene.view_settings.look='AgX - Medium High Contrast';scene.render.image_settings.file_format='PNG';scene.render.image_settings.color_mode='RGBA'
-scene.world.color=(.35,.29,.25)
+scene.world.color=(.35,.29,.25);scene.view_settings.exposure=-.15
 random.seed(47)
 
 def normal_map(name,cloth=False):
@@ -54,7 +54,7 @@ def finish(o,name,material,parent=None):
  parts.append(o);attach(o,parent);return o
 def ball(name,loc,scale,material,parent=None,seg=24,rings=16):
  bpy.ops.mesh.primitive_uv_sphere_add(segments=seg,ring_count=rings,location=loc);o=bpy.context.object;o.scale=scale;finish(o,name,material,parent)
- if name in ('Head plush','Body plush','Cream face bib','Owl cream facial disc','Penguin cream face'):
+ if False:
   microfur(name,loc,scale,material,o,2600 if name=='Head plush' else 1100)
  return o
 def microfur(name,c,scale,material,parent,count):
@@ -96,267 +96,659 @@ def star(c,size=.16,parent=None):
  layer('Star gold bezel',size,c[1],'gold');layer('Star cream enamel',size*.79,c[1]-.028,'star')
 def book_logo(c,size=.20,parent=None):
  for side in (-1,1):
-  pts=[(c[0],c[1],c[2]-.075),(c[0]+side*size,c[1],c[2]-.035),(c[0]+side*size,c[1],c[2]+.17),(c[0]+side*.09,c[1]-.005,c[2]+.19),(c[0],c[1],c[2]+.135),(c[0],c[1],c[2]-.075)]
-  curve('Raised open book emblem',pts,.015,'page',parent)
-def bow(c,parent=None):
- for side in (-1,1):
-  o=ball('Bow folded satin loop',(c[0]+side*.16,c[1],c[2]+.04),(.22,.11,.14),'fox',parent);o.rotation_euler[1]=side*.32
-  o=box('Bow ribbon tail',(c[0]+side*.11,c[1]+.01,c[2]-.18),(.15,.07,.30),'orange',parent,.025);o.rotation_euler[1]=side*.28
-  curve('Bow crease',[(c[0],c[1]-.11,c[2]),(c[0]+side*.23,c[1]-.075,c[2]+.11)],.012,'scarf',parent)
- star((c[0],c[1]-.14,c[2]+.015),.13,parent)
+  f=size/.20
+  pts=[(c[0],c[1],c[2]-.075*f),(c[0]+side*size,c[1],c[2]-.035*f),(c[0]+side*size,c[1],c[2]+.17*f),(c[0]+side*.09*f,c[1]-.005,c[2]+.19*f),(c[0],c[1],c[2]+.135*f),(c[0],c[1],c[2]-.075*f)]
+  curve('Raised open book emblem',pts,.015*f,'page',parent)
+
+# v3: reference-specific silhouettes, authored faces and seated acting clips.
+# Coordinates are Blender Z-up, looking toward -Y. All parenting preserves world matrices.
+VERSION='reference-atelier-v3'
+M['rim']=mat('Warm orange leather piping','FCB658',None,0,.40)
+M['lining']=mat('Golden cape lining','F3A02D',CLOTH_MAP)
+M['pad']=mat('Soft salmon paw pads','EE9B78',FUR_MAP)
+M['belly']=mat('Soft warm cream','FFF1D9',FUR_MAP)
+M['lip']=mat('Mouth inner warm coral','A44429')
+M['knit']=mat('Cream knitted rib detail','F9E9D4',CLOTH_MAP)
+M['spot']=mat('Deer ivory spots','FFF6DE',FUR_MAP)
+cap_shader=M['cap'].node_tree.nodes.get('Principled BSDF')
+cap_shader.inputs['Roughness'].default_value=.86;cap_shader.inputs['Specular IOR Level'].default_value=.12
+for link in list(M['cap'].node_tree.links):
+ if link.to_socket==cap_shader.inputs['Normal']:M['cap'].node_tree.links.remove(link)
+
+
+def profile_mesh(name,vertices,faces,material,parent=None):
+ me=bpy.data.meshes.new(name);me.from_pydata(vertices,[],faces);me.update()
+ uv=me.uv_layers.new(name='UVMap')
+ for poly in me.polygons:
+  for li in poly.loop_indices:
+   v=me.vertices[me.loops[li].vertex_index].co;uv.data[li].uv=(v.x*1.7,v.z*1.7)
+ o=bpy.data.objects.new(name,me);scene.collection.objects.link(o);return finish(o,name,material,parent)
+
+
+def soft_head(kind,c,scale):
+ # One continuous cheek/forehead surface, with painted coat boundaries on it.
+ coat={'cat':'orange','dog':'orange','fox':'fox','bear':'bear','owl':'milk','rabbit':'white','panda':'white','deer':'orange','hedgehog':'milk','penguin':'penguin'}[kind]
+ def color(p):
+  x,y,z=p;X=x-c[0];Z=z-c[2]
+  if kind=='cat':
+   return 'white' if y<c[1]-.10 and (Z<.15 or abs(X)<.17+.3*max(0,Z)) else coat
+  if kind=='dog':
+   return 'white' if y<c[1]-.12 and (Z<-.03 or abs(X+.045)<.13+.10*max(0,Z)) else coat
+  if kind=='fox':
+   return 'white' if y<c[1]-.09 and Z<-.02+.28*abs(X)/scale[0] else coat
+  if kind=='panda' and y<c[1]-.22:
+   for side in (-1,1):
+    dx=X-side*.34;dz=Z-.025
+    if ((dx*.94+dz*side*.34)/.25)**2+((dz*.94-dx*side*.34)/.27)**2<1:return 'panda'
+  if kind=='deer' and y<c[1]-.15:
+   return 'white' if Z<-.13 or ((abs(X)-.32)/.25)**2+((Z+.005)/.37)**2<1 else coat
+  if kind in ('owl','penguin') and y<c[1]-.12:
+   if Z<-.17 or min(((X-.29)/.41)**2+((Z+.00)/.47)**2,((X+.29)/.41)**2+((Z+.00)/.47)**2)<1:return 'white'
+  return coat
+ verts=[];faces=[];N=40;K=64
+ for j in range(N+1):
+  a=math.pi*j/N;zz=math.cos(a);rr=math.sin(a)
+  for k in range(K):
+   b=math.tau*k/K;xx=rr*math.cos(b);yy=rr*math.sin(b)
+   # Cheek volume widens below the eye line; the chin is round, not a sphere stack.
+   widen=1+.065*math.exp(-((zz+.27)/.35)**2)
+   verts.append((c[0]+scale[0]*xx*widen,c[1]+scale[1]*yy,c[2]+scale[2]*zz))
+ for j in range(N):
+  for k in range(K):faces.append((j*K+k,j*K+(k+1)%K,(j+1)*K+(k+1)%K,(j+1)*K+k))
+ o=profile_mesh('Head plush',verts,faces,coat,head)
+ keys=list(dict.fromkeys([coat,'white','panda']))
+ for key in keys[1:]:o.data.materials.append(M[key])
+ # A painted UV coat gives smooth, curved blaze/eye-patch edges rather than
+ # polygon-sized steps at material boundaries.
+ W=512;H=256;pixels=np.ones((H,W,4),dtype=np.float32)
+ palette={k:np.array([v**(1/2.2) for v in M[k].diffuse_color[:3]]) for k in keys}
+ for j in range(H):
+  a=math.pi*(1-(j+.5)/H);zz=math.cos(a);rr=math.sin(a)
+  for k in range(W):
+   b=math.tau*(k+.5)/W
+   p=(c[0]+scale[0]*rr*math.cos(b)*(1+.065*math.exp(-((zz+.27)/.35)**2)),c[1]+scale[1]*rr*math.sin(b),c[2]+scale[2]*zz)
+   tint=palette.get(color(p),palette[coat]).copy()
+   blush=sum(math.exp(-(((p[0]-side*.50)/.13)**2+((p[2]-(c[2]-.16))/.075)**2)*2) for side in (-1,1)) if p[1]<c[1]-.25 else 0
+   tint=tint*(1-blush*.22)+np.array((.96,.63,.52))*blush*.22
+   pixels[j,k,:3]=tint
+ im=bpy.data.images.new(kind+' smooth painted fur',width=W,height=H,alpha=True);im.pixels.foreach_set(pixels.ravel());im.pack()
+ painted=M[coat].copy();painted.name=kind+' painted plush coat';pbr=painted.node_tree.nodes.get('Principled BSDF');pbr.inputs['Base Color'].default_value=(1,1,1,1)
+ tex=painted.node_tree.nodes.new('ShaderNodeTexImage');tex.image=im;tex.interpolation='Linear';painted.node_tree.links.new(tex.outputs['Color'],pbr.inputs['Base Color'])
+ o.data.materials.clear();o.data.materials.append(painted)
+ for poly in o.data.polygons:
+  for li in poly.loop_indices:
+   idx=o.data.loops[li].vertex_index;jj,kk=divmod(idx,K)
+   # Unwrap the seam per face so filtering never crosses the forehead.
+   u=kk/K
+   if kk==0 and any(o.data.loops[q].vertex_index%K==K-1 for q in poly.loop_indices):u=1
+   o.data.uv_layers.active.data[li].uv=(u,1-jj/N)
+ # Tiny tapered fibres share the same painted coat assignment; a single draw group.
+ rng=random.Random(kind);vs=[];fs=[];colors=[]
+ for i in range(4200):
+  zz=rng.uniform(-.98,.98);a=rng.uniform(0,math.tau);rr=math.sqrt(1-zz*zz);u=Vector((rr*math.cos(a),rr*math.sin(a),zz))
+  p=Vector(c)+Vector((u.x*scale[0]*(1+.065*math.exp(-((zz+.27)/.35)**2)),u.y*scale[1],u.z*scale[2]));normal=Vector((u.x/scale[0],u.y/scale[1],u.z/scale[2])).normalized();tangent=normal.cross(Vector((0,0,1))).normalized();width=.0012;length=rng.uniform(.006,.014)
+  k=len(vs);vs.extend([tuple(p-tangent*width),tuple(p+tangent*width),tuple(p+normal*length+tangent*.0015)]);fs.append((k,k+1,k+2));colors.append(color(p))
+ fur=profile_mesh('Microfur painted cheeks',vs,fs,coat,head)
+ for key in keys[1:]:fur.data.materials.append(M[key])
+ for poly,key in zip(fur.data.polygons,colors):poly.material_index=keys.index(key) if key in keys else 0
+ return o
+
+
+def tapered_leaf(name,a,b,width,depth,material,parent=None,bend=0):
+ a=Vector(a);b=Vector(b);axis=(b-a).normalized();v=axis.cross(Vector((0,1,0))).normalized();w=axis.cross(v).normalized();verts=[];faces=[];N=16;K=20
+ for j in range(N+1):
+  t=j/N;r=max(.008,math.sin(math.pi*t)**.6)
+  if name in ('Ear pointed plush','Pink ear inset') and active_kind in ('cat','dog','fox'):r=max(.007,min(1,t*7)*(1-t)**.68*1.3)
+  center=a+(b-a)*t+Vector((bend*math.sin(math.pi*t),0,0))
+  for k in range(K):
+   q=k*math.tau/K;verts.append(tuple(center+v*(math.cos(q)*width*r)+w*(math.sin(q)*depth*r)))
+ for j in range(N):
+  for k in range(K):faces.append((j*K+k,j*K+(k+1)%K,(j+1)*K+(k+1)%K,(j+1)*K+k))
+ return profile_mesh(name,verts,faces,material,parent)
+
+
 def ear(side,kind,coat,loc=None):
- c=loc or (side*.55,.03,2.25);g=group('Ear'+str(side),c,'ear',head)
- if kind=='round':ball('Round plush ear',c,(.27,.16,.27),coat,g);ball('Round inner ear',(c[0],c[1]-.145,c[2]),(.15,.045,.16),'inner',g)
+ base=loc or (side*.53,.0,2.19);g=group('Ear'+str(side),base,'ear',head);g['side']=side
+ if kind=='round':
+  ball('Round plush ear',(base[0]+side*.05,base[1],base[2]+.08),(.25,.16,.25),coat,g)
+  ball('Round inner ear',(base[0]+side*.05,base[1]-.145,base[2]+.08),(.135,.028,.15),'inner',g)
  elif kind=='rabbit':
-  o=ball('Long floppy ear',(side*.79,.02,2.11),(.29,.20,.77),coat,g);o.rotation_euler[1]=-side*.45
-  o=ball('Pink floppy ear inset',(side*.80,-.17,2.11),(.17,.045,.61),'inner',g);o.rotation_euler[1]=-side*.45
+  tip=(side*(1.02 if side<0 else .98),-.05,1.47 if side<0 else 1.58)
+  o=tapered_leaf('Long floppy ear',(side*.52,.0,2.32),tip,.30,.145,coat,g,bend=side*.23)
+  inset=tapered_leaf('Pink floppy ear inset',(side*.59,-.145,2.27),(tip[0]*.98,-.155,tip[2]+.10),.20,.025,'inner',g,bend=side*.20)
+  for piece in (o,inset):
+   piece.shape_key_add(name='Basis');key=piece.shape_key_add(name='EarFlex')
+   for v in key.data:
+    w=max(0,(2.32-v.co.z)/.9);v.co.y-=.13*w*w;v.co.x+=side*.07*w*w
+ elif kind=='deer':
+  tapered_leaf('Large pointed deer ear',(side*.58,.01,2.10),(side*1.02,.0,2.63),.26,.13,coat,g,bend=side*.02)
+  tapered_leaf('Pink ear inset',(side*.63,-.13,2.14),(side*.98,-.12,2.57),.17,.025,'inner',g)
  else:
-  # Pointed ears use a tapered soft mesh, not rigid cones.
-  verts=[];faces=[]
-  for j in range(13):
-   t=j/12;z=c[2]-.18+t*.85;rr=.31*(1-t)**.7+.015
-   for k in range(20):a=k*math.tau/20;verts.append((c[0]+math.cos(a)*rr+side*.09*t,c[1]+math.sin(a)*rr*.60,z))
-  for j in range(12):
-   for k in range(20):a=j*20+k;b=j*20+(k+1)%20;faces.append((a,b,b+20,a+20))
-  faces.extend([tuple(range(19,-1,-1)),tuple(range(240,260))]);me=bpy.data.meshes.new('Soft pointed ear');me.from_pydata(verts,[],faces);o=bpy.data.objects.new('Ear plush',me);scene.collection.objects.link(o);finish(o,'Ear pointed plush',coat,g)
-  o=ball('Pink ear inset',(c[0]+side*.045,c[1]-.16,c[2]+.20),(.17,.045,.31),'inner',g);o.rotation_euler[1]=side*.12
+  tapered_leaf('Ear pointed plush',(side*.48,.03,2.12),(side*(.69 if kind!='dog' else .74),.015,2.94 if kind=='dog' else 2.80),.29,.16,coat,g,bend=side*.02)
+  tapered_leaf('Pink ear inset',(side*.52,-.14,2.24),(side*(.69 if kind!='dog' else .74),-.10,2.81 if kind=='dog' else 2.68),.18,.022,'inner',g)
+  for i in range(3):tapered_leaf('Ear soft inner tuft',(side*.53,-.15,2.28+i*.05),(side*(.65+i*.018),-.16,2.39+i*.04),.065,.027,'white',g)
  return g
-def eyes(expression='smile',owl=False):
+
+
+def bow(c,parent=None,size=1):
+ g=group('Bow satin assembly',c,parent=parent)
  for side in (-1,1):
-  x=side*(.34 if not owl else .36);y=-.67 if not owl else -.77;z=1.98
-  if expression=='open' or expression=='wink' and side==-1:
-   ball('Eye',(x,y,z),(.16,.075,.19),'eye',head);ball('Iris',(x,y-.065,z-.04),(.108,.025,.11),'iris',head)
-   ball('Eye catchlight',(x-.045,y-.086,z+.06),(.048,.018,.048),'glint',head);ball('Eye tiny glint',(x+.05,y-.083,z-.045),(.018,.012,.018),'glint',head)
-  else:curve('EyeSmile',[(x+t*.18,y-.018,z+.075*(1-t*t)) for t in np.linspace(-1,1,17)],.037,'nose',head)
-  ball('Blush',(side*.51,y+.01,z-.20),(.14,.022,.075),'pink',head)
-  curve('Soft eyebrow',[(x-.07,y+.10,z+.28),(x,y+.075,z+.31),(x+.06,y+.10,z+.28)],.014,'bear',head)
- if not owl:
-  ball('Happy open mouth',(0,-.739,1.62),(.15,.046,.17),'mouth',head);ball('Little pink tongue',(0,-.785,1.555),(.105,.022,.072),'tongue',head)
-  for side in (-1,1):ball('Cream muzzle',(side*.105,-.72,1.755),(.16,.11,.105),'white',head)
-  ball('Nose',(0,-.833,1.79),(.086,.043,.055),'nose',head)
+  a=(c[0]+side*.025,c[1],c[2]);b=(c[0]+side*.36*size,c[1]+.04,c[2]+.18*size)
+  o=ball('Bow folded satin loop',(c[0]+side*.18*size,c[1],c[2]+.045),(.225*size,.09*size,.15*size),'fox',g);o.rotation_euler[1]=side*.23
+  for j in range(3):curve('Bow stitched fold',[(c[0]+side*.04,c[1]-.08,c[2]),(c[0]+side*.18,c[1]-.09,c[2]+(j-1)*.045),(c[0]+side*.29,c[1]-.045,c[2]+.09+(j-1)*.04)],.009,'orange',g)
+  o=box('Bow ribbon tail',(c[0]+side*.13,c[1]+.025,c[2]-.24*size),(.17*size,.065,.40*size),'orange',g,.035);o.rotation_euler[1]=side*.34
+ star((c[0],c[1]-.10,c[2]+.025),.16*size,g);return g
+
+
+def face(kind):
+ z={'cat':1.86,'rabbit':1.88,'fox':1.87,'bear':1.81,'owl':1.91,'dog':1.82,'panda':1.88,'deer':1.88,'hedgehog':1.75,'penguin':1.85}[kind]
+ isbird=kind in ('owl','penguin');eyeY=-.635 if not isbird else -.66
+ for side in (-1,1):
+  x=side*(.34 if kind!='owl' else .35);open_default=kind=='owl' or (kind in ('rabbit','bear') and side==-1)
+  eg=group('EyeOpen_'+str(side),(x,eyeY,z),'eyeOpen',head);eg['eyeDefault']=1 if open_default else 0;eg['side']=side
+  radius=.205 if kind=='owl' else .137
+  ball('Eye',(x,eyeY-.012,z),(radius,.065,radius*1.12),'eye',eg,32,20)
+  ball('Iris',(x+.018,eyeY-.07,z-.045),(radius*.65,.014,radius*.65),'iris',eg)
+  ball('Eye catchlight',(x-.045,eyeY-.082,z+.059),(.047,.016,.047),'glint',eg)
+  ball('Eye tiny glint',(x+.047,eyeY-.077,z-.060),(.018,.009,.018),'glint',eg)
+  eg.scale=(1,1,1) if open_default else (.001,.001,.001)
+  cg=group('EyeClosed_'+str(side),(x,eyeY,z),'eyeClosed',head);cg['eyeDefault']=0 if open_default else 1;cg['side']=side
+  curve('EyeSmile',[(x+t*.165,eyeY-.025,z+.077*(1-t*t)) for t in np.linspace(-1,1,20)],.028 if kind!='owl' else .032,'nose',cg)
+  cg.scale=(.001,.001,.001) if open_default else (1,1,1)
+  curve('Soft eyebrow',[(x-.055,eyeY+.10,z+.28),(x,eyeY+.085,z+.30),(x+.065,eyeY+.10,z+.27)],.017,'bear',head)
+ mouth=group('Mouth jaw',(0,-.69,z-.21),'jaw',head)
+ if not isbird:
+  # A recessed rounded triangle smile, not a flat oval sticker.
+  verts=[(-.16,-.718,z-.12),(.16,-.718,z-.12),(.115,-.733,z-.28),(0,-.742,z-.34),(-.115,-.733,z-.28)]
+  o=profile_mesh('Happy open mouth',verts,[tuple(range(5))],'lip',mouth)
+  mod=o.modifiers.new('Soft smile contour','SUBSURF');mod.levels=2;mod.render_levels=2;bpy.context.view_layer.objects.active=o;bpy.ops.object.modifier_apply(modifier=mod.name)
+  o=ball('Mouth inner cavity',(0,-.714,z-.225),(.139,.038,.142),'lip',mouth)
+  ball('Little pink tongue',(0,-.760,z-.285),(.083,.016,.065),'tongue',mouth)
+  for side in (-1,1):
+   o=ball('Cream muzzle',(side*.075,-.698,z-.08),(.118,.079,.078),'milk' if kind=='bear' else 'white',head)
+  n=ball('Nose',(0,-.802,z-.035),(.077,.042,.045),'nose',head);n['petMotion']='nose'
+  curve('Philtrum',[(0,-.803,z-.06),(0,-.795,z-.105)],.012,'nose',head)
+  if kind=='dog':
+   o=ball('Corgi hanging tongue',(0,-.799,z-.32),(.086,.033,.16),'tongue',mouth)
+   curve('Tongue center crease',[(0,-.835,z-.23),(0,-.837,z-.36)],.005,'lip',mouth)
  else:
-  ball('Open beak',(0,-.82,1.64),(.14,.08,.19),'yellow',head);ball('Beak mouth',(0,-.894,1.62),(.10,.025,.11),'mouth',head);ball('Beak tongue',(0,-.923,1.57),(.07,.013,.04),'tongue',head)
-def paws(coat,pads=True,bird=False):
+  # Separate upper and lower lobes give the beak a defined mouth opening.
+  tapered_leaf('Open beak',(-.125,-.74,z-.055),(.125,-.74,z-.055),.09,.095,'yellow',head)
+  ball('Beak mouth',(0,-.760,z-.18),(.105,.040,.12),'lip',mouth)
+  ball('Lower golden beak',(0,-.778,z-.26),(.10,.037,.045),'yellow',mouth)
+  ball('Beak tongue',(0,-.805,z-.23),(.063,.010,.045),'tongue',mouth)
+ return mouth
+
+
+def paw_pad(c,parent,large=.17,toes=4):
+ ball('Paw large heart pad',c,(large,.025,large*1.05),'pad',parent)
+ for i in range(toes):
+  a=(i/(toes-1)-.5)*1.75;ball('Paw toe pad',(c[0]+math.sin(a)*large*1.18,c[1]+.013,c[2]+math.cos(a)*large*1.35),(.052,.022,.063),'pad',parent,16,10)
+
+
+def feet(kind,coat):
  for side in (-1,1):
-  g=group('Foot'+str(side),(side*.39,-.26,.27),'foot');o=ball('Plush foot',(side*.39,-.29,.26),(.32,.36,.28),('yellow' if bird else coat),g)
-  if bird:
-   for dx in (-.15,0,.15):ball('Bird toe',(side*.39+dx,-.52,.18),(.095,.19,.12),'yellow',g)
-  elif pads:
-   ball('Paw large heart pad',(side*.39,-.668,.23),(.15,.026,.14),'pink',g)
-   for dx,dz in [(-.15,.15),(-.055,.23),(.055,.23),(.15,.15)]:ball('Paw toe pad',(side*.39+dx,-.59,.28+dz),(.047,.022,.058),'pink',g,16,10)
-def front_paws(coat,feet=None):
+  if kind=='owl':
+   g=group('Foot'+str(side),(side*.30,-.18,.12),'foot')
+   for dx in (-.10,0,.10):ball('Bird toe',(side*.30+dx,-.30,.10),(.085,.19,.10),'yellow',g)
+  elif kind=='penguin':
+   g=group('Foot'+str(side),(side*.39,-.31,.23),'foot')
+   ball('Golden webbed foot',(side*.39,-.37,.20),(.30,.18,.22),'yellow',g)
+   for i,dx in enumerate((-.16,0,.16)):ball('Penguin web toe',(side*.39+dx,-.40,.31),(.12,.145,.28 if i==1 else .23),'yellow',g)
+  elif kind in ('cat','fox'):
+   for back in (True,False):
+    x=side*(.43 if back else .24);y=.04 if back else -.36
+    g=group(('HindFoot' if back else 'FrontFoot')+str(side),(x,y,.42 if not back else .22),'foot' if back else 'front')
+    if not back:ball('Front plush leg',(x,y,.46),(.18,.19,.34),'white' if kind=='cat' else coat,g)
+    ball('Front paw' if not back else 'Back plush paw',(x,y-.06,.16),(.22,.25,.16),'dark' if kind=='fox' else 'white',g)
+    for dx in (-.07,.035):curve('Front paw toe seam',[(x+dx,y-.29,.11),(x+dx,y-.29,.20)],.008,'wood',g)
+  elif kind=='dog':
+   for back in (True,False):
+    x=side*(.46 if back else .28)+( .08 if back else -.08);y=.14 if back else -.40
+    g=group(('HindFoot' if back else 'FrontFoot')+str(side),(x,y,.28),'foot' if back else 'front')
+    ball('Corgi short leg',(x,y+.06,.34),(.24,.24,.28),coat,g)
+    ball('Corgi soft paw',(x,y-.12,.16),(.25,.24,.17),'white',g);paw_pad((x,y-.355,.19),g,.105,3)
+  else:
+   x=side*(.42 if kind!='hedgehog' else .39);g=group('Foot'+str(side),(x,-.26,.24),'foot')
+   ball('Plush seated haunch',(side*.44,.09,.38),(.31,.36,.37),'white' if kind=='deer' else coat)
+   o=ball('Plush foot',(x,-.40,.26),(.32,.24,.31),'dark' if kind=='deer' else coat,g);o.rotation_euler[1]=side*.15
+   if kind!='deer':paw_pad((x,-.63,.28),g,.155)
+   else:
+    ball('Dark rounded hoof',(x,-.54,.24),(.25,.14,.25),'dark',g)
+
+
+def scarf(emblem=True,tail_side=-1,kind='cat'):
+ g=group('Scarf knit assembly',(0,0,1.18),'scarf',torso)
+ for dz in (0,.09):curve('Knitted scarf wrap',[(.52*math.cos(a),.40*math.sin(a)-.005,1.18+dz+.02*math.cos(a)) for a in np.linspace(0,math.tau,56,endpoint=False)],.115,'scarf',g,True)
+ for i in range(29):
+  x=-.49+i*.035;y=-math.sqrt(max(.01,1-(x/.56)**2))*.39-.057
+  curve('Scarf tiny knitted rib',[(x,y,1.15),(x,y-.008,1.32)],.009,'orange',g)
+ if kind not in ('deer','dog'):
+  c=(tail_side*.31,-.47,.91);end=group('Scarf hanging soft end',c,'secondary',g)
+  o=box('Scarf hanging end',c,(.32,.095,.46),'scarf',end,.025);o.rotation_euler[1]=-tail_side*.15
+  for i in range(13):rod('Scarf knitted end rib',(c[0]-.145+i*.024,-.529,.72),(c[0]-.145+i*.024,-.53,1.10),.007,'orange',end)
+  for i in range(7):rod('Scarf tassel',(c[0]-.14+i*.046,-.48,.70),(c[0]-.12+i*.046,-.49,.57),.020,'scarf',end)
+  if emblem:book_logo((c[0],-.535,.87),.11,end)
+ if kind!='deer':star((.28 if kind=='panda' else -tail_side*.35,-.444,1.19),.17,g)
+ return g
+
+
+def hat(kind):
+ g=group('Graduation tilted cap',(0,.0,2.43),parent=head)
+ ball('Graduation cap crown',(0,.03,2.43),(.43,.33,.21),'cap',g)
+ board=box('Graduation mortarboard',(0,.035,2.64),(1.05,.72,.075),'cap',g,.04)
+ # Reference camera sees the top plane and overhanging square corners.
+ board.rotation_euler[1]=-.14
+ curve('Cap edge piping',[(-.50,-.31,2.70),(.51,-.31,2.55),(.51,.36,2.55)],.012,'dark',g)
+ tassel=group('Tassel soft swing',(-.48,-.20,2.61),'tassel',g)
+ curve('Gold tassel cord',[(0,.015,2.69),(-.43,-.22,2.68),(-.55,-.26,2.50),(-.60,-.27,2.30)],.018,'gold',tassel)
+ ball('Tassel knot',(-.60,-.27,2.29),(.057,.045,.065),'gold',tassel)
+ for i in range(11):
+  a=math.tau*i/11;curve('Tassel silk strand',[(-.60+math.cos(a)*.022,-.27+math.sin(a)*.022,2.26),(-.62+math.cos(a)*.095,-.28+math.sin(a)*.052,2.02)],.015,'scarf',tassel)
+ g.rotation_euler[1]=-.10 if kind=='owl' else .09;return g
+
+
+def glasses(kind):
+ g=group('Gold spectacle assembly',(0,-.77,1.90),parent=head);z=1.91 if kind=='owl' else 1.85
  for side in (-1,1):
-  g=group('ArmFront'+str(side),(side*.28,-.27,.72))
-  ball('Front plush leg',(side*.28,-.37,.50),(.20,.21,.39),coat,g)
-  ball('Front paw',(side*.28,-.43,.18),(.23,.28,.18),feet or coat,g)
-  for dx in (-.06,.055):curve('Front paw toe seam',[(side*.28+dx,-.675,.15),(side*.28+dx,-.66,.23)],.009,'wood',g)
-  ball('Back plush paw',(side*.49,.02,.18),(.27,.28,.18),feet or coat)
-def scarf(emblem=True):
- # An elliptical knitted wrap, two layered folds and a fringed hanging end.
- for dz,rx in [(0,.56),(.10,.53)]:
-  curve('Knitted scarf wrap',[(rx*math.cos(a),.43*math.sin(a)-.05,1.27+dz+.025*math.cos(a)) for a in np.linspace(0,math.tau,64,endpoint=False)],.13,'scarf',closed=True)
- o=box('Scarf hanging end',(-.30,-.59,.94),(.30,.11,.52),'scarf',bevel=.04);o.rotation_euler[1]=-.18
- if emblem:book_logo((-.30,-.66,.92),.105)
- for i in range(7):rod('Scarf tassel',(-.47+i*.05,-.61,.68),(-.45+i*.05,-.62,.56),.024,'scarf')
- star((.35,-.62,1.26),.18)
-def hat():
- ball('Graduation cap crown',(0,.005,2.56),(.49,.36,.23),'cap',head)
- o=box('Graduation mortarboard',(0,-.015,2.77),(1.15,.83,.095),'cap',head,.045);o.rotation_euler[1]=-.12
- curve('Gold tassel cord',[(0,-.04,2.83),(.53,-.15,2.76),(.62,-.24,2.60),(.62,-.24,2.31)],.022,'gold',head)
- ball('Tassel knot',(.62,-.24,2.30),(.06,.06,.075),'gold',head)
- for i in range(9):
-  a=i*math.tau/9;curve('Tassel silk strand',[(.62+math.cos(a)*.025,-.24+math.sin(a)*.025,2.28),(.62+math.cos(a)*.09,-.24+math.sin(a)*.07,2.04)],.022,'scarf',head)
-def glasses():
- for side in (-1,1):oval('Round gold spectacle rim',(side*.36,-.877,1.99),.32,.33,.026,'gold',head)
- curve('Glasses bridge',[(-.045,-.889,2.02),(0,-.915,2.07),(.045,-.889,2.02)],.025,'gold',head)
- for side in (-1,1):curve('Glasses temple',[(side*.68,-.85,2.03),(side*.80,-.43,2.06)],.024,'gold',head)
+  oval('Round gold spectacle rim',(side*.35,-.76,z),.295,.30,.021,'gold',g)
+  curve('Glasses temple',[(side*.64,-.75,z+.04),(side*.78,-.39,z+.06)],.020,'gold',g)
+ curve('Glasses bridge',[(-.055,-.77,z+.03),(0,-.79,z+.075),(.055,-.77,z+.03)],.021,'gold',g)
+ return g
+
+
 def cape():
- verts=[];faces=[];rows=8;cols=40
- for j in range(rows):
-  t=j/(rows-1);r=.66+.20*t
-  for k in range(cols):
-   a=-2.63+k/(cols-1)*5.26;verts.append((r*math.sin(a),r*.90*math.cos(a),1.33-.94*t+.03*math.sin(a*3)*t))
- for j in range(rows-1):
-  for k in range(cols-1):a=j*cols+k;faces.append((a,a+1,a+cols+1,a+cols))
- me=bpy.data.meshes.new('Soft draped cape');me.from_pydata(verts,[],faces);o=bpy.data.objects.new('Cape',me);scene.collection.objects.link(o);bpy.context.view_layer.objects.active=o
- mod=o.modifiers.new('Velvet thickness','SOLIDIFY');mod.thickness=.035;bpy.ops.object.modifier_apply(modifier=mod.name);finish(o,'Cape velvet', 'cape')
- curve('Cape gold hem',verts[-cols:],.025,'gold')
- for k in (0,cols-1):curve('Cape gold opening',[verts[j*cols+k] for j in range(rows)],.025,'gold')
- star((0,-.49,1.36),.17)
+ g=group('Cape soft cloth',(0,.06,1.18),'cape',torso);verts=[];faces=[];N=16;K=44
+ for j in range(N):
+  t=j/(N-1);r=.52+.27*t
+  for k in range(K):
+   a=-2.67+k/(K-1)*5.34;verts.append((r*math.sin(a),r*.80*math.cos(a)+.04,1.24-.87*t+.055*math.cos(a*2.5)*t))
+ for j in range(N-1):
+  for k in range(K-1):a=j*K+k;faces.append((a,a+1,a+K+1,a+K))
+ o=profile_mesh('Cape velvet',verts,faces,'cape',g);o.data.materials.append(M['lining'])
+ mod=o.modifiers.new('Thick orange lined velvet','SOLIDIFY');mod.thickness=.028;mod.material_offset=1;bpy.context.view_layer.objects.active=o;bpy.ops.object.modifier_apply(modifier=mod.name)
+ curve('Cape gold hem',verts[-K:],.022,'gold',g)
+ for k in (0,K-1):curve('Cape gold opening',[verts[j*K+k] for j in range(N)],.025,'gold',g)
+ return g
+
+
 def book(opened=False,spiral=False):
- g=group('Held study book');y=-.73;z=.94
+ g=group('Held study book',(0,-.58,.89),'book',torso);y=-.61;z=.86
  if not opened:
-  box('Leather book cover',(0,y,z),(.70,.19,.78),'book',g,.04);box('Cream page block',(0,y+.015,z+.04),(.62,.16,.67),'page',g,.025)
-  box('Front book cover',(0,y-.12,z),(.72,.055,.80),'book',g,.025);book_logo((0,y-.155,z-.04),.17,g)
-  for xx in (-.32,.32):
-   for zz in (z-.34,z+.34):box('Gold book corner',(xx,y-.155,zz),(.10,.025,.10),'gold',g,.02)
-  for zz in (z-.25,z,z+.25):rod('Gold binding band',(-.36,y-.13,zz),(-.30,y-.13,zz),.025,'gold',g)
-  if spiral:
-   for zz in np.linspace(z-.30,z+.30,5):oval('Notebook spiral',(-.34,y-.08,zz),.08,.028,.016,'gold',g)
+  box('Leather book cover',(0,y,z),(.60,.17,.72),'book',g,.035)
+  box('Cream page block',(.012,y-.025,z+.025),(.52,.145,.64),'page',g,.025)
+  box('Front book cover',(0,y-.105,z),(.62,.045,.74),'book',g,.028)
+  book_logo((0,y-.135,z-.04),.13,g)
+  for xx in (-.265,.265):
+   for zz in (z-.30,z+.30):box('Gold book corner',(xx,y-.137,zz),(.09,.024,.09),'gold',g,.015)
+  for zz in (z-.22,z,z+.22):
+   if spiral:oval('Notebook spiral',(-.305,y-.075,zz),.075,.032,.014,'gold',g)
+   else:rod('Gold binding band',(-.31,y-.127,zz),(-.25,y-.127,zz),.018,'gold',g)
+  for j in range(5):curve('Page fine edges',[(-.24,y-.098+j*.025,z+.34),(.25,y-.098+j*.025,z+.34)],.003,'wood',g)
  else:
   for side in (-1,1):
-   panel=group('Open book half',parent=g);panel.location=(0,0,0)
-   box('Open leather cover',(side*.24,y,z),(.48,.12,.74),'book',panel,.025);box('Open cream pages',(side*.24,y-.085,z+.02),(.43,.09,.68),'page',panel,.02)
-   for zz in np.linspace(z-.2,z+.2,5):curve('Page embossed lines',[(side*.05,y-.14,zz),(side*.39,y-.14,zz+.015)],.006,'wood',panel)
-   if side==1:book_logo((side*.24,y+.065,z-.04),.13,panel)
-   panel.rotation_euler[2]=side*.20
-  curve('Book central binding',[(0,y-.08,z-.37),(0,y-.08,z+.37)],.03,'gold',g)
+   panel=group('Open book half',(side*.015,y,z),parent=g)
+   box('Open leather cover',(side*.215,y-.07,z),(.45,.08,.71),'book',panel,.022)
+   box('Open cream pages',(side*.215,y+.015,z+.045),(.40,.08,.65),'page',panel,.018)
+   for j in range(6):curve('Open page layered edges',[(side*.03,y+.06-j*.004,z+.36),(side*.39,y+.06-j*.004,z+.34)],.004,'wood',panel)
+   if side==1:book_logo((side*.215,y-.122,z-.05),.10,panel)
+   panel.rotation_euler[2]=side*.23
+  curve('Book central binding',[(0,y-.14,z-.34),(0,y-.14,z+.32)],.025,'gold',g)
  return g
-def hands(coat,raised=False):
- for side in (-1,1):
-  if raised and side==1:
-   g=group('ArmWave',(side*.57,-.03,1.03),'wave');rod('Raised sleeve',(side*.57,-.02,1.00),(side*.76,-.10,1.50),.18,'wool' if coat=='bear' else coat,g)
-   ball('Waving plush palm',(.76,-.18,1.60),(.24,.14,.27),coat,g);ball('Waving paw pad',(.76,-.309,1.60),(.115,.025,.10),'pink',g)
-   for x,z in [(-.13,.10),(-.045,.19),(.06,.18),(.15,.09)]:ball('Waving toe pad',(.76+x,-.298,1.60+z),(.036,.02,.047),'pink',g,16,10)
-  else:
-   rod('Plush forearm',(side*.57,-.02,1.06),(side*.43,-.67,.99),.16,coat)
-   ball('Arm holding',(side*.43,-.73,.99),(.18,.17,.23),coat)
-def backpack():
- g=group('School backpack');box('Leather backpack',(-.66,.22,.76),(.55,.42,.89),'book',g,.14);box('Backpack flap',(-.68,-.025,1.07),(.58,.10,.35),'orange',g,.06)
- curve('Backpack top handle',[(-.83,.15,1.20),(-.82,.15,1.36),(-.63,.15,1.39),(-.52,.15,1.20)],.036,'book',g)
- for x in (-.85,-.53):
-  box('Bag strap',(x,-.08,.78),(.07,.05,.40),'orange',g,.02);box('Gold backpack buckle',(x,-.12,.83),(.12,.04,.13),'gold',g,.025)
- book_logo((-.68,-.09,1.00),.13,g)
- for xx in (-.91,-.43):curve('Backpack piping',[(xx,-.02,.43),(xx,-.02,1.05)],.015,'gold',g)
- star((-.53,-.15,.45),.13,g)
-def pencil():
- g=group('Oversized pencil');bpy.ops.mesh.primitive_cylinder_add(vertices=6,radius=.12,depth=.91,location=(0,0,0));finish(bpy.context.object,'Hexagonal pencil','yellow',g)
- box('Eraser ferrule',(0,0,.50),(.24,.24,.13),'page',g,.04);ball('Pink eraser',(0,0,.64),(.12,.12,.14),'eraser',g)
- bpy.ops.mesh.primitive_cone_add(vertices=24,radius1=.018,radius2=.12,depth=.25,location=(0,0,-.58));finish(bpy.context.object,'Sharpened cedar','wood',g)
- ball('Graphite point',(0,0,-.72),(.025,.025,.045),'lead',g);g.location=(-.51,-.88,.88);g.rotation_euler[1]=-.42
+
+
+def backpack(kind,emblem='book'):
+ c=(-.72,.02,.66);g=group('School backpack',c,'bag',torso)
+ box('Leather backpack',c,(.58,.43,.77),'book',g,.12)
+ box('Backpack front pocket',(c[0],c[1]-.235,c[2]-.09),(.47,.08,.39),'orange',g,.065)
+ flap=box('Backpack flap',(c[0],c[1]-.245,c[2]+.22),(.60,.09,.35),'orange',g,.065);flap.rotation_euler[0]=-.08
+ for dx in (-.24,.24):curve('Backpack piping',[(c[0]+dx,c[1]-.278,c[2]-.33),(c[0]+dx,c[1]-.278,c[2]+.25)],.013,'rim',g)
+ curve('Backpack top handle',[(c[0]-.16,.05,1.05),(c[0]-.15,.05,1.18),(c[0]+.05,.05,1.20),(c[0]+.16,.05,1.05)],.027,'book',g)
+ for dx in (-.18,.18):
+  box('Bag strap',(c[0]+dx,-.278,.63),(.058,.045,.36),'book',g,.02)
+  box('Gold backpack buckle',(c[0]+dx,-.308,.66),(.105,.025,.115),'gold',g,.02)
+  box('Buckle hollow',(c[0]+dx,-.325,.66),(.065,.012,.067),'book',g,.012)
+ if emblem=='book':book_logo((c[0],-.286,.89),.12,g)
+ else:star((c[0],-.286,.89),.13,g)
+ # Reference has thin shoulder straps, rather than a box floating beside the pet.
+ for side in (-1,1):curve('Backpack shoulder strap',[(side*.48,.18,1.10),(side*.49,-.26,1.12),(side*.44,-.44,.77)],.028,'book',torso)
+ charm=group('Dangling book charm' if kind=='panda' else 'Dangling star charm',(-.56,-.33,.37),'charm',g)
+ curve('Gold charm chain',[(-.48,-.31,.73),(-.51,-.33,.58),(-.56,-.34,.46)],.012,'gold',charm)
+ if kind=='panda':
+  for side in (-1,1):
+   o=box('Book charm',(-.56+side*.085,-.35,.34),(.18,.055,.21),'page',charm,.023);o.rotation_euler[1]=side*.1
+   for j in range(3):curve('Book charm page line',[(-.56+side*.025,-.386,.32+j*.045),(-.56+side*.145,-.385,.34+j*.045)],.005,'gold',charm)
+ else:star((-.56,-.35,.34),.14,charm)
  return g
+
+
+def pencil(kind):
+ g=group('Oversized pencil',(0,0,0),parent=torso)
+ bpy.ops.mesh.primitive_cylinder_add(vertices=6,radius=.105,depth=.75,location=(0,0,0));finish(bpy.context.object,'Hexagonal pencil','yellow',g)
+ for dz in (.40,.45):oval('Pencil ferrule ridge',(0,-.003,dz),.105,.025,.012,'page',g)
+ box('Eraser ferrule',(0,0,.43),(.21,.21,.15),'page',g,.027)
+ ball('Pink eraser',(0,0,.55),(.103,.103,.13),'eraser',g)
+ bpy.ops.mesh.primitive_cone_add(vertices=20,radius1=.013,radius2=.103,depth=.21,location=(0,0,-.47));finish(bpy.context.object,'Sharpened cedar','wood',g)
+ ball('Graphite point',(0,0,-.59),(.022,.022,.035),'lead',g)
+ target=Vector((-.32,-.66,.84) if kind=='bear' else (.35,-.65,.88));g.location=torso.matrix_world.inverted()@target;g.rotation_euler[1]=-.53 if kind=='bear' else .48;return g
+
+
 def sweater():
- ball('Cream knitted sweater',(0,0,.86),(.64,.46,.58),'wool')
- for x in np.linspace(-.53,.53,21):rod('Sweater hem rib',(x,-.40,.46),(x,-.42,.65),.018,'wool')
+ ball('Cream knitted sweater',(0,.015,.69),(.56,.41,.46),'wool',torso)
+ for i in range(25):
+  x=-.40+i*.033
+  points=[]
+  for z in np.linspace(.38,.57,8):
+   y=.015-.41*math.sqrt(max(.015,1-(x/.56)**2-((z-.69)/.46)**2));points.append((x,y-.008,z))
+  curve('Sweater hem rib',points,.006,'knit',torso)
+ for j in range(9):
+  z=.57+j*.043
+  curve('Sweater horizontal stitch',[(-.42,-.31,z),(-.22,-.377,z+.012),(0,-.40,z),(.22,-.377,z+.012),(.42,-.31,z)],.0035,'knit',torso)
+
+
+def arms(kind,coat,held=None):
+ raised=kind in ('bear','panda')
  for side in (-1,1):
-  for z in np.linspace(.77,1.05,7):oval('Ribbed sleeve cuff',(side*.49,-.53,z),.15,.035,.018,'wool')
-def tail(coat,kind):
- g=group('Tail',(0,.25,.65),'tail');verts=[];faces=[];N=30;K=16
- for j in range(N):
-  t=j/(N-1)
-  if kind=='cat':c=Vector((-.52-.66*math.sin(t*math.pi*.76),.26,.46+t*1.10));radius=.18+.07*math.sin(t*math.pi)
-  elif kind=='dog':c=Vector((.54+.55*math.sin(t*math.pi*.7),.30,.45+t*.66));radius=.20+.08*math.sin(t*math.pi)
-  else:c=Vector((.52+.74*math.sin(t*math.pi*.60),.25,.39+t*1.29));radius=.16+.20*math.sin(t*math.pi)
-  radius*=min(1,(1-t)*10+.08)
-  for k in range(K):a=k*math.tau/K;verts.append(tuple(c+Vector((math.cos(a)*radius,math.sin(a)*radius,.045*math.cos(a)))))
- for j in range(N-1):
-  for k in range(K):faces.append((j*K+k,j*K+(k+1)%K,(j+1)*K+(k+1)%K,(j+1)*K+k))
- faces.extend([tuple(range(K-1,-1,-1)),tuple(range((N-1)*K,N*K))]);me=bpy.data.meshes.new('Fluffy swept tail');me.from_pydata(verts,[],faces);o=bpy.data.objects.new('Tail plush',me);scene.collection.objects.link(o);finish(o,'Tail plush',coat,g);o.data.materials.append(M['white'])
- for poly in o.data.polygons:
-  t=(sum(o.data.vertices[i].co.z for i in poly.vertices)/len(poly.vertices)-.39)/1.29
-  if (kind=='cat' and (.3<t<.48 or t>.78)) or (kind!='cat' and t>.70):poly.material_index=1
+  g=group('ArmWave' if raised and side==1 else 'ArmHold'+str(side),(side*.47,-.01,1.00),'wave' if raised and side==1 else 'holding',torso);g['side']=side
+  if raised and side==1:
+   elbow=group('Raised wrist',(.70,-.18,1.36),'wrist',g)
+   rod('Raised sleeve',(.47,-.01,1.02),(.66,-.12,1.33),.17,'wool' if kind=='bear' else coat,g)
+   ball('Waving plush palm',(.76,-.20,1.51),(.23,.13,.255),coat,elbow);paw_pad((.76,-.337,1.51),elbow,.112)
+   if kind=='bear':
+    for i in range(6):oval('Ribbed raised sleeve cuff',(.66,-.14,1.29+i*.022),.17,.037,.014,'knit',g)
+  else:
+   target=(side*.34,-.73,.90)
+   if kind=='bear':target=(-.32,-.73,.83)
+   if kind=='panda':target=(-.30,-.45,.83)
+   if kind=='hedgehog':target=(side*.22,-.72,.79 if side<0 else .88)
+   if kind=='penguin':
+    tapered_leaf('Penguin holding flipper',(side*.50,-.17,1.03),target,.18,.12,coat,g)
+   else:
+    rod('Plush forearm',(side*.47,-.02,1.01),target,.155,'wool' if kind in ('bear','hedgehog') else coat,g)
+    if kind in ('bear','hedgehog'):
+     for j in range(6):oval('Ribbed sleeve cuff',(target[0],target[1]+.13,.77+j*.025),.16,.027,.012,'knit',g)
+    ball('Arm holding',target,(.17,.115,.19),coat,g)
+   if held:
+    # Prop and palms are one constrained acting group; neither loses contact.
+    attach(g,held)
  return g
+
+
+def tail(kind):
+ side=-1 if kind=='cat' else 1;g=group('Tail',(side*.40,.17,.33),'tail')
+ verts=[];faces=[];N=36;K=20;matids=[]
+ for j in range(N+1):
+  t=j/N
+  if kind=='cat':c=Vector((-.43-.47*math.sin(t*math.pi*1.0),.22,.26+1.03*t));r=.18+.065*math.sin(math.pi*t)
+  elif kind=='fox':c=Vector((.44+.55*math.sin(t*math.pi*.68),.26,.27+1.26*t));r=.11+.29*math.sin(math.pi*t)**.8
+  elif kind=='deer':c=Vector((-.47-.26*t,.23,.40+.36*t));r=.05+.10*math.sin(math.pi*t)
+  else:c=Vector((.49+.29*math.sin(t*math.pi*.85),.28,.32+.56*t));r=.13+.10*math.sin(math.pi*t)
+  r*=min(1,(1-t)*15+.025)
+  tangent=Vector((0,0,1))
+  for k in range(K):a=math.tau*k/K;verts.append(tuple(c+Vector((math.cos(a)*r,math.sin(a)*r*.80,0))))
+ for j in range(N):
+  for k in range(K):faces.append((j*K+k,j*K+(k+1)%K,(j+1)*K+(k+1)%K,(j+1)*K+k));matids.append(1 if (kind=='cat' and (j/N>.79 or .29<j/N<.46)) or (kind!='cat' and j/N>.63) else 0)
+ faces.extend([tuple(range(K-1,-1,-1)),tuple(range(N*K,(N+1)*K))]);matids.extend([0,1])
+ o=profile_mesh('Tail plush',verts,faces,'orange' if kind in ('cat','dog','deer') else 'fox',g);o.data.materials.append(M['white'])
+ for p,m in zip(o.data.polygons,matids):p.material_index=m
+ o.shape_key_add(name='Basis');key=o.shape_key_add(name='SoftTailSweep')
+ for i,v in enumerate(key.data):
+  t=(i//K)/N;v.co.y+=.19*math.sin(t*math.pi*.7)*t;v.co.x+=side*.09*t*t
+ if kind=='fox':
+  for j in range(5):
+   a=j*.55;tuft((.79+math.sin(a)*.25,.06,1.0+j*.07),'white' if j>2 else 'fox',g,.10)
+ return g
+
+
 def tuft(c,coat,parent=None,size=.15):
- o=ball('Fluffy silhouette tuft',c,(size,.12,size*.44),coat,parent,16,10);o.rotation_euler[1]=-.45 if c[0]<0 else .45
+ return tapered_leaf('Fluffy silhouette tuft',(c[0]*.94,c[1]+.03,c[2]-.03),(c[0]+(.12 if c[0]>0 else -.12),c[1],c[2]+.07),size*.5,.045,coat,parent)
+
+
+def body(kind,coat):
+ c=(0,.06,.65);scale=(.55,.42,.55)
+ if kind=='dog':c=(.12,.13,.60);scale=(.66,.49,.48)
+ if kind in ('owl','penguin'):c=(0,.035,.77);scale=(.57,.43,.68)
+ if kind=='hedgehog':scale=(.56,.43,.55)
+ ball('Body plush',c,scale,coat,torso,32,24)
+ if kind in ('cat','fox','dog','deer','panda','penguin'):
+  ball('Penguin white tummy' if kind=='penguin' else 'Cream chest',(0,-.275,.68),(.38,.18,.45),'white',torso)
+ if kind in ('cat','fox','dog'):
+  for side in (-1,1):
+   for j in range(4):tuft((side*(.25+j*.05),-.41,.82+j*.05),'white',torso,.13)
+ if kind in ('cat','dog','fox'):ball('Rounded rear haunch',(.30 if kind=='dog' else -.04,.20,.40),(.48,.40,.36),coat,torso)
+
+
+def dog_satchel():
+ g=group('Corgi saddle satchel',(.56,.15,.68),'bag',torso)
+ box('Saddle leather bag',(.58,.15,.65),(.48,.45,.58),'book',g,.09)
+ box('Satchel orange flap',(.59,-.095,.82),(.52,.07,.34),'orange',g,.045);book_logo((.59,-.14,.79),.12,g)
+ curve('Satchel rounded piping',[(.38,-.15,.67),(.38,-.15,.96),(.81,-.15,.96),(.82,-.15,.67)],.014,'rim',g)
+ for j in (-1,1):
+  box('Satchel pocket',(.58+j*.12,-.095,.51),(.19,.07,.19),'orange',g,.028)
+  box('Satchel buckle',(.58+j*.12,-.14,.55),(.07,.025,.08),'gold',g,.01)
+ for side in (-1,1):curve('Saddle straps',[(side*.40,-.25,.34),(side*.48,-.30,.96),(side*.46,.27,1.02)],.028,'book',torso)
+ curve('Corgi orange collar',[(.45*math.cos(a),.35*math.sin(a)-.035,1.18) for a in np.linspace(0,math.tau,48,endpoint=False)],.065,'book',torso,True);star((-.10,-.43,1.10),.15,torso)
+
+
+def quills():
+ mantle=group('Quill mantle',(0,.17,1.15),'quills',torso)
+ # Wide, softly tapered blades overlap like the reference's caramel rosette.
+ for row in range(4):
+  for j in range(14):
+   a=-.25+j/13*(math.pi+.50);r=.69+row*.045;cx=math.cos(a)*r;cz=1.58+math.sin(a)*(.69+row*.04)-row*.12
+   tangent=Vector((math.cos(a),0,math.sin(a)))
+   start=Vector((cx*.88,.14+row*.12,cz-.05));end=Vector((cx,.11+row*.12,cz))+tangent*.20+Vector((-.07 if cx<0 else .07,0,-.10))
+   tapered_leaf('Soft caramel quill',start,end,.13,.14,'spine',mantle)
+ for side in (-1,1):
+  for j in range(8):tapered_leaf('Body soft quill',(side*.48,.22,.26+j*.11),(side*(.76+.09*math.sin(j)),.19,.20+j*.12),.105,.11,'spine',mantle)
+ return mantle
+
+
+def owl_wings():
+ for side in (-1,1):
+  wing=group('ArmWing'+str(side),(side*.44,.0,1.04),'wing',torso);wing['side']=side
+  for row in range(2):
+   for j in range(6):
+    tapered_leaf('Layered wing feather',(side*.48,.01-row*.06,1.04+j*.035),(side*(.82+j*.075),-.02-row*.05,.99+j*.105),.115,.07,'milk',wing)
+ for row in range(5):
+  for j in range(5-row%2):
+   x=(j-(4-row%2)/2)*.19;z=.39+row*.13
+   tapered_leaf('Layered breast feather',(x,-.35-.04*(1-abs(x)),z+.19),(x+.025,-.43,z),.12,.055,'white' if row%2 else 'milk',torso)
+
+
+def antlers():
+ for side in (-1,1):
+  g=group('Antler'+str(side),(side*.38,.08,2.30),parent=head)
+  curve('Antler stem',[(side*.38,.09,2.28),(side*.43,.10,2.64),(side*.47,.11,2.97)],.054,'bear',g)
+  for a,b in [((side*.43,.1,2.61),(side*.67,.10,2.80)),((side*.45,.1,2.74),(side*.31,.10,2.94))]:
+   rod('Antler branch',a,b,.052,'bear',g)
+  ball('Antler round tip',(side*.47,.11,2.97),(.055,.055,.065),'bear',g)
+
+
+def animate_object(obj,clip,keys,prop='rotation_euler',index=0):
+ obj.animation_data_create();base=getattr(obj,prop).copy()
+ existing=next((track for track in obj.animation_data.nla_tracks if track.name==clip),None)
+ act=existing.strips[0].action if existing else bpy.data.actions.new(clip+'_'+obj.name)
+ obj.animation_data.action=act
+ for frame,value in keys:
+  getattr(obj,prop)[index]=base[index]+value;obj.keyframe_insert(data_path=prop,index=index,frame=frame)
+ for fc in act.fcurves:
+  for key in fc.keyframe_points:key.interpolation='BEZIER';key.handle_left_type='AUTO_CLAMPED';key.handle_right_type='AUTO_CLAMPED'
+ if not existing:
+  track=obj.animation_data.nla_tracks.new();track.name=clip;strip=track.strips.new(clip,0,act);strip.blend_type='REPLACE';strip.extrapolation='NOTHING';track.mute=True
+ obj.animation_data.action=None;setattr(obj,prop,base)
+
+
+def author_motion(kind):
+ # Sitting acting: feet remain on the floor and props stay held in both hands.
+ roles={}
+ for o in groups:
+  if o.get('petMotion'):roles.setdefault(o['petMotion'],[]).append(o)
+ headj=roles['head'][0]
+ idle=[(0,0),(45,0),(72,.05),(100,.05),(124,0),(190,0),(230,-.035),(256,0),(300,0)]
+ animate_object(headj,'Idle',idle,index=2)
+ animate_object(torso,'Idle',[(0,0),(70,.006),(140,0),(220,.006),(300,0)],'location',2)
+ for clip in ('Hello','Feed','Pet','Play'):
+  nod={'Hello':-.07,'Feed':.10,'Pet':-.05,'Play':-.055}[clip]
+  times=[(0,0),(14,nod*.4),(30,nod),(48,nod*.4),(62,nod),(84,0),(108,0)] if clip=='Feed' else [(0,0),(16,nod),(40,-nod*.35),(65,nod*.4),(92,0),(108,0)]
+  animate_object(headj,clip,times,index=0)
+  if clip in ('Hello','Pet','Play'):animate_object(headj,clip,[(0,0),(22,.12 if kind not in ('owl','penguin') else .16),(45,.09),(72,0),(108,0)],index=1)
+ # Each idle action includes a short species gesture, then a long still interval.
+ for o in roles.get('ear',[]):
+  side=o.get('side',1);amp=.14 if kind in ('rabbit','dog','deer','fox') else .04
+  animate_object(o,'Idle',[(0,0),(80,0),(88,side*amp),(98,-side*amp*.4),(113,0),(300,0)],index=1)
+  for clip in ('Hello','Play'):animate_object(o,clip,[(0,0),(14,side*amp),(28,-side*amp*.5),(45,side*amp*.7),(70,0),(108,0)],index=1)
+ for o in roles.get('wave',[]):
+  for clip,amp in [('Idle',.14),('Hello',.24),('Play',.28),('Pet',.10)]:
+   end=300 if clip=='Idle' else 108;start=165 if clip=='Idle' else 10
+   animate_object(o,clip,[(0,0),(start,0),(start+12,-amp),(start+24,amp*.65),(start+38,-amp*.75),(start+53,0),(end,0)],index=1)
+ for o in roles.get('wrist',[]):
+  for clip in ('Hello','Play'):animate_object(o,clip,[(0,0),(18,-.16),(30,.13),(44,-.13),(58,0),(108,0)],index=1)
+ for o in roles.get('tail',[]):
+  for clip,amp in [('Idle',.07),('Hello',.18),('Play',.23),('Pet',.10)]:
+   if kind=='dog':amp*=1.6
+   end=300 if clip=='Idle' else 108;start=30 if clip=='Idle' else 5
+   animate_object(o,clip,[(0,0),(start,0),(start+12,amp),(start+25,-amp*.8),(start+38,amp*.6),(start+55,0),(end,0)],index=2)
+ for o in roles.get('wing',[]):
+  side=o['side']
+  for clip,amp in [('Idle',.065),('Hello',.13),('Play',.24)]:
+   end=300 if clip=='Idle' else 108;start=145 if clip=='Idle' else 10
+   animate_object(o,clip,[(0,0),(start,0),(start+12,-side*amp),(start+25,side*amp*.3),(start+40,-side*amp*.7),(start+60,0),(end,0)],index=1)
+ for o in roles.get('book',[]):
+  for clip in ('Idle','Play'):
+   end=300 if clip=='Idle' else 108
+   animate_object(o,clip,[(0,0),(end*.25,-.025),(end*.45,.018),(end*.65,0),(end,0)],index=0)
+ for o in roles.get('jaw',[]):
+  animate_object(o,'Feed',[(0,0),(16,0),(24,.10),(34,0),(44,.08),(54,0),(65,.065),(77,0),(108,0)],index=0)
+ for o in roles.get('tassel',[])+roles.get('secondary',[])+roles.get('charm',[]):
+  for clip in ('Idle','Hello','Play'):
+   end=300 if clip=='Idle' else 108
+   animate_object(o,clip,[(0,0),(end*.20,.04),(end*.32,-.025),(end*.46,.017),(end*.66,0),(end,0)],index=1)
+ # Tail and rabbit ears also bend along their length, rather than rotating
+ # every surface as one rigid block.
+ for o in parts:
+  if not o.data.shape_keys:continue
+  keys=o.data.shape_keys
+  for block in list(keys.key_blocks)[1:]:
+   for clip in ('Idle','Hello','Play'):
+    keys.animation_data_create();act=bpy.data.actions.new(clip+'_'+o.name+'_soft');keys.animation_data.action=act
+    end=300 if clip=='Idle' else 108
+    for frame,value in [(0,0),(end*.18,.45),(end*.32,-.30),(end*.50,.20),(end*.70,0),(end,0)]:
+     block.value=value;block.keyframe_insert(data_path='value',frame=frame)
+    track=keys.animation_data.nla_tracks.new();track.name=clip;strip=track.strips.new(clip,0,act);strip.extrapolation='NOTHING';track.mute=True;keys.animation_data.action=None;block.value=0
+ # Authored eyes retain the reference's smile/wink/open-eye balance.
+ for o in roles.get('eyeOpen',[])+roles.get('eyeClosed',[]):
+  isopen=o['petMotion']=='eyeOpen';default=o['eyeDefault'];base=o.scale.copy()
+  if default:
+   if isopen:
+    # Squash the entire eye including iris and glints in a real 0.23s blink.
+    animate_object(o,'Blink',[(0,0),(2,-.94),(3,-.94),(7,0)],'scale',2)
+   else:animate_object(o,'Blink',[(0,0),(2,-.28),(4,-.28),(8,0)],'scale',2)
+  else:
+   # Keep unused authored expression tiny; runtime may use it for a brief curious glance.
+   pass
+ # Muted NLA tracks are exported individually; evaluate the rest pose for portraits.
+ scene.frame_set(0)
+ for o in groups:
+  if o.animation_data:
+   for track in o.animation_data.nla_tracks:track.mute=True
+ return roles
+
 
 def build(kind):
- global root,head,parts,groups
+ global root,head,torso,parts,groups,active_kind
+ active_kind=kind
  for o in list(scene.objects):
   if o.type in ('CAMERA','LIGHT') or o.name=='Studio shadow catcher':bpy.data.objects.remove(o,do_unlink=True)
  parts=[];groups=[]
- root=bpy.data.objects.new('ReferencePlush_'+kind,None);scene.collection.objects.link(root);root['referenceVersion']='plush-school-v2';root['animal']=kind
+ root=bpy.data.objects.new('ReferencePlush_'+kind,None);scene.collection.objects.link(root);root['referenceVersion']=VERSION;root['animal']=kind
+ torso=group('Torso anchored sitting',(0,0,.56),'torso')
+ head=group('Head neck pivot',(0,.015,1.21),'head',torso)
  coat={'cat':'orange','rabbit':'white','fox':'fox','bear':'bear','owl':'milk','dog':'orange','panda':'panda','deer':'orange','hedgehog':'milk','penguin':'penguin'}[kind]
- isbird=kind in ('owl','penguin');head=group('Head',(0,-.02,1.92),'head')
- ball('Body plush',(0,.04,.87),(.64,.47,.67),coat,seg=36,rings=24)
- ball('Head plush',(0,-.04,1.93),(.80,.60,.73),('white' if kind in ('cat','panda') else coat),head,40,28)
- if kind in ('cat','dog','fox','deer'):
-  ball('Cream face bib',(0,-.26,1.69),(.72,.46,.40),'white',head)
+ body(kind,coat)
+ if kind not in ('owl','penguin'):ball('Soft neck connection',(0,-.01,1.16),(.34,.28,.24),coat,torso)
+ hc={'cat':(0,-.03,1.87),'rabbit':(0,-.03,1.91),'fox':(0,-.015,1.87),'bear':(0,-.005,1.82),'owl':(0,-.015,1.92),'dog':(-.08,-.06,1.83),'panda':(0,-.015,1.90),'deer':(0,-.02,1.91),'hedgehog':(0,-.04,1.78),'penguin':(0,-.015,1.87)}[kind]
+ hs={'cat':(.79,.55,.62),'rabbit':(.72,.52,.61),'fox':(.75,.53,.63),'bear':(.72,.53,.61),'owl':(.70,.54,.59),'dog':(.79,.54,.64),'panda':(.80,.56,.64),'deer':(.73,.53,.61),'hedgehog':(.64,.51,.55),'penguin':(.67,.52,.63)}[kind]
+ soft_head(kind,hc,hs)
+ feet(kind,coat);face(kind)
+ if kind in ('rabbit','bear','deer','hedgehog'):head.location.z-=.10
+ if kind in ('cat','fox','dog'):
   for side in (-1,1):
-   tuft((side*.72,-.27,1.74),'white',head);tuft((side*.65,-.31,1.59),'white',head,.13)
-  ball('Cream chest',(0,-.35,.97),(.40,.16,.46),'white')
- if kind=='cat':
-  for side in (-1,1):ball('Apricot head patch',(side*.40,.015,2.21),(.40,.55,.40),'orange',head)
-  for x in (-.24,0,.24):rod('Cat forehead stripe',(x,-.43,2.48),(x*.8,-.52,2.34),.045,'fox',head)
-  for side in (-1,1):
-   ear(side,'point','orange')
-   for dz in (0,.13):curve('Cocoa whisker',[(side*.57,-.63,1.72+dz),(side*.84,-.65,1.77+dz)],.016,'bear',head)
-  eyes();scarf();tail(coat,kind);front_paws('white')
+   ear(side,'dog' if kind=='dog' else 'point',coat)
+   for j in range(3):tuft((side*(.61+j*.035),-.27,1.59+j*.10),'white',head,.15)
+  if kind=='cat':
+   for side in (-1,1):
+    for dz in (0,.12):curve('Cocoa whisker',[(side*.53,-.58,1.72+dz),(side*.77,-.59,1.76+dz)],.011,'bear',head)
+   for x in (-.20,0,.20):tapered_leaf('Cat forehead stripe',(x,-.41,2.35),(x*.92,-.49,2.21),.025,.015,'fox',head)
+   scarf(True);tail(kind)
+  if kind=='fox':cape();hat(kind);tail(kind);star((0,-.44,1.19),.16,torso)
+  if kind=='dog':dog_satchel();tail(kind)
  elif kind=='rabbit':
-  for side in (-1,1):ear(side,'rabbit','white',loc=(side*.64,.04,2.45))
-  bow((-.39,-.46,2.58),head);eyes('wink');paws('white');ball('Cotton tail',(-.60,.32,.59),(.30,.28,.32),'white');book();hands('white')
- elif kind=='fox':
-  for side in (-1,1):ear(side,'point','fox')
-  eyes();cape();hat();tail(coat,kind);front_paws('fox','dark')
+  for side in (-1,1):ear(side,'rabbit','white',loc=(side*.48,.0,2.30))
+  bow((-.38,-.40,2.43),head,1.0);ball('Cotton tail',(-.56,.26,.45),(.23,.23,.26),'white')
+  prop=book();arms(kind,coat,prop);head.rotation_euler[1]=-.045
  elif kind=='bear':
-  for side in (-1,1):ear(side,'round','bear')
-  eyes('wink');paws('bear');sweater();backpack();pencil();hands('bear',True);star((.35,-.49,1.14),.16)
- elif kind=='owl':
-  for side in (-1,1):
-   ball('Owl cream facial disc',(side*.34,-.49,1.97),(.39,.20,.47),'white',head)
-   tuft((side*.64,-.01,2.39),'milk',head,.26)
-  eyes('open',True);glasses();hat();paws('gold',False,True);scarf()
-  for row in range(4):
-   for col in range(5-row%2):
-    x=(col-(4-row%2)/2)*.21;o=ball('Layered breast feather',(x,-.40-.035*row,.48+row*.16),(.14,.08,.21),'milk');o.rotation_euler[1]=x*.20
-  for side in (-1,1):
-   wing=group('ArmWing'+str(side),(side*.55,.0,1.00),'wing')
-   for i in range(5):
-    o=ball('Layered wing feather',(side*(.62+i*.09),-.05,1.03+i*.10),(.15,.12,.37),'milk',wing);o.rotation_euler[1]=side*(.7+i*.13)
- elif kind=='dog':
-  for side in (-1,1):ear(side,'point','orange')
-  ball('Corgi white blaze',(0,-.64,2.18),(.14,.065,.43),'white',head);eyes();ball('Corgi hanging tongue',(0,-.82,1.50),(.105,.045,.17),'tongue',head);front_paws('white');tail(coat,kind)
-  curve('Corgi orange collar',[(.50*math.cos(a),.37*math.sin(a),1.25) for a in np.linspace(0,math.tau,48,endpoint=False)],.08,'book',closed=True);star((0,-.47,1.15),.18)
-  g=group('Corgi saddle satchel');box('Saddle leather bag',(.56,.11,.91),(.45,.39,.56),'book',g,.08);box('Satchel orange flap',(.57,-.11,1.01),(.48,.07,.40),'orange',g,.04);book_logo((.57,-.16,.98),.13,g)
-  for x in (-.47,.47):curve('Saddle straps',[(x,-.21,.45),(x,-.26,1.22),(x,.18,1.32)],.035,'gold',g)
+  for side in (-1,1):ear(side,'round','bear',loc=(side*.50,.01,2.20))
+  # Broad cream muzzle is a defining teddy-bear feature in the reference.
+  ball('Teddy cream muzzle',(0,-.53,1.65),(.32,.17,.28),'milk',head)
+  # Restore mouth/nose to the front of this muzzle, maintaining their shared jaw pivot.
+  for o in list(head.children):
+   if o.get('petMotion')=='jaw':o.location.y-=.045
+  sweater();backpack(kind);pen=pencil(kind);arms(kind,coat);star((.34,-.39,1.01),.145,torso)
  elif kind=='panda':
-  for side in (-1,1):
-   ear(side,'round','panda');o=ball('EyePatch',(side*.34,-.59,2.00),(.25,.095,.27),'panda',head);o.rotation_euler[1]=side*.22
-  eyes();paws('panda');ball('Panda belly',(0,-.36,.88),(.40,.15,.44),'white');scarf(False);backpack();hands('panda',True)
-  g=group('Dangling book charm');box('Book charm',(-.72,-.19,.56),(.25,.06,.22),'page',g,.025);book_logo((-.72,-.23,.50),.075,g)
-  curve('Gold charm chain',[(-.63,-.11,.97),(-.67,-.13,.78),(-.72,-.17,.69)],.018,'gold',g)
+  for side in (-1,1):ear(side,'round','panda',loc=(side*.52,.03,2.27))
+  scarf(False,1,kind);backpack(kind,'star');arms(kind,coat);head.rotation_euler[1]=-.075
  elif kind=='deer':
+  for side in (-1,1):ear(side,'deer','orange',loc=(side*.57,.03,2.14))
+  antlers();bow((-.47,-.32,2.48),head,.92);scarf(False,-1,kind)
+  for x,z,r in [(-.09,2.37,.043),(.06,2.41,.05),(.15,2.31,.042),(.02,2.27,.038)]:ball('Deer forehead spot',(x,-.43,z),(r,.012,r),'spot',head,16,10)
   for side in (-1,1):
-   g=ear(side,'round','orange',loc=(side*.70,-.01,2.22));g.scale=(1.2,1,.70)
-   a=group('Antler'+str(side),parent=head);rod('Antler stem',(side*.39,.08,2.44),(side*.45,.07,3.02),.07,'bear',a)
-   for j in range(2):rod('Antler branch',(side*.42,.08,2.65+j*.20),(side*(.68-j*.12),.08,2.78+j*.20),.065,'bear',a)
-  for x,z,r in [(-.12,2.51,.045),(0,2.55,.05),(.14,2.50,.045),(.07,2.40,.04)]:ball('Deer forehead spot',(x,-.39,z),(r,.025,r),'white',head,16,10)
-  for x,z in [(-.45,.76),(-.51,.92),(-.40,1.03)]:ball('Deer coat spot',(x,-.34,z),(.06,.025,.08),'white')
-  bow((-.51,-.46,2.53),head);eyes();paws('dark',False);scarf(False);book(spiral=True);hands('white');ball('Deer white tail',(-.67,.25,.68),(.18,.17,.34),'white')
+   for j in range(5):ball('Deer coat spot',(side*(.42+.045*(j%2)),-.23,.50+j*.09),(.045,.012,.055),'spot',torso,16,10)
+  prop=book(spiral=True);arms(kind,'white',prop);tail(kind)
  elif kind=='hedgehog':
-  # Distinct individually rounded quills fan around the silhouette.
-  for row in range(3):
-   for j in range(15):
-    a=-.30+j/14*(math.pi+.60);x=math.cos(a)*(.71+row*.06);z=1.70+math.sin(a)*(.70+row*.08)-row*.22
-    o=ball('Soft caramel quill',(x,.12+row*.12,z),(.16,.19,.32),'spine');o.rotation_euler[1]=math.pi/2-a
-  for side in (-1,1):ear(side,'round','milk',loc=(side*.60,-.07,2.13))
-  eyes();paws('milk');sweater();backpack();pencil();hands('milk');star((-.55,-.50,2.48),.18,head)
+  quills()
+  for side in (-1,1):ear(side,'round','milk',loc=(side*.48,-.08,1.99))
+  sweater();backpack(kind);pen=pencil(kind);arms(kind,coat,pen);star((-.45,-.39,2.24),.14,head)
+ elif kind=='owl':
+  for side in (-1,1):tapered_leaf('Owl swept eyebrow tuft',(side*.44,-.07,2.22),(side*.78,.0,2.43),.12,.07,'milk',head)
+  owl_wings();scarf(True,-1,kind);glasses(kind);hat(kind)
  elif kind=='penguin':
-  for side in (-1,1):ball('Penguin cream face',(side*.29,-.48,1.96),(.34,.19,.46),'white',head)
-  ball('Penguin white tummy',(0,-.38,.79),(.43,.15,.49),'white');eyes('smile',True);glasses();hat();paws('gold',False,True);cape();scarf(False);book(True);hands('penguin')
- # Stitched fur clumps around the cheeks and crown give a plush silhouette.
- if kind not in ('owl','penguin','hedgehog'):
-  for side in (-1,1):
-   for i in range(4):tuft((side*(.61+i*.035),-.05,1.60+i*.13),'white' if kind in ('cat','dog','fox','deer') else coat,head,.10)
- # Export selected actual pet geometry and pivots; retain normal maps in GLB.
+  cape();scarf(False,-1,kind);glasses(kind);hat(kind);prop=book(opened=True);arms(kind,coat,prop)
+ head.rotation_euler[0]-=.10
+ author_motion(kind)
+ # A small reference turn shows depth and the side bag/tail without hiding the face.
+ root.rotation_euler[2]=math.radians(-8 if kind in ('cat','panda','bear','hedgehog') else 7)
  bpy.ops.object.select_all(action='DESELECT');root.select_set(True)
  for o in parts+groups:o.select_set(True)
- bpy.ops.export_scene.gltf(filepath=str(OUT/(kind+'.glb')),export_format='GLB',use_selection=True,export_yup=True,export_materials='EXPORT',export_extras=True,export_image_format='WEBP',export_image_quality=86)
- # Studio portraits share the detailed model, no painted replacement characters.
- bpy.ops.object.camera_add(location=(2.6,-8.6,3.25));cam=bpy.context.object;cam.rotation_euler=(Vector((0,0,1.52))-cam.location).to_track_quat('-Z','Y').to_euler();cam.data.type='ORTHO';cam.data.ortho_scale=3.75;scene.camera=cam
- for loc,power,size,color in [((-3,-4,6),650,5,(1,.87,.72)),((4,-2,4),380,4,(1,.94,.85)),((0,4,5),750,3,(1,.72,.51))]:
-  bpy.ops.object.light_add(type='AREA',location=loc);l=bpy.context.object;l.data.energy=power;l.data.color=color;l.data.size=size;l.rotation_euler=(Vector((0,0,1.3))-l.location).to_track_quat('-Z','Y').to_euler()
- bpy.ops.mesh.primitive_plane_add(size=200,location=(0,0,-.025));floor=bpy.context.object;floor.name='Studio shadow catcher';floor.is_shadow_catcher=True
- scene.render.image_settings.file_format='WEBP';scene.render.image_settings.quality=92
- scene.render.filepath=str(OUT/(kind+'.webp'));bpy.ops.render.render(write_still=True)
- manifest.append({'animal':kind,'version':'plush-school-v2','meshes':len(parts),'bytes':(OUT/(kind+'.glb')).stat().st_size,'portrait':[768,768]})
- print('FINISHED_REFERENCE_PET',kind,'meshes',len(parts),'bytes',manifest[-1]['bytes'],flush=True)
- col=bpy.data.collections.new(kind.title()+' / reference plush');scene.collection.children.link(col)
+ bpy.ops.export_scene.gltf(filepath=str(OUT/(kind+'.glb')),export_format='GLB',use_selection=True,export_yup=True,export_materials='EXPORT',export_extras=True,export_image_format='WEBP',export_image_quality=82,export_animations=True,export_animation_mode='NLA_TRACKS',export_force_sampling=True,export_frame_step=2)
+ # Portrait is rendered from the very same editable geometry and reference expression.
+ scene.frame_set(0)
+ for o in groups:
+  if o.animation_data:
+   for track in o.animation_data.nla_tracks:track.mute=True
+ bpy.ops.object.camera_add(location=(2.2,-8,3.3));cam=bpy.context.object;cam.rotation_euler=(Vector((0,0,1.35))-cam.location).to_track_quat('-Z','Y').to_euler();cam.data.type='ORTHO';cam.data.ortho_scale=3.35;scene.camera=cam
+ for loc,power,size,color in [((-3,-4,6),600,5,(1,.88,.76)),((4,-2,4),280,4,(1,.95,.88)),((0,4,5),800,3,(1,.72,.53))]:
+  bpy.ops.object.light_add(type='AREA',location=loc);l=bpy.context.object;l.data.energy=power;l.data.color=color;l.data.size=size;l.rotation_euler=(Vector((0,0,1.35))-l.location).to_track_quat('-Z','Y').to_euler()
+ bpy.ops.mesh.primitive_plane_add(size=200,location=(0,0,-.015));floor=bpy.context.object;floor.name='Studio shadow catcher';floor.is_shadow_catcher=True
+ scene.render.image_settings.file_format='WEBP';scene.render.image_settings.quality=92;scene.render.filepath=str(OUT/(kind+'.webp'));bpy.ops.render.render(write_still=True)
+ # Store an editable individual native source as well as the assembled ten-pet file.
+ col=bpy.data.collections.new(kind.title()+' / reference atelier');scene.collection.children.link(col)
  for o in [root]+parts+groups:
   for old in list(o.users_collection):old.objects.unlink(o)
   col.objects.link(o)
+ manifest.append({'animal':kind,'version':VERSION,'meshes':len(parts),'bytes':(OUT/(kind+'.glb')).stat().st_size,'portrait':[640,640],'motion':'Blender authored NLA clips','expression':'open' if kind=='owl' else 'wink' if kind in ('bear','rabbit') else 'smile'})
+ print('FINISHED_ATELIER',kind,manifest[-1],flush=True)
  col.hide_render=True;col.hide_viewport=True;collections.append((col,root))
 
 kinds=['cat','rabbit','fox','bear','owl','dog','panda','deer','hedgehog','penguin']
 selected=sys.argv[sys.argv.index('--')+1:] if '--' in sys.argv else kinds
 for kind in selected:build(kind)
-# Keep all ten editable characters in separately named native collections.
 for i,(col,petroot) in enumerate(collections):
- col.hide_render=False;col.hide_viewport=False
- petroot.location.x=(i%5-2)*3.25;petroot.location.z=(1-i//5)*3.6
-scene.camera.location=(0,-18,5.8);scene.camera.rotation_euler=(Vector((0,0,3.2))-scene.camera.location).to_track_quat('-Z','Y').to_euler();scene.camera.data.ortho_scale=17.2
+ col.hide_render=False;col.hide_viewport=False;petroot.location.x=(i%5-2)*3.25;petroot.location.z=(1-i//5)*3.6
+scene.camera.location=(0,-18,6.4);scene.camera.rotation_euler=(Vector((0,0,3.15))-scene.camera.location).to_track_quat('-Z','Y').to_euler();scene.camera.data.ortho_scale=17.1
 scene.render.resolution_x=1800;scene.render.resolution_y=920
-scene['Reference']='Ten school plush companions, recreated as editable meshes with packed fibre/knit normal maps.'
-scene['Collections']='Cat, rabbit, fox, bear, owl, corgi, panda, deer, hedgehog, penguin.'
+scene['Reference']='Hand rebuilt from the supplied six-pet and four-pet reference images. Preserve smile/wink expressions.'
+scene['Motion']='Authored seated acting clips: Idle, Hello, Feed, Pet, Play and Blink. NLA track names match the web mixer.'
 (BASE/'design/pets').mkdir(parents=True,exist_ok=True)
 if selected==kinds:bpy.ops.wm.save_as_mainfile(filepath=str(BASE/'design/pets/reference-companions.blend'),compress=True)
 existing=json.loads((OUT/'manifest.json').read_text()) if (OUT/'manifest.json').exists() else []

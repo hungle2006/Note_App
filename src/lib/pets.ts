@@ -12,7 +12,7 @@ export const petCatalog=[
  {id:'pet-deer',animal:'deer',name:'Hươu Sao',species:'Hươu',cost:180,color:'#e8dfd0',emoji:'🦌',description:'Hiền lành, thanh thoát với đôi gạc nhỏ màu kem.'},
 ] as const;
 export type Pet=typeof petCatalog[number];
-export const petAssetVersion='plush-school-v2';
+export const petAssetVersion='reference-atelier-v3';
 export const petPortrait=(animal:string)=>'/pets/'+animal+'.webp?v='+petAssetVersion;
 export const petModel=(animal:string)=>'/pets/'+animal+'.glb?v='+petAssetVersion;
 export type PetAction='hello'|'feed'|'play'|'pet';

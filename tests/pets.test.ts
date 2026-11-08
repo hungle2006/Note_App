@@ -30,6 +30,7 @@ test('ten distinct Blender models have valid GLB structure, portraits and expres
   for(const root of json.scenes[json.scene||0].nodes)visit(root,new Matrix4());
   const poster=readFileSync(new URL('../public/pets/'+pet.animal+'.webp',import.meta.url));assert.equal(poster.subarray(0,4).toString(),'RIFF');assert.equal(poster.subarray(8,12).toString(),'WEBP');
   assert.ok(json.materials.some((m:{normalTexture?:unknown})=>m.normalTexture),'packed plush/knit normal maps');
+  assert.ok(json.materials.some((m:{pbrMetallicRoughness?:{baseColorTexture?:unknown}})=>m.pbrMetallicRoughness?.baseColorTexture),'smooth painted coat boundaries');
   assert.ok(glb.length<2800000,'mobile model size budget');
  }
 });
@@ -45,13 +46,13 @@ const referenceFeatures:Record<string,string[]>={
  cat:['Knitted scarf wrap','Tail plush','Cocoa whisker','Cat forehead stripe','Star gold bezel'],
  rabbit:['Bow folded satin loop','Long floppy ear','Leather book cover','Paw toe pad'],
  fox:['Cape velvet','Graduation mortarboard','Tail plush','Gold tassel cord'],
- bear:['Cream knitted sweater','Leather backpack','Hexagonal pencil','Waving paw pad'],
+ bear:['Cream knitted sweater','Leather backpack','Hexagonal pencil','Paw large heart pad'],
  owl:['Layered breast feather','Round gold spectacle rim','Graduation mortarboard','Layered wing feather'],
- dog:['Corgi white blaze','Saddle leather bag','Corgi orange collar','Tail plush','Corgi hanging tongue'],
- panda:['EyePatch','Leather backpack','Knitted scarf wrap','Book charm'],
+ dog:['Corgi short leg','Saddle leather bag','Corgi orange collar','Tail plush','Corgi hanging tongue'],
+ panda:['Head plush','Leather backpack','Knitted scarf wrap','Book charm'],
  deer:['Antler branch','Deer forehead spot','Notebook spiral','Bow folded satin loop'],
  hedgehog:['Soft caramel quill','Leather backpack','Hexagonal pencil','Cream knitted sweater'],
- penguin:['Penguin cream face','Round gold spectacle rim','Graduation mortarboard','Open leather cover','Cape velvet']
+ penguin:['Head plush','Round gold spectacle rim','Graduation mortarboard','Open leather cover','Cape velvet']
 };
 test('all ten reference species and their identifying accessories are actual GLB meshes',()=>{
  assert.deepEqual(petCatalog.map(p=>p.animal).sort(),Object.keys(referenceFeatures).sort());
