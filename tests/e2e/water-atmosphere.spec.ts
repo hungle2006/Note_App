@@ -16,7 +16,7 @@ for(const width of [320,390,760,1280]){
   if(await atmosphere.getAttribute("data-mode")==="webgl"){
    await expect(canvas).toBeVisible();
    await expect(canvas).toHaveAttribute("data-surface","blender");
-   await expect(canvas).toHaveAttribute("data-lenses",width<=760?"5":"6");
+   await expect(canvas).toHaveAttribute("data-lenses",width<=760?"5":"7");
    const firstFrame=await canvas.getAttribute("data-frames");
    await expect.poll(()=>canvas.getAttribute("data-frames")).not.toBe(firstFrame);
   }else{

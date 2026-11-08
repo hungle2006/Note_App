@@ -11,29 +11,32 @@ Rebuild with `blender --background --python scripts/blender/build_study_atlas.py
 
 The web component lazily loads Three.js/GLB on visible desktop scenes, caps device pixel ratio and rendering at 30 fps, pauses rendering off-screen, and releases resources on unmount. Mobile, reduced motion and WebGL errors retain the poster. The shared motion button also stops the interactive renderer.
 
-## Peach water background
+## Reference liquid background — revised
 
-`peach-water.blend` is the editable background scene: asymmetric liquid lenses,
-water IOR 1.333, white studio reflections, apricot bounce, two liquid shape keys
-and a 480-frame / 24fps floating animation. Rebuild with:
+`peach-water.blend` contains four independently sculpted profiles: a small bead,
+a curved elongated ribbon, a tall amber lens and a broad flowing wave. Twelve
+placements are traced from the supplied 1200 × 675 reference. There are seven
+large edge/hero forms and five smaller beads; the text field remains clear.
+
+Rebuild the scene/mesh data and optical renders with:
 
 ```sh
-blender --background --python scripts/water/build_surface.py -- --render
+blender --background --python scripts/water/build_surface.py
+blender --background --python scripts/water/build_sprite.py
 ```
 
-`public/water/drop-surface.json` contains the same triangulated mesh, both
-shape keys and normalized edge composition. The website renders these live
-with Three MeshPhysicalMaterial transmission; the studio background is in
-the WebGL scene so it refracts correctly. The small free drops use damped
-contact physics. This is a lightweight visual approximation of surface tension,
-not a baked fluid simulation. The reference image supplied no motion footage,
-so slow drift, gentle rotation and shape recovery were designed to suit it.
+The native node material and browser shader use matching normal-driven curved
+white highlights, a warm lower caustic and a restrained blue-gray reflection.
+These are art-directed liquid optics, not a fluid solver or physical ray-traced
+refraction. No rectangular light panels or dark glass outlines are used.
 
-The renderer pauses when the document is hidden and honors the existing 3D
-switch and reduced-motion setting. Mobile uses six free drops and five edge
-lenses, a capped pixel ratio and a smaller transmission buffer.
+`src/lib/water-composition.json` drives both the live mesh scene and individual
+Blender-rendered WebP layers. Unlike the first implementation, no single round
+sprite is stretched into every shape. The live renderer animates both authored
+shape keys and normals. Without WebGL, each rendered layer has its own slow
+float, slight turn and breathing transform. Both follow the same composition.
 
-Non-WebGL devices use `public/water/peach-drop.png`, rendered from the same
-Blender mesh by `scripts/water/build_sprite.py`. Separate CSS transforms keep
-the lenses floating independently. This also covers WebGL loading and context
-loss. It is an optical sprite fallback, without live refraction/collisions.
+The editable native animation lasts 25 seconds. Drift stays close to the traced
+positions rather than letting drops migrate over the text. Mobile omits the
+middle ribbon and lower crest, caps pixel ratio, and retains the existing 3D
+switch/reduced-motion preference. Both rendering paths pause in hidden tabs.

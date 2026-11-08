@@ -135,37 +135,29 @@
  :root[data-motion="on"][data-theme="light"] .landing-nav{margin:10px 10px 0;padding:14px 12px;border-radius:20px}
 }
 
-/* A Blender-rendered optical fallback also covers WebGL loading or context loss.
-   Each lens floats separately, rather than translating a background screenshot. */
+/* Individually authored optical assets: no repeated spherical sticker or stretching.
+   The 2.4-unit sprite frame matches Blender's orthographic authoring camera. */
 .water-fallback{position:absolute;inset:0;overflow:hidden;
- background:radial-gradient(ellipse at 85% 20%,#ffd1bb 0,transparent 53%),
-  radial-gradient(ellipse at 15% 100%,#ffceab 0,transparent 46%),#fff2e7;
+ background:radial-gradient(ellipse at 86% 20%,#ffc5b0 0,transparent 61%),
+  radial-gradient(ellipse at 22% 41%,#fff9f2 0,transparent 52%),
+  linear-gradient(160deg,#ffe5d8 0%,#ffeadd 50%,#edc0a7 100%);
 }
 .water-atmosphere[data-mode="webgl"] .water-fallback{display:none}
 .water-atmosphere:not([data-mode="webgl"]) .liquid-canvas{visibility:hidden}
-.peach-water-sprite{position:absolute;width:var(--drop-size);height:calc(var(--drop-size) * 1.25);
+.peach-water-sprite{position:absolute;width:var(--drop-size);height:var(--drop-size);
  transform:translate(-50%,-50%) rotate(var(--drop-angle));
- animation:peach-water-float 22s ease-in-out infinite;animation-delay:var(--drop-delay);
+ animation:peach-water-float 25s ease-in-out infinite;animation-delay:var(--drop-delay);
  will-change:transform;
 }
-.peach-water-sprite img{display:block;width:100%;height:100%;object-fit:contain;mix-blend-mode:screen;opacity:.9}
-.water-lens:nth-child(2),.water-lens:nth-child(4){
- background:radial-gradient(ellipse,#ffa74375,transparent 64%);border-radius:50%;
-}
-.water-bead{animation-duration:17s}
-.water-lens:nth-child(4){width:calc(var(--drop-size) * 1.6);height:calc(var(--drop-size) * .84)}
-.water-lens:nth-child(5){width:calc(var(--drop-size) * 1.5);height:calc(var(--drop-size) * .85)}
-.water-lens:nth-child(6){width:calc(var(--drop-size) * 1.45);height:calc(var(--drop-size) * .8)}
+.peach-water-sprite img{display:block;width:100%;height:100%;object-fit:contain}
 @keyframes peach-water-float{
  0%,100%{transform:translate(-50%,-50%) rotate(var(--drop-angle)) scale(1,1)}
- 33%{transform:translate(calc(-50% + 9px),calc(-50% - 12px)) rotate(calc(var(--drop-angle) + 5deg)) scale(1.025,.977)}
- 68%{transform:translate(calc(-50% - 7px),calc(-50% + 8px)) rotate(calc(var(--drop-angle) - 4deg)) scale(.982,1.019)}
+ 33%{transform:translate(calc(-50% + 4px),calc(-50% - 5px)) rotate(calc(var(--drop-angle) + 1.5deg)) scale(1.012,.988)}
+ 68%{transform:translate(calc(-50% - 4px),calc(-50% + 4px)) rotate(calc(var(--drop-angle) - 1.5deg)) scale(.99,1.01)}
 }
 :root[data-theme="dark"] .water-fallback{background:radial-gradient(ellipse at 85% 20%,#422516,transparent 62%),#140f0d}
-:root[data-theme="dark"] .peach-water-sprite{opacity:.46}
+:root[data-theme="dark"] .peach-water-sprite{opacity:.42}
 @media(max-width:760px){
- .water-fallback .water-lens:nth-child(6),.water-fallback .water-bead:nth-child(n+11){display:none}
- .peach-water-sprite{width:calc(var(--drop-size) * 1.12);height:calc(var(--drop-size) * 1.4)}
+ .water-middle-lens,.water-bottom-crest{display:none}
 }
-
 .water-atmosphere[data-paused="true"] .peach-water-sprite{animation-play-state:paused}
