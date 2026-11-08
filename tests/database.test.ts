@@ -24,7 +24,7 @@ test('Turso schema is repeatable and SQL-console migration preserves existing no
  await client.executeMultiple(readFileSync(new URL('../database/001_turso.sql',import.meta.url),'utf8'));
  assert.equal((await repo.getNote('alice',n.id)).content,input.content);
  const migrations=await client.execute('SELECT version FROM app_migrations');assert.deepEqual(migrations.rows.map(x=>x.version).sort(),["turso-001",schemaVersion].sort());
- const tables=await client.execute("SELECT name FROM sqlite_master WHERE type='table' AND name LIKE 'app_%'");assert.equal(tables.rows.length,8);assert.ok(tables.rows.some(row=>row.name==="app_fitness_sessions"));
+ const tables=await client.execute("SELECT name FROM sqlite_master WHERE type='table' AND name LIKE 'app_%'");assert.equal(tables.rows.length,9);assert.ok(tables.rows.some(row=>row.name==="app_fitness_sessions"));
 });
 
 test('notes round-trip Vietnamese, images and UTC timestamps; all CRUD enforces owner',async t=>{
@@ -157,4 +157,42 @@ test('pet purchase failure rolls back ownership and debit atomically',async t=>{
  await client.execute("CREATE TRIGGER fail_pet BEFORE INSERT ON app_points_ledger WHEN NEW.kind='redeem' BEGIN SELECT RAISE(ABORT,'test failure'); END");
  await assert.rejects(repo.redeemReward('alice','pet-cat'));
  const wallet=await repo.getWallet('alice');assert.equal(wallet.balance,100);assert.deepEqual(wallet.redeemed,[]);
+});
+
+test('conversation threads keep separate histories and reject foreign owners',async t=>{
+ const {repo}=await database(t);
+ const n=await repo.saveNote('alice',input);
+ const first=await repo.createChatThread('alice',undefined,6);
+ const second=await repo.createChatThread('alice',undefined,6);
+ const scoped=await repo.createChatThread('alice',n.id,6);
+ assert.notEqual(first.id,second.id);
+ assert.equal((await repo.listChatThreads('alice',undefined,6)).length,2);
+ assert.equal((await repo.listChatThreads('alice',n.id,6)).length,1);
+ await repo.saveChatThread('alice',first.id,messages);
+ assert.deepEqual((await repo.getChatThread('alice',first.id)).messages,messages);
+ assert.equal((await repo.getChatThread('alice',first.id)).title,'Giải thích quy đồng mẫu số');
+ assert.deepEqual((await repo.getChatThread('alice',second.id)).messages,[]);
+ await assert.rejects(repo.getChatThread('bob',first.id),rejectsCode('CHAT_NOT_FOUND'));
+ await assert.rejects(repo.saveChatThread('bob',first.id,messages),rejectsCode('CHAT_NOT_FOUND'));
+ await assert.rejects(repo.deleteChatThread('bob',first.id),rejectsCode('CHAT_NOT_FOUND'));
+ await assert.rejects(repo.createChatThread('bob',n.id,6),rejectsCode('NOT_FOUND'));
+ await assert.rejects(repo.createChatThread('alice',n.id,7),rejectsCode('INVALID_GRADE'));
+ await repo.deleteChatThread('alice',first.id);
+ await assert.rejects(repo.getChatThread('alice',first.id),rejectsCode('CHAT_NOT_FOUND'));
+ assert.equal((await repo.listChatThreads('alice',undefined,6)).length,1);
+ await repo.deleteNote('alice',n.id);
+ await assert.rejects(repo.getChatThread('alice',scoped.id),rejectsCode('CHAT_NOT_FOUND'));
+});
+
+test('legacy tutor history migrates once and deleted history never reappears',async t=>{
+ const {repo}=await database(t);
+ await repo.saveChat('alice',messages,undefined,6);
+ const initial=await repo.listChatThreads('alice',undefined,6);
+ assert.equal(initial.length,1);
+ assert.equal(initial[0].title,'Giải thích quy đồng mẫu số');
+ assert.deepEqual((await repo.getChatThread('alice',initial[0].id)).messages,messages);
+ assert.deepEqual(await repo.getChat('alice',undefined,6),[]);
+ await repo.deleteChatThread('alice',initial[0].id);
+ assert.deepEqual(await repo.listChatThreads('alice',undefined,6),[]);
+ assert.deepEqual(await repo.listChatThreads('bob',undefined,6),[]);
 });
