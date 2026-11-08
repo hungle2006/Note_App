@@ -97,7 +97,7 @@ export function AuthForm({ mode, quickStart=false }: { mode: "login" | "register
       setCompleted(true);
     } catch (e) {
       const code=(e as {code?:string})?.code;
-      if(code==="auth/popup-blocked"||code==="auth/operation-not-supported-in-this-environment"){
+      if(quickStart&&(code==="auth/popup-blocked"||code==="auth/operation-not-supported-in-this-environment")){
         try{await signInWithRedirect(firebaseAuth(),new GoogleAuthProvider());return;}
         catch(redirectError){setError(authError(redirectError));}
       }else setError(authError(e));
