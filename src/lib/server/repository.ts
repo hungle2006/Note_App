@@ -164,7 +164,7 @@ export function createRepository(client:Client) {
    const r=await client.execute({sql:`UPDATE app_chat_threads SET messages_json=:messages,
     title=CASE WHEN title='Cuộc trò chuyện mới' THEN :title ELSE title END,
     updated_at=strftime('%Y-%m-%dT%H:%M:%fZ','now') WHERE user_id=:uid AND thread_id=:id`,
-    args:{uid,id,messages:JSON.stringify(messages.slice(-30)),title}});
+    args:{uid,id,messages:JSON.stringify(messages.slice(-120)),title}});
    if(!r.rowsAffected)throw chatMissing();
   },
   async deleteChatThread(uid:string,id:string) {
