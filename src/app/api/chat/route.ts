@@ -34,7 +34,7 @@ export async function POST(r:Request){try{
  const messages=[...history.slice(-9),{role:"user" as const,content:input.message}];
  await consumeAiQuota(u.uid);
  const answer=await tutor(messages,sources,selected?.grade||grade,input.mode);
- const updated=[...history,{role:"user" as const,content:input.message},{role:"assistant" as const,content:answer,sources}].slice(-30);
+ const updated=[...history,{role:"user" as const,content:input.message},{role:"assistant" as const,content:answer,sources}].slice(thread?-120:-30);
  if(thread)await saveChatThread(u.uid,thread.id,updated);
  else await saveChat(u.uid,updated,noteId,grade);
  return json({messages:updated,sources,provider:"groq",threadId:thread?.id||null});
