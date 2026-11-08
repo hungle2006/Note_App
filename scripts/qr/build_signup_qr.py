@@ -2,7 +2,7 @@
 import pathlib
 import qrcode
 import qrcode.image.svg
-url='https://noteappme.vercel.app/register?source=qr'
+url='https://note-appme.vercel.app/register?source=qr'
 qr=qrcode.QRCode(error_correction=qrcode.constants.ERROR_CORRECT_M,box_size=8,border=4)
 qr.add_data(url);qr.make(fit=True)
 root=pathlib.Path(__file__).resolve().parents[2]
