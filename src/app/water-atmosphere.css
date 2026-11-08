@@ -96,18 +96,30 @@
 .water-atmosphere:not([data-mode="webgl"]) .liquid-canvas{visibility:hidden}
 .peach-water-sprite{position:absolute;width:var(--drop-size);height:var(--drop-size);
  transform:translate(-50%,-50%) rotate(var(--drop-angle));
- animation:peach-water-float 25s ease-in-out infinite;animation-delay:var(--drop-delay);
+ animation:peach-water-float var(--float-duration,17s) cubic-bezier(.45,0,.55,1) infinite;animation-delay:var(--drop-delay);
  will-change:transform;
 }
 .peach-water-sprite img{display:block;width:100%;height:100%;object-fit:contain}
+/* Independent drift and surface deformation keep moving on different clocks. */
+.water-flow-defs{position:absolute;overflow:visible;pointer-events:none}
+.water-surface{display:block;width:100%;height:100%;transform-origin:50% 50%;
+ animation:peach-water-breathe var(--flow-duration,11s) cubic-bezier(.45,0,.55,1) infinite;
+ animation-delay:var(--drop-delay);will-change:transform;
+}
 @keyframes peach-water-float{
- 0%,100%{transform:translate(-50%,-50%) rotate(var(--drop-angle)) scale(1,1)}
- 33%{transform:translate(calc(-50% + 4px),calc(-50% - 5px)) rotate(calc(var(--drop-angle) + 1.5deg)) scale(1.012,.988)}
- 68%{transform:translate(calc(-50% - 4px),calc(-50% + 4px)) rotate(calc(var(--drop-angle) - 1.5deg)) scale(.99,1.01)}
+ 0%,100%{transform:translate(-50%,-50%) rotate(calc(var(--drop-angle) - 2deg))}
+ 30%{transform:translate(calc(-50% + clamp(10px,1.8vmin,22px)),calc(-50% - clamp(12px,2vmin,24px))) rotate(calc(var(--drop-angle) + 4deg))}
+ 68%{transform:translate(calc(-50% - clamp(9px,1.5vmin,18px)),calc(-50% + clamp(9px,1.5vmin,18px))) rotate(calc(var(--drop-angle) - 4deg))}
+}
+@keyframes peach-water-breathe{
+ 0%,100%{transform:scale(1.015,.985) skew(0deg,0deg)}
+ 34%{transform:scale(1.065,.939) skew(2.4deg,-1.2deg)}
+ 71%{transform:scale(.945,1.058) skew(-2deg,1.6deg)}
 }
 :root[data-theme="dark"] .water-fallback{background:radial-gradient(ellipse at 85% 20%,#422516,transparent 62%),#140f0d}
 :root[data-theme="dark"] .peach-water-sprite{opacity:.42}
 @media(max-width:760px){
  .water-middle-lens,.water-bottom-crest{display:none}
 }
-.water-atmosphere[data-paused="true"] .peach-water-sprite{animation-play-state:paused}
+.water-atmosphere[data-paused="true"] .peach-water-sprite,
+.water-atmosphere[data-paused="true"] .water-surface{animation-play-state:paused}

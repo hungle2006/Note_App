@@ -12,8 +12,15 @@ export function AppearanceProvider({children}:{children:React.ReactNode}){
   const [dark,setDark]=useState(false);
   const [motion,setMotion]=useState(true);
   useEffect(()=>{
-    setDark(document.documentElement.dataset.theme==='dark');
-    setMotion(document.documentElement.dataset.motion!=='off');
+    const root=document.documentElement;
+    // Hydration also initializes these attributes if the early inline script
+    // could not run. This keeps the water behind the content on a fresh load.
+    let savedTheme:string|null=null,savedMotion:string|null=null;
+    try{savedTheme=localStorage.getItem('notelab-theme');savedMotion=localStorage.getItem('notelab-motion');}catch{}
+    root.dataset.theme??=savedTheme||(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');
+    root.dataset.motion??=matchMedia('(prefers-reduced-motion: reduce)').matches||savedMotion==='off'?'off':'on';
+    setDark(root.dataset.theme==='dark');
+    setMotion(root.dataset.motion!=='off');
     const media=matchMedia('(prefers-reduced-motion: reduce)');
     const update=()=>{if(media.matches){document.documentElement.dataset.motion='off';setMotion(false);}};
     media.addEventListener('change',update);return()=>media.removeEventListener('change',update);

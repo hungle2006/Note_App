@@ -25,6 +25,10 @@ for(const width of [320,390,760,1280]){
    await expect.poll(()=>lens.locator("img").evaluate((i:HTMLImageElement)=>i.naturalWidth)).toBe(512);
    const first=await lens.evaluate(el=>getComputedStyle(el).transform);
    await expect.poll(()=>lens.evaluate(el=>getComputedStyle(el).transform)).not.toBe(first);
+   await expect(lens.locator('.water-surface')).toBeVisible();
+   const displacement=page.locator('feDisplacementMap').first();
+   const initial=await displacement.evaluate((el:SVGFEDisplacementMapElement)=>el.scale.animVal);
+   await expect.poll(()=>displacement.evaluate((el:SVGFEDisplacementMapElement)=>el.scale.animVal)).not.toBe(initial);
   }
   const logo=page.locator(".landing-nav .brand-icon");
   await expect(logo).toBeVisible();

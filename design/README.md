@@ -40,3 +40,16 @@ The editable native animation lasts 25 seconds. Drift stays close to the traced
 positions rather than letting drops migrate over the text. Mobile omits the
 middle ribbon and lower crest, caps pixel ratio, and retains the existing 3D
 switch/reduced-motion preference. Both rendering paths pause in hidden tabs.
+
+### Runtime motion refinement
+
+The live mesh renderer adds a continuous, broad deformation field and derives
+its normals from that same field so reflected strokes follow the changing
+surface. Drift, rotation and shape recovery run on separate clocks. Desktop
+renders up to 60fps and mobile up to 30fps.
+
+Without WebGL, each optical layer has an independent 13–19 second drift, an
+8–12 second area-preserving breathing transform, and a smooth local SVG
+displacement field. The field changes the silhouette inside the image instead
+of only moving a rigid sprite. Native SVG animation and CSS animations both
+pause when the document is hidden and are removed when 3D is disabled.

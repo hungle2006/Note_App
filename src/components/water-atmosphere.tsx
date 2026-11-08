@@ -1,6 +1,6 @@
 "use client";
 
-import {useEffect,useRef,useState,type CSSProperties} from "react";
+import {useEffect,useId,useRef,useState,type CSSProperties} from "react";
 import composition from "@/lib/water-composition.json";
 import type * as THREE from "three";
 
@@ -26,6 +26,28 @@ const BACKDROP=`
   gl_FragColor=vec4(mix(day,night,uDark),1.);
   #include <colorspace_fragment>
  }`;
+
+// Broad, continuous liquid deformation. Recompute the surface normal from the
+// same field so highlights flow with the mesh rather than sliding a rigid drop.
+const FLOW_VERTEX=`
+ uniform float uTime;
+ uniform float uPhase;
+ vec3 flowingSurface(vec3 p){
+  float t=uTime*.59+uPhase;
+  float squeeze=.052*sin(t);
+  vec3 q=p;
+  q.x=p.x*(1.+squeeze)+.038*sin(t*.73+p.y*2.1)*(1.-clamp(p.x*p.x,0.,1.));
+  q.y=p.y/(1.+squeeze)+.036*sin(t*.89+p.x*2.4)*(1.-clamp(p.y*p.y,0.,1.));
+  q.z=p.z*(1.+.035*sin(t*.63+p.x*1.5));
+  return q;
+ }
+ vec3 flowingNormal(vec3 p,vec3 baseNormal){
+  vec3 n=normalize(baseNormal);
+  vec3 tangent=normalize(cross(n,abs(n.y)>.95?vec3(1.,0.,0.):vec3(0.,1.,0.)));
+  vec3 bitangent=cross(n,tangent),q=flowingSurface(p);
+  return normalize(cross(flowingSurface(p+tangent*.004)-q,flowingSurface(p+bitangent*.004)-q));
+ }
+`;
 
 // Same normal-driven studio strokes as the native Blender node material.
 // Highlights respond to the actual sculpted normals and animated shape keys.
@@ -60,11 +82,16 @@ function sprite(layer:Layer){return "/water/"+layer.profile+(layer.amber>.4?"-am
 export function WaterAtmosphere({active}:{active:boolean}){
  const canvasRef=useRef<HTMLCanvasElement>(null);
  const [mode,setMode]=useState<"loading"|"webgl"|"fallback">("loading");
+ const opticsRef=useRef<SVGSVGElement>(null);
+ const opticsId="water-flow-"+useId().replace(/[^a-zA-Z0-9_-]/g,"");
  useEffect(()=>{
   if(!active||!canvasRef.current||matchMedia("(prefers-reduced-motion: reduce)").matches)return;
   const canvas=canvasRef.current,abort=new AbortController();
   let stopped=false,raf=0,cleanup:(()=>void)|undefined;
-  const pauseFallback=()=>canvas.parentElement?.setAttribute("data-paused",document.hidden?"true":"false");
+  const pauseFallback=()=>{
+   canvas.parentElement?.setAttribute("data-paused",document.hidden?"true":"false");
+   if(document.hidden)opticsRef.current?.pauseAnimations();else opticsRef.current?.unpauseAnimations();
+  };
   document.addEventListener("visibilitychange",pauseFallback);pauseFallback();setMode("loading");
   void import("three").then(async T=>{
    if(stopped)return;
@@ -95,9 +122,11 @@ export function WaterAtmosphere({active}:{active:boolean}){
      const g=geometries[layer.profile];if(!g)continue;
      const r=layer.r*Math.min(width,height);
      const material=new T.ShaderMaterial({
-      vertexShader:T.ShaderLib.physical.vertexShader,fragmentShader:LIQUID,
+      vertexShader:FLOW_VERTEX+T.ShaderLib.physical.vertexShader
+       .replace("#include <morphnormal_vertex>","#include <morphnormal_vertex>\n objectNormal=flowingNormal(position,objectNormal);")
+       .replace("#include <begin_vertex>","#include <begin_vertex>\n transformed=flowingSurface(transformed);"),fragmentShader:LIQUID,
       transparent:true,depthWrite:false,
-      uniforms:{uAmber:{value:layer.amber},uDark:{value:dark?1:0}},
+      uniforms:{uAmber:{value:layer.amber},uDark:{value:dark?1:0},uTime:{value:0},uPhase:{value:layer.phase}},
      });
      const mesh=new T.Mesh(g,material);mesh.userData.layer=layer;mesh.scale.setScalar(r);scene.add(mesh);meshes.push(mesh);
     }
@@ -107,19 +136,21 @@ export function WaterAtmosphere({active}:{active:boolean}){
    function render(){
     px+=(pointerX-px)*.03;py+=(pointerY-py)*.03;
     for(const mesh of meshes){
-     const layer=mesh.userData.layer as Layer,t=elapsed*Math.PI*2/25+layer.phase;
-     const amplitude=Math.min(width,height)*.0065;
-     mesh.position.set((layer.x-.5)*width+Math.sin(t)*amplitude+px,(.5-layer.y)*height+Math.cos(t)*amplitude+py,-10);
-     mesh.rotation.set(.025*Math.sin(t),.035*Math.cos(t),layer.angle+.025*Math.sin(t));
+     const layer=mesh.userData.layer as Layer,t=elapsed*Math.PI*2/(layer.profile==="bead"?13:17)+layer.phase;
+     const amplitude=Math.min(width,height)*.022;
+     mesh.position.set((layer.x-.5)*width+(Math.sin(t)+.22*Math.sin(t*.63+layer.phase))*amplitude+px,
+      (.5-layer.y)*height+(Math.cos(t*.83)+.18*Math.sin(t*1.31))*amplitude+py,-10);
+     mesh.rotation.set(.055*Math.sin(t*.71),.075*Math.cos(t*.67),layer.angle+.065*Math.sin(t*.89));
      if(mesh.morphTargetInfluences){mesh.morphTargetInfluences[0]=.5+.5*Math.sin(t);mesh.morphTargetInfluences[1]=.5+.5*Math.sin(t+1.7);}
      mesh.material.uniforms.uDark.value=dark?1:0;
+     mesh.material.uniforms.uTime.value=elapsed;
     }
     backdropMaterial.uniforms.uDark.value=dark?1:0;renderer.render(scene,camera);
     canvas.dataset.frames=String(Number(canvas.dataset.frames||0)+1);
    }
    function frame(now:number){
     if(stopped||!visible)return;raf=requestAnimationFrame(frame);
-    if(now-last<1000/(mobile?24:30))return;
+    if(now-last<1000/(mobile?30:60))return;
     elapsed+=lastTime?Math.min((now-lastTime)/1000,.1):0;last=now;lastTime=now;render();
    }
    function visibility(){visible=!document.hidden;cancelAnimationFrame(raf);lastTime=0;last=0;if(visible&&!stopped&&authored)raf=requestAnimationFrame(frame);}
@@ -158,11 +189,24 @@ export function WaterAtmosphere({active}:{active:boolean}){
  },[active]);
  if(!active)return null;
  return <div className="water-atmosphere liquid-atmosphere" aria-hidden="true" data-mode={mode}
-  data-effect="soft-body-water-3d" data-renderer="webgl-blender-surface" data-size-mix="large-medium-small" data-material="reference-liquid-v2">
+  data-effect="soft-body-water-3d" data-renderer="webgl-blender-surface" data-size-mix="large-medium-small" data-material="reference-liquid-v2" data-motion-style="continuous-soft-flow">
+  <svg ref={opticsRef} className="water-flow-defs" width="0" height="0" aria-hidden="true" focusable="false">
+   <defs>{LAYERS.map((layer,i)=><filter key={layer.id} id={opticsId+"-"+i}
+    x="-.16" y="-.16" width="1.32" height="1.32" filterUnits="objectBoundingBox" primitiveUnits="objectBoundingBox" colorInterpolationFilters="sRGB">
+    <feTurbulence type="fractalNoise" baseFrequency=".008 .011" numOctaves="1" seed={i+3} stitchTiles="stitch" result="flow-noise"/>
+    <feDisplacementMap in="SourceGraphic" in2="flow-noise" scale=".018" xChannelSelector="R" yChannelSelector="G">
+     <animate attributeName="scale" values=".018;.12;.045;.018" keyTimes="0;.36;.72;1" calcMode="spline"
+      keySplines=".42 0 .58 1;.42 0 .58 1;.42 0 .58 1" dur={(layer.profile==="bead"?9:12)+i*.31+"s"}
+      begin={-layer.phase*2+"s"} repeatCount="indefinite"/>
+    </feDisplacementMap>
+   </filter>)}</defs>
+  </svg>
   <div className="water-fallback">
    {LAYERS.map(layer=><span key={layer.id} className={"peach-water-sprite water-"+layer.id} data-profile={layer.profile}
-    style={{left:layer.x*100+"%",top:layer.y*100+"%","--drop-size":layer.r*240+"vmin","--drop-angle":(-layer.angle*180/Math.PI)+"deg","--drop-delay":(-layer.phase*25/(Math.PI*2))+"s"} as CSSProperties}>
-    <img src={sprite(layer)} alt="" width={512} height={512} draggable={false}/>
+    style={{left:layer.x*100+"%",top:layer.y*100+"%","--drop-size":layer.r*240+"vmin","--drop-angle":(-layer.angle*180/Math.PI)+"deg","--drop-delay":(-layer.phase*2.6)+"s","--float-duration":(layer.profile==="bead"?13:17)+layer.phase*.4+"s","--flow-duration":(layer.profile==="bead"?8.5:11)+layer.phase*.2+"s"} as CSSProperties}>
+    <span className="water-surface" style={{filter:"url(#"+opticsId+"-"+LAYERS.indexOf(layer)+")"}}>
+     <img src={sprite(layer)} alt="" width={512} height={512} draggable={false}/>
+    </span>
    </span>)}
   </div>
   <canvas ref={canvasRef} className="liquid-canvas" aria-hidden="true"/>
