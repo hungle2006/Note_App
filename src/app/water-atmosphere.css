@@ -1,4 +1,4 @@
-/* Blender-authored liquid lenses, physical refraction and peach studio light. */
+/* Matching Blender optical assets and mesh shading, lit separately per theme. */
 :root{
  --water-opacity:1;
  --liquid-halo:rgba(237,148,99,.25);
@@ -7,7 +7,7 @@
  --liquid-logo-light:#ffd4a1;
 }
 :root[data-theme="dark"]{
- --water-opacity:.92;
+ --water-opacity:1;
  --liquid-halo:rgba(243,158,98,.21);
  --liquid-rim:rgba(255,220,182,.42);
  --liquid-logo-depth:#60321d;
@@ -37,7 +37,7 @@
 :root[data-motion="off"] .water-atmosphere{display:none!important}
 @media(max-width:760px){
  :root{--water-opacity:1}
- :root[data-theme="dark"]{--water-opacity:.88}
+ :root[data-theme="dark"]{--water-opacity:1}
 
  .app-header .appearance-controls .motion-control{
   display:flex!important;min-width:47px;height:39px;padding:0 5px;
@@ -88,9 +88,9 @@
 /* Individually authored optical assets: no repeated spherical sticker or stretching.
    The 2.4-unit sprite frame matches Blender's orthographic authoring camera. */
 .water-fallback{position:absolute;inset:0;overflow:hidden;
- background:radial-gradient(ellipse at 86% 20%,#ffc5b0 0,transparent 61%),
-  radial-gradient(ellipse at 22% 41%,#fff9f2 0,transparent 52%),
-  linear-gradient(160deg,#ffe5d8 0%,#ffeadd 50%,#edc0a7 100%);
+ background:radial-gradient(ellipse at 22% 41%,#fffaf5 0,rgba(255,249,242,.82) 24%,transparent 57%),
+  radial-gradient(ellipse at 84% 26%,#ffd1bd 0,transparent 62%),
+  linear-gradient(175deg,#ffe8dd 0%,#ffe4d4 57%,#c8baad 100%);
 }
 .water-atmosphere[data-mode="webgl"] .water-fallback{display:none}
 .water-atmosphere:not([data-mode="webgl"]) .liquid-canvas{visibility:hidden}
@@ -99,10 +99,14 @@
  animation:peach-water-float var(--float-duration,17s) cubic-bezier(.45,0,.55,1) infinite;animation-delay:var(--drop-delay);
  will-change:transform;
 }
-.peach-water-sprite img{display:block;width:100%;height:100%;object-fit:contain}
+.peach-water-sprite img{display:block;position:absolute;inset:0;width:100%;height:100%;object-fit:contain;transition:opacity .45s ease}
+.water-surface-light{opacity:1}
+.water-surface-night{opacity:0}
+:root[data-theme="dark"] .water-surface-light{opacity:0}
+:root[data-theme="dark"] .water-surface-night{opacity:1}
 /* Independent drift and surface deformation keep moving on different clocks. */
 .water-flow-defs{position:absolute;overflow:visible;pointer-events:none}
-.water-surface{display:block;width:100%;height:100%;transform-origin:50% 50%;
+.water-surface{display:block;position:relative;width:100%;height:100%;transform-origin:50% 50%;
  animation:peach-water-breathe var(--flow-duration,11s) cubic-bezier(.45,0,.55,1) infinite;
  animation-delay:var(--drop-delay);will-change:transform;
 }
@@ -116,8 +120,23 @@
  34%{transform:scale(1.065,.939) skew(2.4deg,-1.2deg)}
  71%{transform:scale(.945,1.058) skew(-2deg,1.6deg)}
 }
-:root[data-theme="dark"] .water-fallback{background:radial-gradient(ellipse at 85% 20%,#422516,transparent 62%),#140f0d}
-:root[data-theme="dark"] .peach-water-sprite{opacity:.42}
+:root[data-theme="dark"] .water-fallback{
+ background:radial-gradient(ellipse at 84% 24%,#39231c 0,transparent 65%),
+  radial-gradient(ellipse at 30% 100%,#1b232b 0,transparent 64%),#100f14;
+}
+:root[data-motion="on"][data-theme="dark"] .landing-nav{
+ background:rgba(25,22,26,.76);border:1px solid rgba(255,235,216,.10);
+ border-radius:26px;box-shadow:0 12px 40px #0005;backdrop-filter:blur(18px);
+ margin-top:16px;padding-top:15px;padding-bottom:15px;
+}
+:root[data-motion="on"][data-theme="dark"] .hero-copy::before{
+ content:"";position:absolute;z-index:-1;inset:-35px -8px;pointer-events:none;
+ background:radial-gradient(ellipse,rgba(16,15,20,.60),transparent 72%);
+}
+:root[data-motion="on"][data-theme="dark"] .hero-copy{position:relative;isolation:isolate}
+@media(max-width:760px){
+ :root[data-motion="on"][data-theme="dark"] .landing-nav{margin:10px 10px 0;padding:14px 12px;border-radius:20px}
+}
 @media(max-width:760px){
  .water-middle-lens,.water-bottom-crest{display:none}
 }

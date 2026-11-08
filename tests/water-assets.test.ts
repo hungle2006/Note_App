@@ -22,5 +22,17 @@ test('Reference composition has matching Blender optical assets, unique anchors 
   assert.ok(data.profiles[layer.profile]);assert.ok(layer.r>0&&layer.r<1);assert.ok(Number.isFinite(layer.angle));
   const file=layer.profile+(layer.amber>.4?'-amber':'')+'.webp';
   assert.ok(existsSync(resolve(root,'public/water',file)),file+' must exist for devices without WebGL');
+  const night=file.replace('.webp','-night.webp');
+  assert.ok(existsSync(resolve(root,'public/water',night)),night+' must have dedicated night lighting');
+  assert.notDeepEqual(readFileSync(resolve(root,'public/water',file)),readFileSync(resolve(root,'public/water',night)),'night lighting must be rendered separately');
  }
+});
+
+test('Shared Blender and live shader palettes have matching finite linear color channels',()=>{
+ const optics=JSON.parse(readFileSync(resolve(root,'src/lib/water-optics.json'),'utf8')) as Record<string,Record<string,number[]>>;
+ assert.deepEqual(Object.keys(optics.light).sort(),Object.keys(optics.dark).sort());
+ for(const palette of Object.values(optics))for(const channels of Object.values(palette)){
+  assert.equal(channels.length,3);assert.ok(channels.every(v=>Number.isFinite(v)&&v>=0&&v<=1));
+ }
+ assert.notDeepEqual(optics.light,optics.dark);
 });

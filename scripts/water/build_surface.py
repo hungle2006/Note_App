@@ -47,39 +47,72 @@ for name in ('bead','ribbon','lens','wave'):
  objects[name]=obj
 (OUT/'drop-surface.json').write_text(json.dumps(dict(generator='Blender / individually sculpted bead, ribbon, lens and wave',profiles=PROFILES),separators=(',',':')))
 
-def material(amber):
- # Art-directed liquid optics match the reference's curved white shoulder and
- # warm lower caustic. No dark glass outline or rectangular light reflections.
- m=bpy.data.materials.new('Reference liquid optics '+str(amber));m.use_nodes=True
+OPTICS=json.loads((ROOT/'src/lib/water-optics.json').read_text())
+
+def material(amber,theme='light'):
+ # Layered optical depth: transparent body, thin reflected crescent, soft
+ # shoulder, warm lower caustic and restrained cool reflection. Both themes
+ # use the same mesh/normal fields; only the lighting palette/body density differ.
+ palette=OPTICS[theme];night=theme=='dark'
+ m=bpy.data.materials.new('Liquid / '+theme+' / '+str(amber));m.use_nodes=True
  n=m.node_tree.nodes;n.clear();links=m.node_tree.links
+ def val(q):return q.outputs[0] if hasattr(q,'outputs') else q
  def mathnode(op,a,b=None):
-  q=n.new('ShaderNodeMath');q.operation=op
-  if hasattr(a,'node'):links.new(a,q.inputs[0])
-  else:q.inputs[0].default_value=a
-  if b is not None:
-   if hasattr(b,'node'):links.new(b,q.inputs[1])
-   else:q.inputs[1].default_value=b
-  return q.outputs[0]
+  node=n.new('ShaderNodeMath');node.operation=op
+  for i,x in enumerate([a,b] if b is not None else [a]):
+   x=val(x)
+   if hasattr(x,'node'):links.new(x,node.inputs[i])
+   else:node.inputs[i].default_value=x
+  return node.outputs[0]
+ def add(*terms):
+  result=terms[0]
+  for x in terms[1:]:result=mathnode('ADD',result,x)
+  return result
+ def mul(a,b):return mathnode('MULTIPLY',a,b)
+ def clamp(x):return mathnode('MINIMUM',mathnode('MAXIMUM',x,0),1)
+ def power(x,p):return mathnode('POWER',mathnode('MAXIMUM',x,0),p)
+ def gaussian(x,center,width):
+  ratio=mathnode('DIVIDE',mathnode('SUBTRACT',x,center),width)
+  return mathnode('EXPONENT',mul(mul(ratio,ratio),-1))
+ def smooth(x,lo,hi):
+  t=clamp(mathnode('DIVIDE',mathnode('SUBTRACT',x,lo),hi-lo))
+  return mul(mul(t,t),mathnode('SUBTRACT',3,mul(t,2)))
+ def mix(a,b,f):
+  node=n.new('ShaderNodeMixRGB');node.blend_type='MIX';node.use_clamp=False
+  for i,x in enumerate([clamp(f),a,b]):
+   x=val(x)
+   if hasattr(x,'node'):links.new(x,node.inputs[i])
+   else:node.inputs[i].default_value=(*x,1)
+  return node.outputs[0]
  normal=n.new('ShaderNodeNewGeometry').outputs['Normal']
  sep=n.new('ShaderNodeSeparateXYZ');links.new(normal,sep.inputs[0])
+ facing=clamp(sep.outputs['Z']);edge=mathnode('SUBTRACT',1,facing)
+ def direction(x,y):
+  q=n.new('ShaderNodeVectorMath');q.operation='DOT_PRODUCT';links.new(normal,q.inputs[0]);q.inputs[1].default_value=(x,y,0)
+  return q.outputs['Value']
+ side=smooth(direction(-.72,.69),.05,.6)
+ thin=mul(gaussian(edge,.56,.032),side)
+ shoulder=mul(gaussian(edge,.50,.15),smooth(direction(-.72,.69),-.15,.5))
+ rim=mul(power(edge,6),add(.2,mul(clamp(direction(-.72,.69)),.8)))
+ cap=mul(gaussian(sep.outputs['X'],-.20,.25),gaussian(sep.outputs['Y'],.50,.14))
+ warm=mul(gaussian(edge,.37,.13),smooth(direction(.50,-.866),.05,.65))
+ cool=mul(gaussian(edge,.52,.18),smooth(direction(-.62,-.78),.05,.65))
+ inner=mul(gaussian(edge,.71,.026),smooth(direction(.64,-.76),.05,.65))
  reflect=n.new('ShaderNodeVectorMath');reflect.operation='REFLECT';reflect.inputs[0].default_value=(0,0,-1);links.new(normal,reflect.inputs[1])
- def highlight(direction,focus):
-  v=Vector(direction).normalized();q=n.new('ShaderNodeVectorMath');q.operation='DOT_PRODUCT';links.new(reflect.outputs[0],q.inputs[0]);q.inputs[1].default_value=v
-  return mathnode('POWER',mathnode('MAXIMUM',q.outputs['Value'],0),focus)
- key=highlight((-.65,.65,-.35),18);strip=highlight((-.5,.8,1.1),48);lower=highlight((.3,-.8,.8),10);cool=highlight((-.4,-.65,.45),14)
- fresnel=mathnode('POWER',mathnode('SUBTRACT',1,mathnode('ABSOLUTE',sep.outputs['Z'])),2.2)
- side=n.new('ShaderNodeVectorMath');side.operation='DOT_PRODUCT';links.new(normal,side.inputs[0]);side.inputs[1].default_value=(-.65,.76,0)
- rim=mathnode('MULTIPLY',fresnel,mathnode('MAXIMUM',side.outputs['Value'],0))
- white=mathnode('ADD',mathnode('ADD',mathnode('MULTIPLY',key,.94),mathnode('MULTIPLY',strip,.85)),mathnode('MULTIPLY',rim,.8))
- blend=n.new('ShaderNodeMixRGB');blend.blend_type='MIX';links.new(white,blend.inputs[0]);blend.inputs[1].default_value=(1,.80-amber*.73,.57-amber*.80,1);blend.inputs[2].default_value=(1,.995,.97,1)
- warm=n.new('ShaderNodeMixRGB');links.new(mathnode('MULTIPLY',lower,.42),warm.inputs[0]);links.new(blend.outputs[0],warm.inputs[1]);warm.inputs[2].default_value=(1,.57,.15,1)
- shade=n.new('ShaderNodeMixRGB');links.new(mathnode('MULTIPLY',cool,.38*(1-amber)),shade.inputs[0]);links.new(warm.outputs[0],shade.inputs[1]);shade.inputs[2].default_value=(.32,.48,.54,1)
- fringe=n.new('ShaderNodeMixRGB');links.new(mathnode('MULTIPLY',fresnel,.48),fringe.inputs[0]);links.new(shade.outputs[0],fringe.inputs[1]);fringe.inputs[2].default_value=(1,.48,.10,1)
- final=n.new('ShaderNodeMixRGB');links.new(mathnode('MULTIPLY',rim,.75),final.inputs[0]);links.new(fringe.outputs[0],final.inputs[1]);final.inputs[2].default_value=(1,.995,.97,1)
- emit=n.new('ShaderNodeEmission');links.new(final.outputs[0],emit.inputs[0])
- alpha=mathnode('ADD',mathnode('ADD',.045+amber*.55,mathnode('MULTIPLY',fresnel,.25)),mathnode('ADD',mathnode('ADD',mathnode('MULTIPLY',key,.91),mathnode('MULTIPLY',strip,.75)),mathnode('ADD',mathnode('MULTIPLY',rim,.52),mathnode('ADD',mathnode('MULTIPLY',lower,.24),mathnode('MULTIPLY',cool,.28)))))
- transparent=n.new('ShaderNodeBsdfTransparent');mix=n.new('ShaderNodeMixShader');links.new(alpha,mix.inputs[0]);links.new(transparent.outputs[0],mix.inputs[1]);links.new(emit.outputs[0],mix.inputs[2])
- out=n.new('ShaderNodeOutputMaterial');links.new(mix.outputs[0],out.inputs['Surface'])
+ dot=n.new('ShaderNodeVectorMath');dot.operation='DOT_PRODUCT';links.new(reflect.outputs[0],dot.inputs[0]);dot.inputs[1].default_value=Vector((-.65,.65,-.35)).normalized()
+ key=power(dot.outputs['Value'],32)
+ absorption=mul(min(1,amber*1.6),add(.35,mul(power(facing,1.6),.65)))
+ body=mix(palette['clearBody'],palette['amberBody'],absorption)
+ body=mix(body,palette['coolReflection'],mul(cool,.34*(1-amber*.7)))
+ body=mix(body,palette['warmReflection'],mul(warm,.60))
+ body=mix(body,palette['innerReflection'],mul(inner,.35))
+ white=clamp(add(mul(thin,.98),mul(shoulder,.62),mul(key,.65),mul(cap,.70),mul(rim,.60)))
+ color=mix(body,palette['whiteReflection'],white)
+ density=add(.012,mul(power(facing,2),amber*.25),mul(cool,.03)) if night else add(.025,mul(power(facing,1.35),amber*.88))
+ alpha=mathnode('MINIMUM',add(density,mul(thin,.92),mul(shoulder,.23),mul(key,.42),mul(cap,.55),mul(rim,.55),mul(warm,.30),mul(cool,.18),mul(inner,.13)),.98)
+ emit=n.new('ShaderNodeEmission');links.new(color,emit.inputs[0])
+ transparent=n.new('ShaderNodeBsdfTransparent');blend=n.new('ShaderNodeMixShader');links.new(alpha,blend.inputs[0]);links.new(transparent.outputs[0],blend.inputs[1]);links.new(emit.outputs[0],blend.inputs[2])
+ out=n.new('ShaderNodeOutputMaterial');links.new(blend.outputs[0],out.inputs['Surface'])
  return m
 
 # The node material defines the curved highlights; an even peach world avoids
@@ -113,6 +146,17 @@ scene.render.resolution_x=1600;scene.render.resolution_y=900;scene.render.resolu
 scene['Reference']='Geometry, placement and lighting revised against the supplied 1200 × 675 peach-water image.'
 scene['Motion']='25 second slow float, subtle 1.5 degree turns and authored surface tension shape keys.'
 (ROOT/'design').mkdir(exist_ok=True);bpy.ops.wm.save_as_mainfile(filepath=str(ROOT/'design/peach-water.blend'),compress=True)
+# Derive the night file from the very same geometry, camera and animation.
+for item in LAYERS:
+ obj=bpy.data.objects[item['id']];obj.data.materials.clear();obj.data.materials.append(material(item['amber'],'dark'))
+ramp.color_ramp.elements[0].color=(.006,.007,.010,1);ramp.color_ramp.elements[1].color=(.045,.020,.012,1)
+scene['Lighting']='Night: separate silver rim, amber bounce, low-density transparent body.'
+bpy.ops.wm.save_as_mainfile(filepath=str(ROOT/'design/peach-water-night.blend'),compress=True)
+# Continue authoring in the light setup; the sprite generator selects its theme.
+for item in LAYERS:
+ obj=bpy.data.objects[item['id']];obj.data.materials.clear();obj.data.materials.append(material(item['amber'],'light'))
+ramp.color_ramp.elements[0].color=(1,.88,.77,1);ramp.color_ramp.elements[1].color=(1,.62,.49,1)
+
 if '--render' in sys.argv:
  scene.render.filepath=str(OUT/'peach-water-reference.png');bpy.ops.render.render(write_still=True)
 print('Authored four distinct liquid profiles and',len(LAYERS),'reference positions')

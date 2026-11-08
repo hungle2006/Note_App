@@ -22,7 +22,7 @@ for(const width of [320,390,760,1280]){
   }else{
    const lens=page.locator(".peach-water-sprite").first();
    await expect(lens).toBeVisible();
-   await expect.poll(()=>lens.locator("img").evaluate((i:HTMLImageElement)=>i.naturalWidth)).toBe(512);
+   await expect.poll(()=>lens.locator(".water-surface-light").evaluate((i:HTMLImageElement)=>i.naturalWidth)).toBe(512);
    const first=await lens.evaluate(el=>getComputedStyle(el).transform);
    await expect.poll(()=>lens.evaluate(el=>getComputedStyle(el).transform)).not.toBe(first);
    await expect(lens.locator('.water-surface')).toBeVisible();
@@ -47,12 +47,20 @@ test("Independent droplet shading adapts to dark and light modes",async({page})=
  await page.goto("/");
  const root=page.locator("html");
  await expect(root).toHaveAttribute("data-theme",/light|dark/);
- const sample=()=>root.evaluate(el=>({theme:el.dataset.theme,opacity:getComputedStyle(el).getPropertyValue("--water-opacity").trim()}));
- const first=await sample();
- await page.getByRole("button",{name:first.theme==="light"?"Chuyển sang giao diện tối":"Chuyển sang giao diện sáng"}).click();
- const next=await sample();
- expect(next.theme).not.toBe(first.theme);
- expect(next.opacity).not.toBe(first.opacity);
+ const first=await root.getAttribute('data-theme');
+ const atmosphere=page.locator('.water-atmosphere');
+ const fallback=await atmosphere.getAttribute('data-mode')==='fallback';
+ const surface=page.locator('.water-surface').first();
+ const phase=fallback?await surface.evaluate(el=>getComputedStyle(el).transform):null;
+ await page.getByRole("button",{name:first==="light"?"Chuyển sang giao diện tối":"Chuyển sang giao diện sáng"}).click();
+ await expect(root).toHaveAttribute('data-theme',first==='light'?'dark':'light');
+ if(fallback){
+  const visible=surface.locator(first==='light'?'.water-surface-night':'.water-surface-light');
+  await expect(visible).toHaveCSS('opacity','1');
+  await expect.poll(()=>visible.evaluate((el:HTMLImageElement)=>el.naturalWidth)).toBe(512);
+  await expect.poll(()=>surface.evaluate(el=>getComputedStyle(el).transform)).not.toBe(phase);
+ }
+ await expect(atmosphere).toHaveAttribute('data-material','layered-liquid-light-night');
  await expect(page.locator(".water-atmosphere")).toBeVisible();
 });
 test("3D switch is accessible in the phone header at 320px",async({page})=>{

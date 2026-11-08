@@ -16,16 +16,17 @@ scene.camera.location=(0,0,8);scene.camera.data.ortho_scale=2.4
 scene.render.resolution_x=512;scene.render.resolution_y=512
 scene.render.film_transparent=True;scene.cycles.film_transparent_glass=True;scene.cycles.film_transparent_roughness=.2
 scene.cycles.samples=512;scene.render.image_settings.file_format='PNG';scene.render.image_settings.color_mode='RGBA'
-for name,amber in [('bead',.12),('ribbon',.22),('lens',.65),('wave',.18)]:
- obj=sources[name];obj.hide_render=False;obj.animation_data_clear();obj.data.shape_keys.animation_data_clear()
- obj.location=(0,0,0);obj.rotation_euler=(0,0,0);obj.scale=(1,1,1)
- obj.data.materials.clear();obj.data.materials.append(author['material'](amber))
- for key in list(obj.data.shape_keys.key_blocks)[1:]:key.value=.35
- suffix='-amber' if amber>.4 else ''
- scene.render.filepath=str(ROOT/('public/water/'+name+suffix+'.png'));bpy.ops.render.render(write_still=True)
- image=bpy.data.images.load(scene.render.filepath,check_existing=False)
- scene.render.image_settings.file_format='WEBP';scene.render.image_settings.quality=95
- image.save_render(str(ROOT/('public/water/'+name+suffix+'.webp')),scene=scene)
- bpy.data.images.remove(image);pathlib.Path(scene.render.filepath).unlink(missing_ok=True);scene.render.image_settings.file_format='PNG'
- obj.hide_render=True
-print('Rendered four distinct optical assets, without rectangle lights')
+for theme in ('light','dark'):
+ for name,amber in [('bead',.12),('ribbon',.22),('lens',.65),('wave',.18)]:
+  obj=sources[name];obj.hide_render=False;obj.animation_data_clear();obj.data.shape_keys.animation_data_clear()
+  obj.location=(0,0,0);obj.rotation_euler=(0,0,0);obj.scale=(1,1,1)
+  obj.data.materials.clear();obj.data.materials.append(author['material'](amber,theme))
+  for key in list(obj.data.shape_keys.key_blocks)[1:]:key.value=.35
+  suffix=('-amber' if amber>.4 else '')+('-night' if theme=='dark' else '')
+  scene.render.filepath=str(ROOT/('public/water/'+name+suffix+'.png'));bpy.ops.render.render(write_still=True)
+  image=bpy.data.images.load(scene.render.filepath,check_existing=False)
+  scene.render.image_settings.file_format='WEBP';scene.render.image_settings.quality=97
+  image.save_render(str(ROOT/('public/water/'+name+suffix+'.webp')),scene=scene)
+  bpy.data.images.remove(image);pathlib.Path(scene.render.filepath).unlink(missing_ok=True);scene.render.image_settings.file_format='PNG'
+  obj.hide_render=True
+print('Rendered matching light/night optical assets for four liquid profiles')
