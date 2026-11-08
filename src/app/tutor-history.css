@@ -1,0 +1,32 @@
+.tutor-shell{display:grid;grid-template-columns:228px minmax(0,1fr);gap:16px;align-items:start;min-width:0}
+.tutor-shell>.chat-layout{min-width:0;grid-template-columns:minmax(0,1fr) 230px;gap:16px}
+.tutor-shell .chat-panel{min-width:0}
+.tutor-history{padding:14px 12px;box-shadow:none;min-width:0;position:sticky;top:20px;max-height:720px;display:flex;flex-direction:column}
+.tutor-history-heading{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 6px 14px}
+.tutor-history-heading>div{display:flex;align-items:center;gap:9px;color:var(--ink);font-size:13px}
+.tutor-history-heading svg{color:var(--purple)}
+.tutor-history-toggle{display:none;border:0;background:transparent;color:var(--muted);padding:6px;border-radius:8px}
+.tutor-new-chat{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;min-height:43px;border:1px solid var(--purple);background:var(--soft);border-radius:12px;color:var(--purple-ink);font-size:12px;font-weight:800;margin-bottom:14px;cursor:pointer}
+.tutor-new-chat:hover{background:var(--paper);box-shadow:0 2px 12px #00000008}
+.tutor-history-list{overflow-y:auto;min-height:0;display:flex;flex-direction:column;gap:5px;overscroll-behavior:contain}
+.tutor-history-empty{font-size:11px;line-height:1.65;color:var(--muted);padding:10px 7px}
+.tutor-thread{display:flex;align-items:center;gap:2px;border-radius:11px;border:1px solid transparent;transition:background .15s}
+.tutor-thread:hover{background:var(--bg)}
+.tutor-thread.active{background:var(--soft);border-color:var(--line)}
+.tutor-thread-open{display:flex;align-items:flex-start;text-align:left;gap:9px;padding:11px 4px 11px 9px;flex:1;min-width:0;border:0;background:transparent;color:var(--ink);cursor:pointer}
+.tutor-thread-open>svg{flex-shrink:0;color:var(--muted);margin-top:2px}
+.tutor-thread-open>span{min-width:0;flex:1}
+.tutor-thread-open strong{display:block;font-size:11px;font-weight:800;line-height:1.45;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tutor-thread-open small{display:block;font-size:9px;color:var(--muted);margin-top:4px;white-space:nowrap}
+.tutor-thread-delete{display:grid;place-items:center;width:30px;height:32px;border:0;border-radius:8px;background:transparent;color:var(--muted);flex-shrink:0;cursor:pointer}
+.tutor-thread-delete:hover{color:#b94444;background:#b9444410}
+.tutor-delete-confirm{border:1px solid var(--line);border-radius:13px;padding:12px;margin-top:12px;background:var(--bg)}
+.tutor-delete-confirm>strong{font-size:12px}.tutor-delete-confirm p{font-size:11px;line-height:1.5;color:var(--muted);margin:5px 0 12px}
+.tutor-delete-confirm>div{display:flex;gap:7px}
+.tutor-delete-confirm button{flex:1;min-height:35px;border-radius:8px;border:1px solid var(--line);background:var(--paper);font-size:11px;font-weight:800}
+.tutor-delete-confirm button:last-child{color:#b53333;border-color:#b5333355}
+.tutor-history button:focus-visible{outline:2px solid var(--purple);outline-offset:2px}
+.tutor-history button:disabled{opacity:.55;cursor:wait}
+@media(max-width:1450px){.tutor-shell{grid-template-columns:205px minmax(0,1fr);gap:12px}.tutor-shell>.chat-layout{grid-template-columns:minmax(0,1fr)}.tutor-shell .chat-context{order:-1;display:grid;grid-template-columns:1fr 1.7fr;gap:10px 15px;padding:15px}.tutor-shell .chat-context .eyebrow,.tutor-shell .chat-context h3,.tutor-shell .chat-context .context-note,.tutor-shell .chat-context .retrieval-note,.tutor-shell .chat-context .context-tip{display:none}}
+@media(max-width:900px){.tutor-shell{display:flex;flex-direction:column;gap:12px}.tutor-shell>.chat-layout{width:100%}.tutor-history{width:100%;position:static;max-height:none;display:block;padding:11px 13px}.tutor-history-heading{padding:3px 2px 8px}.tutor-history-toggle{display:grid;place-items:center}.tutor-history .tutor-new-chat{margin:0;min-height:39px}.tutor-history-list{display:none;max-height:240px;margin-top:10px}.tutor-history-list.is-open{display:flex}.tutor-history-toggle[aria-expanded="true"] svg{transform:rotate(180deg)}}
+@media(max-width:480px){.tutor-shell .chat-context{grid-template-columns:1fr;gap:10px}.tutor-shell .chat-panel{height:min(75dvh,740px);min-height:520px}.tutor-shell .chat-header{padding:13px}.tutor-shell .chat-messages{padding:14px}.tutor-shell .tutor-modes{padding:9px;gap:3px}.tutor-shell .tutor-modes button{font-size:10px;padding:7px}.tutor-shell .chat-input{margin:8px}.tutor-shell .chat-disclaimer{padding:0 8px 10px}}
