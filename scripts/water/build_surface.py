@@ -8,22 +8,8 @@ OUT.mkdir(parents=True,exist_ok=True);bpy.context.preferences.filepaths.save_ver
 bpy.ops.object.select_all(action='SELECT');bpy.ops.object.delete(use_global=False)
 scene=bpy.context.scene;scene.frame_start=1;scene.frame_end=600;scene.render.fps=24
 # The positions are traced from the supplied 1200 x 675 reference.
-LAYERS=[
- dict(id='upper-left',profile='ribbon',x=.071,y=.106,r=.120,angle=.79,phase=.2,amber=.22),
- dict(id='right-amber',profile='lens',x=1.005,y=.30,r=.265,angle=-.59,phase=1.8,amber=.65),
- dict(id='left-crop',profile='bead',x=-.014,y=.60,r=.110,angle=.27,phase=3.4,amber=.12),
- dict(id='bottom-crest',profile='lens',x=.018,y=.965,r=.185,angle=.90,phase=2.5,amber=.64),
- dict(id='bottom-wave',profile='wave',x=.225,y=1.015,r=.51,angle=-.20,phase=4.2,amber=.18),
- dict(id='lower-right',profile='wave',x=1.055,y=1.02,r=.285,angle=.62,phase=2.9,amber=.18),
- dict(id='middle-lens',profile='ribbon',x=.495,y=.302,r=.160,angle=.45,phase=5.5,amber=.22),
- dict(id='top-bead',profile='bead',x=.521,y=.18,r=.044,angle=.35,phase=.6,amber=.12),
- dict(id='right-bead',profile='bead',x=.862,y=.203,r=.036,angle=.80,phase=2.1,amber=.12),
- dict(id='lower-bead',profile='bead',x=.505,y=.864,r=.043,angle=.35,phase=4.7,amber=.12),
- dict(id='far-right-bead',profile='bead',x=.972,y=.634,r=.028,angle=.85,phase=1.4,amber=.12),
- dict(id='tiny-left-bead',profile='bead',x=.030,y=.290,r=.013,angle=-.65,phase=3.9,amber=.12),
-]
-# One composition drives the live meshes AND rendered optical assets.
-(ROOT/'src/lib/water-composition.json').write_text(json.dumps(LAYERS,indent=2)+'\n')
+# Use the runtime composition directly so edge placement cannot diverge.
+LAYERS=json.loads((ROOT/'src/lib/water-composition.json').read_text())
 PROFILES={};objects={}
 for name in ('bead','ribbon','lens','wave'):
  bpy.ops.mesh.primitive_uv_sphere_add(segments=64,ring_count=40,radius=1)
