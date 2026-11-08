@@ -54,3 +54,13 @@
  @keyframes pet-stroll{0%,8%{left:0}45%,55%{left:calc(50% - 31px)}92%,100%{left:calc(100% - 62px)}}
  .pet-lane-still .pet-walker{left:calc(50% - 31px)}
 }
+
+/* Larger portraits keep the reference accessories legible. */
+.pet-card-art{height:220px;background-color:color-mix(in srgb,var(--soft) 35%,var(--paper));overflow:hidden}
+.pet-card-art img{padding:4px 8px 17px;object-position:center 52%}
+.pet-preview-world{height:310px}
+.pet-stage::before{content:"";position:absolute;inset:auto 18% 7%;height:9%;border-radius:50%;background:radial-gradient(ellipse,#66432a24,transparent 68%);pointer-events:none}
+@media(min-width:1500px){.pet-grid{grid-template-columns:repeat(4,minmax(0,1fr))}.pet-card-art{height:225px}}
+@media(max-width:760px){.pet-card-art{height:190px}.pet-preview-world{height:285px}}
+@media(max-width:390px){.pet-card-art{height:165px}.pet-preview-world{height:260px}}
+.pet-card-art>button:disabled img{filter:none;opacity:1}

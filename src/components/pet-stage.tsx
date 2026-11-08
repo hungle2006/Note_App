@@ -1,7 +1,7 @@
 "use client";
 import {useEffect,useRef,useState} from 'react';
 import type * as THREE from 'three';
-import type {Pet,PetAction} from '@/lib/pets';
+import {petModel,petPortrait,type Pet,type PetAction} from '@/lib/pets';
 import {useAppearance} from './appearance';
 
 /** One renderer for the equipped pet, one on demand for the preview dialog.
@@ -50,11 +50,12 @@ export function PetStage({pet,action,onInteract,small=false}:{pet:Pet;action:{ki
      for(const {node,rotation,scale} of animated){
       node.rotation.copy(rotation);node.scale.copy(scale);
       if(!animate)continue;
-      if(node.name.startsWith('Head'))node.rotation.x+=Math.sin(time*1.4)*.025+(a.kind==='feed'?Math.sin(elapsed*9)*react*.12:react*.08);
-      if(node.name.startsWith('Foot'))node.rotation.x+=Math.sin(time*5+(node.position.x>0?Math.PI:0))*.14;
-      if(node.name.startsWith('Arm'))node.rotation.z+=Math.sin(time*3+(node.position.x>0?Math.PI:0))*(.05+react*.4);
-      if(node.name.startsWith('Tail'))node.rotation.y+=Math.sin(time*5)*(.14+react*.35);
-      if(node.name.startsWith('Ear'))node.rotation.z+=Math.sin(time*2.5)*(.03+react*.1);
+      if(node.userData.petMotion==='head')node.rotation.x+=Math.sin(time*1.4)*.025+(a.kind==='feed'?Math.sin(elapsed*9)*react*.12:react*.08);
+      if(node.userData.petMotion==='foot')node.rotation.x+=Math.sin(elapsed*5+(node.position.x>0?Math.PI:0))*react*.10;
+      if(node.userData.petMotion==='wave')node.rotation.z+=Math.sin(time*3)*(.04+react*.22);
+      if(node.userData.petMotion==='wing')node.rotation.z+=Math.sin(time*2.2+(node.position.x>0?Math.PI:0))*(.025+react*.14);
+      if(node.userData.petMotion==='tail')node.rotation.y+=Math.sin(time*5)*(.14+react*.35);
+      if(node.userData.petMotion==='ear')node.rotation.z+=Math.sin(time*2.5)*(.03+react*.1);
       if(node.name.startsWith('Eye')&&!node.name.startsWith('EyePatch')&&!node.name.startsWith('EyeWhite')){
        const blink=Math.sin(time*1.2)> .996;node.scale.y*=blink?.1:1;
       }
@@ -65,21 +66,21 @@ export function PetStage({pet,action,onInteract,small=false}:{pet:Pet;action:{ki
    function visibility(){visible=!document.hidden;last=performance.now();}
    const intersection=new IntersectionObserver(entries=>{inView=entries[0]?.isIntersecting??true;last=performance.now();});intersection.observe(canvas);
    document.addEventListener('visibilitychange',visibility);
-   function release(root:THREE.Object3D){root.traverse(o=>{const mesh=o as THREE.Mesh;if(mesh.isMesh){mesh.geometry.dispose();const materials=Array.isArray(mesh.material)?mesh.material:[mesh.material];for(const material of materials)material.dispose();}});}
+   function release(root:THREE.Object3D){root.traverse(o=>{const mesh=o as THREE.Mesh;if(mesh.isMesh){mesh.geometry.dispose();const materials=Array.isArray(mesh.material)?mesh.material:[mesh.material];for(const material of materials){for(const value of Object.values(material))if(value&&typeof value==='object'&&(value as THREE.Texture).isTexture)(value as THREE.Texture).dispose();material.dispose();}}});}
    dispose=()=>{cancelAnimationFrame(raf);observer.disconnect();intersection.disconnect();document.removeEventListener('visibilitychange',visibility);if(model)release(model);renderer.dispose();renderer.forceContextLoss();};
    resize();raf=requestAnimationFrame(frame);
    try{
-    const gltf=await new GLTFLoader().loadAsync('/pets/'+pet.animal+'.glb');
+    const gltf=await new GLTFLoader().loadAsync(petModel(pet.animal));
     if(disposed){release(gltf.scene);return;}
     model=gltf.scene;scene.add(model);
-    model.traverse(node=>{if(/^(Head|Foot|Arm|Tail|Ear|Eye)/.test(node.name))animated.push({node,rotation:node.rotation.clone(),scale:node.scale.clone()});});
+    model.traverse(node=>{if(typeof node.userData.petMotion==='string')animated.push({node,rotation:node.rotation.clone(),scale:node.scale.clone()});});
     setReady(true);
    }catch{if(!disposed)setFailed(true);}
   }).catch(()=>{if(!disposed)setFailed(true);});
   return()=>{disposed=true;dispose?.();};
  },[pet.animal,small]);
  return <button type="button" className={'pet-stage '+(small?'pet-stage-small':'')} data-animate={motion?'on':'off'} onClick={onInteract} aria-label={'Chạm để chơi với '+pet.name}>
-  {(!ready||failed)&&<img key={action.tick} className={'pet-poster pet-poster-'+action.kind} src={'/pets/'+pet.animal+'.png'} alt="" draggable={false}/>}
+  {(!ready||failed)&&<img key={action.tick} className={'pet-poster pet-poster-'+action.kind} src={petPortrait(pet.animal)} alt="" draggable={false}/>}
   <canvas ref={canvasRef} aria-hidden="true" style={{opacity:ready&&!failed?1:0}}/>
   {!small&&<span className="pet-touch-hint">{failed?'Chạm để tương tác':'Chạm vào bạn nhỏ nhé'}</span>}
  </button>;

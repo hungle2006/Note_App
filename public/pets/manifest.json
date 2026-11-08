@@ -1,0 +1,102 @@
+[
+  {
+    "animal": "cat",
+    "version": "plush-school-v2",
+    "meshes": 68,
+    "bytes": 1247296,
+    "portrait": [
+      768,
+      768
+    ]
+  },
+  {
+    "animal": "rabbit",
+    "version": "plush-school-v2",
+    "meshes": 67,
+    "bytes": 1169628,
+    "portrait": [
+      768,
+      768
+    ]
+  },
+  {
+    "animal": "fox",
+    "version": "plush-school-v2",
+    "meshes": 64,
+    "bytes": 1166072,
+    "portrait": [
+      768,
+      768
+    ]
+  },
+  {
+    "animal": "bear",
+    "version": "plush-school-v2",
+    "meshes": 107,
+    "bytes": 1564728,
+    "portrait": [
+      768,
+      768
+    ]
+  },
+  {
+    "animal": "owl",
+    "version": "plush-school-v2",
+    "meshes": 93,
+    "bytes": 1791736,
+    "portrait": [
+      768,
+      768
+    ]
+  },
+  {
+    "animal": "dog",
+    "version": "plush-school-v2",
+    "meshes": 56,
+    "bytes": 1139220,
+    "portrait": [
+      768,
+      768
+    ]
+  },
+  {
+    "animal": "panda",
+    "version": "plush-school-v2",
+    "meshes": 80,
+    "bytes": 1258412,
+    "portrait": [
+      768,
+      768
+    ]
+  },
+  {
+    "animal": "deer",
+    "version": "plush-school-v2",
+    "meshes": 91,
+    "bytes": 1490480,
+    "portrait": [
+      768,
+      768
+    ]
+  },
+  {
+    "animal": "hedgehog",
+    "version": "plush-school-v2",
+    "meshes": 136,
+    "bytes": 2110932,
+    "portrait": [
+      768,
+      768
+    ]
+  },
+  {
+    "animal": "penguin",
+    "version": "plush-school-v2",
+    "meshes": 83,
+    "bytes": 1387976,
+    "portrait": [
+      768,
+      768
+    ]
+  }
+]

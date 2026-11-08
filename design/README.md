@@ -53,3 +53,27 @@ Without WebGL, each optical layer has an independent 13–19 second drift, an
 displacement field. The field changes the silhouette inside the image instead
 of only moving a rigid sprite. Native SVG animation and CSS animations both
 pause when the document is hidden and are removed when 3D is disabled.
+
+## Ten reference plush school companions
+
+`pets/reference-companions.blend` contains all ten characters in separate named
+collections. `scripts/pets/build_pets.py` authors each model and renders its
+768px transparent WebP portrait from the same geometry. Rebuild the whole set
+with `blender --background --python scripts/pets/build_pets.py`, or pass animal
+names after `--` for a partial revision. After partial revisions, synchronize the
+native gallery with `scripts/pets/assemble_gallery.py`.
+
+The reference roster is cat, rabbit, fox, bear, owl, corgi, panda, deer, hedgehog
+and penguin. Each has authored facial details and its own school accessories:
+knitted scarves, enamel stars, books with raised emblems, bags with buckles,
+pencils, graduation caps and tassels, glasses, capes, layered feathers or quills.
+Packed fibre/knit normal maps and tapered mesh fibres support a plush surface.
+These are art-directed mesh recreations, not exact reproductions of image-gen
+fur or a simulation of individual hairs.
+
+`public/pets/manifest.json` records each exported asset. The web player animates
+explicit `petMotion` pivots; attached head accessories follow those pivots, and
+held books remain connected to their hands. Shop cards use small WebP portraits;
+GLBs load only for selected companions and the preview. Existing reward IDs and
+prices are preserved so previous unlocks remain valid; the former turtle/chick
+slots now carry the hedgehog/owl reference designs.

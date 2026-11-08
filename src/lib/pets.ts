@@ -6,11 +6,15 @@ export const petCatalog=[
  {id:'pet-panda',animal:'panda',name:'Gấu Trúc Mochi',species:'Gấu trúc',cost:70,color:'#e4e9db',emoji:'🐼',description:'Chậm rãi, dịu dàng, cùng em tận hưởng một khoảng nghỉ.'},
  {id:'pet-penguin',animal:'penguin',name:'Chim Cánh Cụt Băng',species:'Chim cánh cụt',cost:85,color:'#dcecf0',emoji:'🐧',description:'Lạch bạch đáng yêu và vỗ cánh mỗi khi được gọi tên.'},
  {id:'pet-bear',animal:'bear',name:'Gấu Mật',species:'Gấu',cost:100,color:'#efd9c5',emoji:'🐻',description:'Một người bạn tròn trịa, ấm áp, rất thích những cái ôm.'},
- {id:'pet-turtle',animal:'turtle',name:'Rùa Lá',species:'Rùa',cost:120,color:'#dcebdc',emoji:'🐢',description:'Không cần vội. Rùa Lá nhắc em tiến bộ từng chút một.'},
- {id:'pet-chick',animal:'chick',name:'Gà Bông',species:'Gà con',cost:145,color:'#fff0be',emoji:'🐥',description:'Một cục bông vàng líu ríu, nhảy nhót khi em chạm vào.'},
+ // Reward IDs stay stable so existing account unlocks survive the visual update.
+ {id:'pet-turtle',animal:'hedgehog',name:'Nhím Hạt',species:'Nhím',cost:120,color:'#f1ddcb',emoji:'🦔',description:'Bộ gai mềm màu hạt dẻ, áo len kem, ba lô cam và cây bút chì nhỏ.'},
+ {id:'pet-chick',animal:'owl',name:'Cú Sách',species:'Cú mèo',cost:145,color:'#fff0ce',emoji:'🦉',description:'Đeo kính tròn, đội mũ tốt nghiệp và dang đôi cánh lông xếp lớp.'},
  {id:'pet-deer',animal:'deer',name:'Hươu Sao',species:'Hươu',cost:180,color:'#e8dfd0',emoji:'🦌',description:'Hiền lành, thanh thoát với đôi gạc nhỏ màu kem.'},
 ] as const;
 export type Pet=typeof petCatalog[number];
+export const petAssetVersion='plush-school-v2';
+export const petPortrait=(animal:string)=>'/pets/'+animal+'.webp?v='+petAssetVersion;
+export const petModel=(animal:string)=>'/pets/'+animal+'.glb?v='+petAssetVersion;
 export type PetAction='hello'|'feed'|'play'|'pet';
 export function findPet(id:string|null|undefined){return petCatalog.find(p=>p.id===id);}
 export function ownsPet(redeemed:{rewardId:string}[],id:string){return Boolean(findPet(id)&&redeemed.some(r=>r.rewardId===id));}
