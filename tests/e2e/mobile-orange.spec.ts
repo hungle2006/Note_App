@@ -37,7 +37,7 @@ test("Mobile reward filter works",async({page})=>{
  await expect(page.locator(".sun-reward")).toHaveCount(6);
  await page.getByRole("button",{name:/Đã sở hữu/}).click();
  await expect(page.locator(".sun-reward")).toHaveCount(0);
- await page.getByRole("button",{name:/Tất cả/}).click();
+ await page.getByRole("group",{name:"Lọc huy hiệu"}).getByRole("button",{name:/^Tất cả/}).click();
  await expect(page.locator(".sun-reward")).toHaveCount(6);
  expect(await page.locator("body").innerText()).not.toContain("Bảng xếp hạng");
 });

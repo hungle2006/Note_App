@@ -57,7 +57,17 @@ export function SmartSelect({id,label,value,options,onChange,disabled=false,icon
   {showLabel&&<label className="smart-select-label" htmlFor={id??listId}>{label}</label>}
   <button id={id??listId} ref={trigger} className="smart-select-trigger" type="button" aria-label={label}
    aria-haspopup="listbox" aria-controls={open?listId+"-list":undefined} aria-expanded={open} disabled={disabled} onClick={()=>open?hide():show()}
-   onKeyDown={e=>{if(e.key==="ArrowDown"||e.key==="ArrowUp"){e.preventDefault();show();}}}>
+   onKeyDown={e=>{
+    if(e.key==="ArrowDown"||e.key==="ArrowUp"){
+     e.preventDefault();
+     if(!open)show();
+     else setActive(i=>e.key==="ArrowDown"?Math.min(options.length-1,i+1):Math.max(0,i-1));
+     requestAnimationFrame(()=>list.current?.focus());
+    }else if(open&&(e.key==="Enter"||e.key===" ")){
+     e.preventDefault();
+     if(options[active])choose(options[active].value);
+    }
+   }}>
    {icon&&<span className="smart-select-leading" aria-hidden="true">{icon}</span>}
    <span className="smart-select-current">{selected?.label??placeholder}</span>
    <ChevronDown size={17} strokeWidth={2.3} aria-hidden="true" className={"smart-select-chevron"+(open?" opened":"")}/>

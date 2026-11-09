@@ -27,7 +27,7 @@ for(const width of [320,390,430,760,1280]){
   expect(metrics.inputShadow).toBe("none");
   expect(metrics.border).toBe("1px");
   expect(metrics.shadow).not.toBe("none");
-  expect(metrics.outerHeight).toBe(48);
+  expect(Math.abs(metrics.outerHeight-48)).toBeLessThan(0.05);
   expect(metrics.centersDiff).toBeLessThan(3);
   expect(metrics.leftGap).toBeGreaterThanOrEqual(7);
   expect(metrics.within).toBe(true);

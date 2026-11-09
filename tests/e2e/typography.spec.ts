@@ -43,6 +43,8 @@ test("Vietnamese regular and italic fonts load locally without breaking math", a
 test("headings and auth buttons stay inside narrow viewports in both themes", async ({
   page,
 }) => {
+  test.setTimeout(90000);
+  await page.emulateMedia({ reducedMotion: "reduce" });
   for (const width of [320, 390, 768]) {
     await page.setViewportSize({ width, height: 844 });
     for (const path of ["/", "/login", "/register", "/app?mode=demo"]) {

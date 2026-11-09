@@ -1,6 +1,7 @@
 import {test,expect} from "@playwright/test";
 for(const width of [320,375,390,430,760]){
  test("Explore 100 workouts and guided routines at "+width+"px",async({page})=>{
+  await page.emulateMedia({reducedMotion:"reduce"});
   await page.setViewportSize({width,height:844});
   await page.goto("/app?mode=demo&view=fitness");
   await expect(page.getByRole("heading",{name:/100 bài vận động/})).toBeVisible();
@@ -19,7 +20,7 @@ for(const width of [320,375,390,430,760]){
   await page.getByRole("button",{name:"Tạm dừng"}).click();
   await expect(page.getByRole("button",{name:/Tiếp tục/})).toBeVisible();
   await page.getByRole("searchbox",{name:"Tìm bài tập"}).fill("");
-  await page.getByRole("button",{name:/AI đếm/}).first().click();
+  await nav.getByRole("button",{name:/AI đếm/}).click();
   await expect(page.getByText("7 bài phù hợp")).toBeVisible();
   await page.getByRole("button",{name:/Squat/}).first().click();
   await expect(page.getByRole("region",{name:"Camera thật"})).toBeVisible();
