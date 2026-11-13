@@ -24,7 +24,7 @@ test('Turso schema is repeatable and SQL-console migration preserves existing no
  await client.executeMultiple(readFileSync(new URL('../database/001_turso.sql',import.meta.url),'utf8'));
  assert.equal((await repo.getNote('alice',n.id)).content,input.content);
  const migrations=await client.execute('SELECT version FROM app_migrations');assert.deepEqual(migrations.rows.map(x=>x.version).sort(),["turso-001",schemaVersion].sort());
- const tables=await client.execute("SELECT name FROM sqlite_master WHERE type='table' AND name LIKE 'app_%'");assert.equal(tables.rows.length,13);assert.ok(tables.rows.some(row=>row.name==="app_fitness_sessions"));
+ const tables=await client.execute("SELECT name FROM sqlite_master WHERE type='table' AND name LIKE 'app_%'");assert.equal(tables.rows.length,14);assert.ok(tables.rows.some(row=>row.name==="app_fitness_sessions"));
 });
 
 test('notes round-trip Vietnamese, images and UTC timestamps; all CRUD enforces owner',async t=>{
