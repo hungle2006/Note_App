@@ -65,3 +65,9 @@
 .peer-visibility-toggle.active{border-color:#22b86c;color:#14814c;background:#22b86c16}
 @media(max-width:760px){.peer-sidebar{padding:17px 12px}.peer-search{min-height:50px}.peer-row{min-height:66px}.peer-welcome{padding:26px 15px}.peer-privacy-settings{flex-direction:column;align-items:flex-start}.peer-visibility-toggle{width:100%}}
 @media(prefers-reduced-motion:reduce){.peer-search,.peer-search>button{transition:none}}
+
+/* Keep long Groq formulas legible on desktop and narrow phones */
+.message.assistant .markdown .katex-display,.markdown .katex-display{max-width:100%;overflow-x:auto;overflow-y:hidden;padding:10px 4px 13px;margin:12px 0;scrollbar-width:thin}
+.message.assistant .markdown .katex-display>.katex{display:inline-block;min-width:max-content;text-align:center;white-space:nowrap}
+.message.assistant .markdown .katex-error{font-size:13px;color:var(--ink)}
+@media(max-width:760px){.message.assistant .markdown .katex-display{font-size:14px;padding:8px 0 12px}}
