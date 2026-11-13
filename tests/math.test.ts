@@ -20,7 +20,7 @@ test('rendered tutor response contains KaTeX instead of raw TeX markers',async()
  const {createElement}=await import('react');
  const {renderToStaticMarkup}=await import('react-dom/server');
  const {Markdown}=await import('../src/components/ui');
- const html=renderToStaticMarkup(createElement(Markdown,{content:String.raw`Vậy: \\[\\frac{1}{2}+\\frac{1}{3}=\\frac{5}{6}\\]`}));
+ const html=renderToStaticMarkup(createElement(Markdown,{content:String.raw`Vậy: \[\frac{1}{2}+\frac{1}{3}=\frac{5}{6}\]`}));
  assert.match(html,/katex/);
  assert.match(html,/katex-display/);
  assert.doesNotMatch(html,/\\\\\[/);
