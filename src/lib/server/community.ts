@@ -15,6 +15,22 @@ export function communityRepository(db:Client){
  async function blocked(a:string,b:string){const r=await db.execute({sql:'SELECT owner_id FROM app_peer_blocks WHERE (owner_id=? AND blocked_id=?) OR (owner_id=? AND blocked_id=?)',args:[a,b,b,a]});return r.rows.length>0;}
  return {
   checkins,
+  async heartbeat(uid:string) {
+   await db.execute({sql:"INSERT INTO app_peer_presence(user_id) VALUES(?) ON CONFLICT(user_id) DO UPDATE SET last_seen_at=strftime('%Y-%m-%dT%H:%M:%fZ','now')",args:[uid]});
+  },
+  async presence(uid:string) {
+   const r=await db.execute({sql:"SELECT show_online FROM app_peer_presence WHERE user_id=?",args:[uid]});
+   return {showOnline:r.rows.length?Number(r.rows[0].show_online)===1:true};
+  },
+  async setPresence(uid:string,showOnline:boolean) {
+   await db.execute({sql:"INSERT INTO app_peer_presence(user_id,show_online) VALUES(?,?) ON CONFLICT(user_id) DO UPDATE SET show_online=excluded.show_online",args:[uid,showOnline?1:0]});
+  },
+  async online(ids:string[]) {
+   if(!ids.length)return new Set<string>();
+   const safe=[...new Set(ids)].slice(0,100);
+   const r=await db.execute({sql:"SELECT user_id FROM app_peer_presence WHERE show_online=1 AND last_seen_at>=strftime('%Y-%m-%dT%H:%M:%fZ','now','-2 minutes') AND user_id IN ("+safe.map(()=>'?').join(',')+")",args:safe});
+   return new Set(r.rows.map(row=>String(row.user_id)));
+  },
   async claim(uid:string,now=new Date()){
    const day=vietnamDay(now),tx=await db.transaction('write');
    try{
