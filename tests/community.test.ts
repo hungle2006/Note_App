@@ -8,3 +8,17 @@ test('49 days earn exactly 730 coins, then start a new cycle without losing stre
 test('private messages reject outsiders, retry once, support unread, paging, and bilateral blocks',async t=>{const {repo}=await setup(t);const id=await repo.open('alice','An','bob','Bình');assert.equal(await repo.open('bob','Bình','alice','An'),id);await assert.rejects(repo.messages('eve',id));await assert.rejects(repo.send('eve',id,'spam',crypto.randomUUID()));const mid=crypto.randomUUID();await repo.send('alice',id,'Xin chào <script>test</script>',mid);await repo.send('alice',id,'Xin chào <script>test</script>',mid);assert.equal((await repo.threads('bob'))[0].unread,1);const m=await repo.messages('bob',id);assert.equal(m.messages.length,1);assert.match(m.messages[0].body,/<script>/);assert.equal((await repo.threads('bob'))[0].unread,0);await repo.block('bob',id,true);await assert.rejects(repo.send('alice',id,'hello',crypto.randomUUID()));await assert.rejects(repo.send('bob',id,'hello',crypto.randomUUID()));await repo.block('bob',id,false);await repo.send('bob',id,'Chào bạn',crypto.randomUUID());assert.equal((await repo.messages('alice',id,m.messages[0].seq)).messages.length,0);assert.equal((await repo.messages('alice',id)).messages.length,2);assert.equal((await repo.threads('eve')).length,0);});
 test('history is paginated in stable sequence order without leaking other threads',async t=>{const {db,repo}=await setup(t);const id=await repo.open('a','A','b','B'),other=await repo.open('a','A','c','C');for(let i=0;i<55;i++)await db.execute({sql:'INSERT INTO app_peer_messages(id,thread_id,sender_id,body) VALUES(?,?,?,?)',args:[crypto.randomUUID(),id,'a','Tin '+i]});await repo.send('a',other,'Riêng',crypto.randomUUID()).catch(()=>{});const page=await repo.messages('b',id);assert.equal(page.messages.length,50);assert.ok(page.older);const older=await repo.messages('b',id,page.older!);assert.equal(older.messages.length,5);assert.equal(new Set([...older.messages,...page.messages].map(m=>m.seq)).size,55);assert.equal(older.messages[0].body,'Tin 0');});
 test('message rate limit applies across conversations and preserves idempotent retry',async t=>{const {repo}=await setup(t);const one=await repo.open('a','A','b','B'),two=await repo.open('a','A','c','C');const ids=Array.from({length:30},()=>crypto.randomUUID());for(let i=0;i<30;i++)await repo.send('a',i%2?one:two,'Tin '+i,ids[i]);await repo.send('a',one,'Tin 29',ids[29]);await assert.rejects(repo.send('a',two,'Tin 31',crypto.randomUUID()),(e:any)=>e.code==='SLOW_DOWN');assert.equal((await repo.messages('b',one)).messages.length,15);});
+
+test('online status requires authenticated heartbeat and respects visibility settings',async t=>{
+ const {repo}=await setup(t);
+ assert.equal((await repo.online(['alice','bob'])).size,0);
+ await repo.heartbeat('alice');
+ assert.equal((await repo.online(['alice','bob'])).has('alice'),true);
+ await repo.setPresence('alice',false);
+ assert.equal((await repo.online(['alice'])).has('alice'),false);
+ await repo.heartbeat('alice');
+ assert.equal((await repo.online(['alice'])).has('alice'),false);
+ assert.equal((await repo.presence('alice')).showOnline,false);
+ await repo.setPresence('alice',true);
+ assert.equal((await repo.online(['alice'])).has('alice'),true);
+});

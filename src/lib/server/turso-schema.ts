@@ -1,6 +1,6 @@
 import type {Client} from "@libsql/client";
 
-export const schemaVersion = "turso-005";
+export const schemaVersion = "turso-006";
 // Additive, idempotent bootstrap. No existing database is dropped or cleared.
 export const schemaStatements = [
  `CREATE TABLE IF NOT EXISTS app_migrations (
@@ -80,6 +80,7 @@ export const schemaStatements = [
  `CREATE TABLE IF NOT EXISTS app_peer_messages (seq INTEGER PRIMARY KEY AUTOINCREMENT, id TEXT NOT NULL UNIQUE, thread_id TEXT NOT NULL REFERENCES app_peer_threads(id), sender_id TEXT NOT NULL, body TEXT NOT NULL, created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')))`,
  `CREATE INDEX IF NOT EXISTS app_peer_message_thread ON app_peer_messages(thread_id,seq DESC)`,
  `CREATE TABLE IF NOT EXISTS app_peer_blocks (owner_id TEXT NOT NULL, blocked_id TEXT NOT NULL, PRIMARY KEY(owner_id,blocked_id))`,
+ `CREATE TABLE IF NOT EXISTS app_peer_presence (user_id TEXT PRIMARY KEY, last_seen_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')), show_online INTEGER NOT NULL DEFAULT 1 CHECK (show_online IN (0,1)))`,
 ];
 
 export async function initializeSchema(client:Client) {

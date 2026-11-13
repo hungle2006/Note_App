@@ -13,9 +13,13 @@ export async function GET(r:Request){try{
   const auth=firebaseAdminAuth();
   const users=q.includes('@')?{users:await auth.getUserByEmail(q).then(x=>[x]).catch((e)=>{if(e.code==='auth/user-not-found')return [];throw e;}),pageToken:undefined}:await auth.listUsers(100,page);
   const fold=(s:string)=>s.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
-  return json({people:users.users.filter(x=>x.uid!==u.uid&&x.emailVerified&&!x.disabled&&(q.includes('@')||fold(x.displayName||'Người học').includes(fold(q)))).slice(0,100).map(x=>({id:x.uid,name:x.displayName||'Người học'})),nextPage:users.pageToken||null});
+  const matched=users.users.filter(x=>x.uid!==u.uid&&x.emailVerified&&!x.disabled&&(q.includes('@')||fold(x.displayName||'Người học').includes(fold(q)))).slice(0,100);
+  const online=await repo.online(matched.map(x=>x.uid));
+  return json({people:matched.map(x=>({id:x.uid,name:x.displayName||'Người học',online:online.has(x.uid)})),nextPage:users.pageToken||null});
+
  }
- return json({threads:await repo.threads(u.uid),selfId:u.uid});
+ const threads=await repo.threads(u.uid),online=await repo.online(threads.map(t=>t.peerId));
+ return json({threads:threads.map(t=>({...t,online:online.has(t.peerId)})),selfId:u.uid});
  }catch(e){return failure(e);}}
 export async function POST(r:Request){try{
  const u=await requireUser(r),v=await readJson(r,z.object({peerId:z.string().min(1).max(128)}).strict());
