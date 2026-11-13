@@ -24,4 +24,6 @@ Tệp dựng: design/solar-system.blend. Mô hình web: public/models/solar-syst
 
 ## Trạng thái bàn giao
 
-Đây là bản mã đã build, chưa được đẩy lên GitHub và chưa triển khai. Hệ thống duyệt tự động chặn git push lên repository công khai do cần người dùng cho phép công bố mã nguồn. Không có thay đổi nào lên app đang chạy.
+**Ngày 13/11/2026:** Pull Request #2 đã được hợp nhất vào nhánh `main` (commit `605a22d8271abfad1c516433a95e969e42892b1b`). Bản Vercel production đã đạt `READY` và tên miền `https://noteappme.vercel.app/` trỏ tới phiên bản cập nhật. Đã xác nhận trang chủ (HTTP 200), tệp mô hình `/models/solar-system.glb` (HTTP 200), ảnh dự phòng `/images/solar-system.png` (HTTP 200), và `/api/status` báo cấu hình Firebase Admin, Turso cùng các dịch vụ học tập sẵn sàng.
+
+**Chưa xác minh:** căn chỉnh trực quan bằng trình duyệt thực trên nhiều màn hình, luồng nhắn tin hai tài khoản thật, cộng xu từ môi trường production. Mọi cơ chế này đã qua unit/integration test cục bộ nhưng không nên xem HTTP 200 là thay thế được kiểm thử thao tác thực tế. Build production có cảnh báo bảo mật từ `npm audit` cần rà soát phụ thuộc riêng trước khi mở rộng người dùng.
