@@ -48,3 +48,13 @@ Kiểm tra kết nối Firebase dùng UID cố định để xác nhận OAuth v
 - Evaluation: mã người viết, điều kiện ảnh, lỗi đọc sai/bỏ sót/đính chính sai, CER và CSV. Dữ liệu chỉ có sau khi người kiểm tra nhập. Lưu metadata không hủy bộ ôn/kết quả; kiểm tra stale version và UID. Chưa có bộ 20 trang thật từ 5–6 người để báo kết quả OCR thực nghiệm.
 - Rewards: libSQL thật local kiểm tra điểm một lần/bài/mode/ngày, loại flashcard, giá đổi do server quyết định, UID, số dư, chống đổi hai lần và transaction rollback. Không gọi Turso cloud bằng tài khoản học sinh trong các test này.
 - Blender 5.2.2 LTS: dựng bằng bpy chính thức, giữ project .blend và script, xuất GLB ~1 MB và poster WebP 1200px ~31 KB. WebGL tải chậm theo viewport, giới hạn pixel ratio và 30 fps; dừng khi rời viewport, giảm chuyển động dùng poster. Kiểm tra cleanup khi unmount.
+
+## Community, check-in and Solar System (2026-11-13)
+
+- Existing Firebase verified identities; account directory returns names/UIDs only, with exact-email lookup or paginated name search.
+- Separate peer conversation tables: canonical member pair, server-side membership on every read/write, 50-message cursor pages, unread markers, stable client message UUIDs for retry deduplication, bilateral blocking and 30 messages/minute server limit. Polling every 4 seconds for the open thread / 6 seconds for inbox while visible.
+- Attendance uses server time in Asia/Ho_Chi_Minh, a unique user/day record and one write transaction with the shared points ledger. 10/day +20 every seventh consecutive day +100 on day49 =730 points. Missed dates reset streak without changing wallet; new cycle after49 days.
+- Blender source: design/solar-system.blend; reproducible generator scripts/blender_solar.py; web model public/models/solar-system.glb. Approximate educational scales; nine selectable objects, relative orbit motion, camera controls, planet facts/questions and NASA sources. Poster and text remain available without WebGL.
+- RGB theme is stored only on the current device; default removes all custom palette overrides. Light/dark and reduced motion are retained.
+- Database tests exercise actual libSQL membership, user isolation, retry deduplication, blocking, read markers, pagination, Vietnam midnight, streak resets and full reward cycle. TypeScript check, 124 tests and production build pass.
+- Browser visual QA remains unverified: the managed preview launcher passes Vite-only --host/--strictPort flags to Next.js, which refuses startup. No application configuration was changed to mask the preview failure. Real two-account cloud delivery also needs verification after deployment; repository tests cover the SQL and authorization boundaries locally.
