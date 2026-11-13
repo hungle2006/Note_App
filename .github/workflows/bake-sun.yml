@@ -8,6 +8,9 @@ on:
       - scripts/blender_sun.py
       - scripts/optimize-sun.mjs
       - .github/workflows/bake-sun.yml
+concurrency:
+  group: bake-sun-${{ github.ref }}
+  cancel-in-progress: true
 permissions:
   contents: write
 jobs:
