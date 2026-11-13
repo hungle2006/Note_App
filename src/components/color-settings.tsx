@@ -1,0 +1,11 @@
+"use client";
+import {useEffect,useState} from 'react';import {Palette,RotateCcw} from 'lucide-react';
+export const colorKey='notelab-custom-rgb';
+export function applyColor(value:string|null){const root=document.documentElement;if(!value||!/^#[0-9a-f]{6}$/i.test(value)){delete root.dataset.customColor;root.style.removeProperty('--custom-color');root.style.removeProperty('--custom-on');return;}
+ root.dataset.customColor='on';root.style.setProperty('--custom-color',value);const rgb=[1,3,5].map(i=>parseInt(value.slice(i,i+2),16)/255).map(v=>v<=.04045?v/12.92:((v+.055)/1.055)**2.4);const light=.2126*rgb[0]+.7152*rgb[1]+.0722*rgb[2];root.style.setProperty('--custom-on',light>.179?'#111111':'#ffffff');}
+export function ColorSettings(){const [color,setColor]=useState('#cc693a'),[custom,setCustom]=useState(false);
+ useEffect(()=>{try{const v=localStorage.getItem(colorKey);if(v&&/^#[0-9a-f]{6}$/i.test(v)){setColor(v);setCustom(true);applyColor(v);}}catch{}},[]);
+ function update(v:string){setColor(v);setCustom(true);applyColor(v);try{localStorage.setItem(colorKey,v);}catch{}}
+ function reset(){setColor('#cc693a');setCustom(false);applyColor(null);try{localStorage.removeItem(colorKey);}catch{}}
+ return <section className="panel color-settings"><div><span className="task-kicker"><Palette size={18}/> MÀU SẮC CỦA EM</span><h2>Đổi màu theo cảm hứng.</h2><p>Chọn bất kỳ màu RGB. Màu nền, nút và điểm nhấn sẽ phối theo màu em chọn; tùy chọn được giữ trên thiết bị này.</p></div><div className="color-controls"><label className="color-swatch">Màu chủ đạo<input type="color" value={color} onChange={e=>update(e.target.value)} aria-label="Chọn màu RGB"/></label><div className="rgb-fields">{['R','G','B'].map((label,index)=><label key={label}>{label}<input aria-label={'Giá trị '+label} type="number" min={0} max={255} value={parseInt(color.slice(1+index*2,3+index*2),16)} onChange={e=>{if(e.target.value==='')return;const rgb=[1,3,5].map(i=>parseInt(color.slice(i,i+2),16));rgb[index]=Math.max(0,Math.min(255,Math.round(Number(e.target.value)||0)));update('#'+rgb.map(v=>v.toString(16).padStart(2,'0')).join(''));}}/></label>)}</div><button className="button secondary" onClick={reset}><RotateCcw size={17}/>Màu mặc định</button><span role="status">{custom?'Đang dùng màu '+color.toUpperCase():'Đang dùng màu cam gốc'}</span></div></section>;
+}

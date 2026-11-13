@@ -4,15 +4,18 @@ import {createContext, useContext, useEffect, useState} from "react";
 import {Moon, Sun, Pause, Play} from "lucide-react";
 import {WaterAtmosphere} from "./water-atmosphere";
 
+import {applyColor,colorKey} from "./color-settings";
+
 type Appearance={dark:boolean; motion:boolean; toggleTheme:()=>void; toggleMotion:()=>void};
 const Context=createContext<Appearance>({dark:false,motion:true,toggleTheme:()=>{},toggleMotion:()=>{}});
-export const appearanceScript=`(()=>{try{const d=document.documentElement;const t=localStorage.getItem('notelab-theme');d.dataset.theme=t||(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');const m=localStorage.getItem('notelab-motion');d.dataset.motion=matchMedia('(prefers-reduced-motion: reduce)').matches||m==='off'?'off':'on';}catch{}})()`;
+export const appearanceScript=`(()=>{try{const d=document.documentElement;const t=localStorage.getItem('notelab-theme');d.dataset.theme=t||(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');const c=localStorage.getItem('notelab-custom-rgb');if(c&&/^#[0-9a-f]{6}$/i.test(c)){d.dataset.customColor='on';d.style.setProperty('--custom-color',c);const rgb=[1,3,5].map(i=>parseInt(c.slice(i,i+2),16)/255).map(v=>v<=.04045?v/12.92:((v+.055)/1.055)**2.4);d.style.setProperty('--custom-on',.2126*rgb[0]+.7152*rgb[1]+.0722*rgb[2]>.179?'#111111':'#ffffff');}const m=localStorage.getItem('notelab-motion');d.dataset.motion=matchMedia('(prefers-reduced-motion: reduce)').matches||m==='off'?'off':'on';}catch{}})()`;
 
 export function AppearanceProvider({children}:{children:React.ReactNode}){
   const [dark,setDark]=useState(false);
   const [motion,setMotion]=useState(true);
   useEffect(()=>{
     const root=document.documentElement;
+    try{applyColor(localStorage.getItem(colorKey));}catch{}
     // Hydration also initializes these attributes if the early inline script
     // could not run. This keeps the water behind the content on a fresh load.
     let savedTheme:string|null=null,savedMotion:string|null=null;
