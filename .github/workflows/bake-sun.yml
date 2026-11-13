@@ -40,5 +40,6 @@ jobs:
           git add design/sun-photosphere.blend public/images/sun-photosphere.jpg
           if ! git diff --cached --quiet; then
             git commit -m "art(blender): bake tested solar photosphere and editable scene"
+            git pull --rebase origin feat/peer-presence-math-sun-20261114
             git push origin HEAD:feat/peer-presence-math-sun-20261114
           fi
