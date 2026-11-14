@@ -114,3 +114,41 @@
 }
 html:has(.focused-workspace),body:has(.focused-workspace){height:100%;overflow:hidden;overscroll-behavior:none}
 .focused-chat .chat-welcome{width:100%;max-width:none}
+/* One connected messaging workspace, from the app header to the bottom edge. */
+.focused-peers .workspace-content{padding:0!important;background:var(--paper)}
+.focused-peers .peer-task{flex:1;min-height:0;height:100%;display:flex;flex-direction:column;background:var(--paper)}
+.focused-peers .peer-task>.section-title{display:none}
+.focused-peers .peer-task>.notice{flex:none;max-height:90px;overflow:auto;margin:8px 12px}
+.focused-peers .peer-task .peers-layout{flex:1;min-height:0!important;height:100%!important;max-height:none!important;min-width:0;width:100%;margin:0;border:0;border-radius:0;box-shadow:none;grid-template-columns:clamp(280px,31%,360px) minmax(0,1fr)}
+.focused-peers .peer-sidebar{background:var(--paper);padding:18px 14px 0;gap:12px;min-height:0}
+.focused-peers .peer-sidebar-heading{padding:0 4px;gap:8px;flex:none}
+.focused-peers .peer-sidebar-heading h2{margin:0;font-size:22px;line-height:1.3}
+.focused-peers .peer-sidebar-description{display:none}
+.focused-peers .peer-heading-icon{width:36px;height:36px;border-radius:12px}
+.focused-peers .peer-tabs{flex:none;border-radius:13px;padding:3px;gap:4px}
+.focused-peers .peer-tabs button{min-height:42px;font-size:13px}
+.focused-peers .peer-search{flex:none;min-height:48px;padding:3px 4px 3px 12px;gap:8px;border-width:1px;border-radius:14px;box-shadow:none}
+.focused-peers .peer-search>input{font-size:16px}
+.focused-peers .peer-search>button{width:40px;height:40px;min-height:40px;border-radius:10px}
+.focused-peers .peer-directory-caption{flex:none;margin:2px 4px 0;gap:6px}
+.focused-peers .peer-directory-caption strong{font-size:12px}
+.focused-peers .peer-online-count{font-size:10px}
+.focused-peers .peer-task .peer-helper{flex:none;margin:-4px 4px 0;font-size:10px!important;line-height:1.5!important}
+.focused-peers .peer-list{flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;padding:0 0 max(12px,env(safe-area-inset-bottom));scrollbar-width:thin}
+.focused-peers .peer-row{min-height:72px;padding:12px 8px;border-radius:12px;gap:12px}
+.focused-peers .peer-row strong{font-size:14px}
+.focused-peers .peer-row small{font-size:12px;line-height:1.4}
+.focused-peers .peer-conversation{border-left:1px solid var(--line)}
+.focused-peers .peer-welcome{height:auto;max-width:540px}
+@media(max-width:760px){
+ .focused-peers .peer-task .peers-layout{grid-template-columns:minmax(0,1fr)}
+ .focused-peers .peer-sidebar{padding:12px 12px 0;gap:10px;border-right:0}
+ .focused-peers .peer-row{min-height:70px;padding:11px 6px}
+ .focused-peers .peer-conversation{border-left:0}
+}
+@media(max-height:520px) and (pointer:coarse){
+ .focused-peers .peer-task .peers-layout{grid-template-columns:minmax(0,1fr)}
+ .focused-peers .peer-sidebar-heading{display:none}
+ .focused-peers .peer-sidebar{padding-top:8px;gap:7px}
+ .focused-peers .peer-task .peer-helper{display:none}
+}
