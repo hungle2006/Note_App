@@ -7,9 +7,8 @@ for(const width of [320,390,430,760]){
    await expect(page.locator('.workspace-content')).toBeVisible();
    expect(await page.evaluate(()=>document.documentElement.scrollWidth)).toBeLessThanOrEqual(width+1);
    if(view==='checkin'){
-    await expect(page.locator('.checkin-day')).toHaveCount(49);
-    const overlap=await page.locator('.checkin-hero').evaluate(el=>{const a=el.children[0].getBoundingClientRect(),b=el.children[1].getBoundingClientRect();return a.bottom>b.top;});
-    expect(overlap).toBe(false);
+    await expect(page.locator('.attendance-day')).toHaveCount(7);
+    await expect(page.locator('.attendance-overview-day')).toHaveCount(49);
     await page.getByRole('button',{name:/Điểm danh ·/}).click();
     await expect(page.getByRole('button',{name:'Đã điểm danh hôm nay'})).toBeDisabled();
    }

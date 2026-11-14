@@ -1,0 +1,118 @@
+/* Attendance: a quiet weekly view instead of 49 repeated reward tiles. */
+.app-shell:has(.attendance-page) .story-chapter{display:none}
+.attendance-page{max-width:1140px;margin:0 auto}
+.attendance-page>.section-title{margin-bottom:22px}
+.attendance-page .section-title .eyebrow{margin-bottom:6px}
+.attendance-layout{display:grid;grid-template-columns:minmax(0,.85fr) minmax(0,1.3fr);gap:20px;align-items:stretch}
+.attendance-today{position:relative;display:flex;flex-direction:column;padding:26px;border-radius:24px;background:linear-gradient(145deg,#c76b3a,#a94d2d);color:#fff9f2;overflow:hidden;box-shadow:0 12px 32px #a94d2d17}
+.attendance-today:after{content:'';position:absolute;width:240px;height:240px;border:1px solid #ffffff14;border-radius:50%;right:-120px;top:40px;pointer-events:none}
+.attendance-today-top{display:flex;align-items:center;gap:9px;position:relative;z-index:1}
+.attendance-flame{display:grid;place-items:center;width:38px;height:38px;border-radius:13px;background:#ffffff18;color:#ffe2af}
+.attendance-today-top>span:nth-child(2){font-size:9px;letter-spacing:1px;flex:1;font-weight:750}
+.attendance-today-top>strong{font-size:25px;font-weight:800;line-height:1.2}
+.attendance-today-top small{font-size:11px;font-weight:500;color:#ffead7}
+.attendance-today-copy{display:flex;align-items:center;gap:14px;flex:1;padding:30px 0;position:relative;z-index:1}
+.attendance-today-copy>div:first-child{flex:1;min-width:0}
+.attendance-kicker{display:block;font-size:9px;font-weight:800;letter-spacing:1.1px;color:var(--purple-ink);line-height:1.5}
+.attendance-today .attendance-kicker{color:#ffe2c9;font-size:8px}
+.attendance-today h2{font-size:clamp(22px,2.2vw,30px);line-height:1.3;margin:9px 0 10px;letter-spacing:-.6px}
+.attendance-today p{font-size:12px;line-height:1.65;color:#ffeadc;max-width:240px}
+.attendance-reward{flex:none;width:80px;height:100px;border-radius:22px;border:1px solid #ffffff32;background:#ffffff12;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;transform:rotate(4deg)}
+.attendance-reward>svg{color:#ffe3a5}
+.attendance-reward strong{font-size:32px;line-height:1.25;font-weight:850}
+.attendance-reward span{font-size:9px;color:#ffe9d8}
+.attendance-today .attendance-claim{position:relative;z-index:1;width:100%;min-height:48px;border-radius:14px;background:#fff7ee;color:#9b421f;font-size:13px;font-weight:850;box-shadow:none;padding:12px;gap:8px}
+.attendance-claim>span{flex:1;text-align:center}
+.attendance-today .attendance-claim:disabled{background:#ffffff21;color:#fff5e9;opacity:1;border-color:#ffffff32}
+.attendance-reset{font-size:9px;color:#ffe3ce;text-align:center;margin-top:12px;line-height:1.5}
+.attendance-calendar{padding:25px;border-radius:24px;box-shadow:none;min-width:0}
+.attendance-calendar-heading{display:flex;align-items:center;gap:16px}
+.attendance-calendar-heading>div{flex:1;min-width:0}
+.attendance-calendar h2{font-size:21px;line-height:1.4;margin-top:6px;letter-spacing:-.5px}
+.attendance-progress-count{font-size:12px;white-space:nowrap;color:var(--muted);font-variant-numeric:tabular-nums}
+.attendance-progress-count strong{font-size:24px;color:var(--purple-ink);margin-right:2px}
+.attendance-calendar progress{display:block;width:100%;height:5px;margin:18px 0 20px;border:0;border-radius:8px;overflow:hidden;accent-color:var(--sun-accent);background:var(--soft)}
+.attendance-calendar progress::-webkit-progress-bar{background:var(--soft)}
+.attendance-calendar progress::-webkit-progress-value{background:var(--sun-accent);border-radius:8px}
+.attendance-weeks{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px;background:var(--bg);padding:4px;border-radius:13px}
+.attendance-weeks button{position:relative;min-width:0;min-height:40px;border:0;border-radius:10px;padding:5px 2px;background:transparent;color:var(--muted);font-size:11px;font-weight:750;white-space:nowrap}
+.attendance-weeks button.selected{background:var(--paper);color:var(--purple-ink);box-shadow:0 2px 9px #8b512413}
+.attendance-weeks button>svg{position:absolute;right:2px;top:2px}
+.attendance-week-heading{display:flex;justify-content:space-between;align-items:center;gap:8px;margin:22px 0 15px}
+.attendance-week-heading strong{font-size:13px;color:var(--ink)}
+.attendance-week-heading span{font-size:10px;color:var(--muted)}
+.attendance-days{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px}
+.attendance-day{display:flex;flex-direction:column;align-items:center;gap:8px;min-width:0;padding:4px 0 7px}
+.attendance-day-number{position:relative;display:grid;place-items:center;width:42px;height:42px;max-width:100%;border-radius:50%;border:1px solid var(--line);color:var(--muted);font-size:13px;font-weight:750;background:var(--paper);font-variant-numeric:tabular-nums}
+.attendance-day small{font-size:10px;color:var(--muted);white-space:nowrap}
+.attendance-day.today .attendance-day-number{color:var(--purple-ink);background:var(--soft);border-color:var(--sun-accent);box-shadow:0 0 0 3px color-mix(in srgb,var(--sun-accent) 9%,transparent)}
+.attendance-day.done .attendance-day-number{background:var(--teal-soft);color:var(--teal);border-color:transparent}
+.attendance-day.milestone .attendance-day-number{background:var(--soft);color:var(--purple-ink)}
+.attendance-day .attendance-day-gift{position:absolute;right:-2px;top:-5px;background:var(--paper);border-radius:4px;color:var(--sun-accent)}
+.attendance-week-bonus{display:flex;align-items:center;gap:8px;padding:12px;margin:14px 0 0;border-radius:12px;background:var(--bg);font-size:10px;line-height:1.65;color:var(--muted)}
+.attendance-week-bonus>svg{flex:none;color:var(--sun-accent)}
+.attendance-week-bonus strong{color:var(--purple-ink);font-weight:750}
+.attendance-overview{border-top:1px solid var(--line);margin-top:18px;padding-top:3px}
+.attendance-overview>summary{display:flex;align-items:center;justify-content:space-between;min-height:44px;list-style:none;cursor:pointer;font-size:11px;color:var(--muted)}
+.attendance-overview>summary::-webkit-details-marker{display:none}
+.attendance-overview[open]>summary>svg{transform:rotate(180deg)}
+.attendance-overview-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px;padding:4px 0 12px}
+.attendance-overview-day{display:grid;place-items:center;height:29px;border-radius:7px;background:var(--bg);font-size:10px;color:var(--muted)}
+.attendance-overview-day.done{background:var(--teal-soft);color:var(--teal)}
+.attendance-rules{display:flex;justify-content:center;flex-wrap:wrap;gap:12px 24px;margin:24px 0 12px;color:var(--muted)}
+.attendance-rules>span{display:flex;align-items:center;gap:5px;font-size:11px}
+.attendance-rules svg{color:var(--sun-accent)}
+.attendance-rules strong{color:var(--ink);font-weight:800}
+.attendance-footnote{max-width:660px;margin:0 auto;text-align:center;font-size:11px;line-height:1.7;color:var(--muted)}
+.attendance-notice{display:flex;gap:8px;align-items:center;padding:12px 15px;border-radius:12px;background:var(--teal-soft);color:var(--teal);font-size:12px;margin:14px 0}
+@media(max-width:1000px){.attendance-layout{grid-template-columns:minmax(0,1fr)}.attendance-today-copy{padding:20px 0}.attendance-today h2{font-size:26px}.attendance-today p{max-width:none}.attendance-reward{height:78px;width:75px}.attendance-today{padding:22px}.attendance-calendar{padding:22px}}
+@media(max-width:760px){
+ .attendance-page>.section-title{margin-bottom:14px}
+ .attendance-page .section-title .eyebrow{font-size:8px}
+ .attendance-page .section-title h1{font-size:24px!important}
+ .attendance-page .section-title p{font-size:12px;margin-top:4px}
+ .attendance-layout{gap:14px}
+ .attendance-today{padding:18px;border-radius:20px}
+ .attendance-today-top{gap:8px}
+ .attendance-today-top>span:nth-child(2){font-size:8px;letter-spacing:.6px}
+ .attendance-flame{width:32px;height:32px;border-radius:11px}
+ .attendance-today-top>strong{font-size:23px}
+ .attendance-today-copy{padding:18px 0;gap:12px}
+ .attendance-today h2{font-size:22px;margin:6px 0 8px}
+ .attendance-today p{font-size:11px;line-height:1.6}
+ .attendance-reward{width:65px;height:76px;border-radius:18px}
+ .attendance-reward strong{font-size:28px}
+ .attendance-calendar{padding:18px 14px;border-radius:20px}
+ .attendance-calendar h2{font-size:17px}
+ .attendance-calendar progress{margin:14px 0 15px}
+ .attendance-weeks button{min-height:40px;font-size:12px}
+ .attendance-weeks button>span{display:none}
+ .attendance-week-heading{margin:18px 0 12px}
+ .attendance-days{gap:4px}
+ .attendance-day-number{width:34px;height:34px;font-size:12px}
+ .attendance-day small{font-size:9px}
+ .attendance-week-bonus{padding:10px;font-size:10px}
+ .attendance-rules{gap:10px 14px;margin:17px 0 10px;justify-content:flex-start}
+ .attendance-rules>span{font-size:10px}
+ .attendance-rules svg{width:14px;height:14px}
+ .attendance-footnote{text-align:left;font-size:10px}
+}
+@media(max-width:360px){.attendance-day-number{width:30px;height:30px}.attendance-calendar{padding:16px 12px}.attendance-week-bonus strong{display:block}}
+@media(max-width:760px){
+ .attendance-page>.section-title{display:none}
+ .attendance-today{padding:16px}
+ .attendance-today-copy{padding:12px 0}
+ .attendance-today h2{font-size:21px;margin:5px 0 6px}
+ .attendance-today-copy .attendance-kicker{display:none}
+ .attendance-reward{width:60px;height:70px}
+ .attendance-today p{font-size:10px}
+ .attendance-reset{font-size:8px;margin-top:9px}
+ .attendance-calendar{padding:16px 14px}
+ .attendance-calendar h2{font-size:17px;margin-top:4px}
+ .attendance-calendar progress{margin:12px 0}
+ .attendance-week-heading{margin:14px 0 10px}
+ .attendance-week-bonus{margin-top:10px;padding:9px}
+ .attendance-overview{margin-top:12px}
+}
+
+.attendance-weeks button:focus-visible{outline:2px solid var(--sun-accent);outline-offset:1px}
