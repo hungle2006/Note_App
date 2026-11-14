@@ -1,0 +1,110 @@
+/* Bounded workspaces: only the active content pane scrolls. */
+.focused-workspace{height:var(--task-height,100dvh);min-height:0;overflow:hidden;position:relative}
+.focused-workspace .app-main{height:100%;min-height:0;display:flex;flex-direction:column;overflow:hidden}
+.focused-workspace .app-header{flex:none;position:relative;top:auto}
+.focused-workspace :is(.cloud-sync-note,.demo-banner,.workspace-footer,.mobile-tabbar){display:none!important}
+.focused-workspace .workspace-content{flex:1;min-height:0;width:100%;max-width:none;padding:12px 20px!important;display:flex;flex-direction:column;overflow:hidden}
+.focused-workspace .view-transition{flex:1;min-height:0;display:flex;flex-direction:column;animation:none;transform:none}
+.focused-workspace .view-transition>.section-title,.focused-workspace .story-chapter,.focused-workspace .story-chapter-nav{display:none}
+/* Tutor uses available width; optional tools open without shrinking the message column. */
+.focused-chat .tutor-shell{flex:1;min-height:0;display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:48px minmax(0,1fr);gap:0;position:relative;border:1px solid var(--line);border-radius:20px;overflow:hidden;background:var(--paper)}
+.tutor-workspace-tools{grid-column:1/-1;display:flex;align-items:center;gap:8px;padding:4px 12px;border-bottom:1px solid var(--line);min-width:0}
+.tutor-workspace-tools>strong{flex:1;text-align:center;font-size:14px;min-width:0}
+.tutor-workspace-tools>button{display:flex;align-items:center;justify-content:center;gap:6px;min-width:44px;min-height:40px;border:0;border-radius:10px;background:transparent;color:var(--purple-ink);font-size:12px}
+.tutor-workspace-tools>button[aria-expanded=true]{background:var(--soft)}
+.focused-chat .tutor-shell>.chat-layout{grid-column:1;grid-row:2;display:flex;min-height:0;height:100%;width:100%;gap:0}
+.focused-chat .tutor-shell .chat-panel{flex:1;min-width:0;min-height:0;height:100%;max-height:none;display:flex;flex-direction:column;border:0;border-radius:0;box-shadow:none;overflow:hidden}
+.focused-chat .chat-header{flex:none;padding:12px 22px;min-height:64px}
+.focused-chat .tutor-modes{flex:none;padding:8px 20px;display:flex;gap:8px;overflow-x:auto}
+.focused-chat .tutor-modes button{flex:none;min-height:38px;white-space:nowrap}
+.focused-chat .chat-messages{flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;padding:22px max(20px,calc((100% - 960px)/2));overscroll-behavior:contain}
+.focused-chat .chat-welcome{height:auto;min-height:100%;padding:24px 0;margin:0;display:flex;flex-direction:column;justify-content:center;align-items:center;flex-shrink:0}
+.focused-chat .tutor-orb{flex:none;width:56px;height:56px;min-height:56px;margin:0 0 16px}
+.focused-chat .chat-welcome h2{font-size:clamp(22px,2.4vw,32px);margin:8px 0 12px}
+.focused-chat .chat-welcome>p{max-width:600px}
+.focused-chat .chat-prompts{width:min(100%,620px);margin-top:22px}
+.focused-chat .chat-prompts button{min-height:44px}
+.focused-chat .chat-input{flex:none;width:calc(100% - 40px);max-width:980px;align-self:center;margin:8px 20px!important;padding:10px 14px 8px!important}
+.focused-chat .chat-input textarea{min-height:44px!important;max-height:120px;font-size:16px}
+.focused-chat .chat-input .send-button{width:44px;height:44px;min-width:44px}
+.focused-chat .chat-disclaimer{flex:none;padding:0 12px 8px!important}
+.focused-chat .chat-error{flex:none;max-height:100px;overflow:auto;margin:0 12px;font-size:12px}
+.focused-chat .tutor-history{display:none;position:absolute;top:48px;bottom:0;left:0;width:min(320px,88%);max-height:none;z-index:10;border-radius:0;border-width:0 1px 0 0;box-shadow:12px 0 30px #0002}
+.focused-chat .history-open .tutor-history{display:flex}
+.focused-chat .tutor-history-list{display:flex;max-height:none;flex:1;min-height:0;overflow:auto}
+.focused-chat .tutor-history-toggle{display:none}
+.focused-chat .tutor-shell .chat-context{display:none;position:absolute;right:0;top:48px;bottom:0;width:min(360px,92%);overflow:auto;z-index:10;border-radius:0;border-width:0 0 0 1px;background:var(--paper);padding:20px;box-shadow:-12px 0 30px #0002}
+.focused-chat .context-open .chat-context{display:block}
+.focused-chat .chat-context :is(.eyebrow,h3,.context-note,.retrieval-note,.context-tip){display:revert}
+.focused-chat .chat-context .context-close{display:flex;float:right;margin:-8px -6px 8px 4px}
+.focused-chat .chat-context .smart-select{clear:both}
+/* Solar model, picker and learning pane fill one screen. */
+.focused-solar .solar-task{height:100%;min-height:0;display:flex;flex-direction:column}
+.focused-solar .solar-task>.section-title{display:none}
+.solar-view-tabs{display:none}
+.focused-solar .solar-layout{flex:1;min-height:0;grid-template-columns:minmax(0,1fr) minmax(280px,32%);grid-template-rows:minmax(0,1fr) auto;gap:12px}
+.focused-solar .solar-layout>.solar-stage{grid-column:1;grid-row:1;min-height:0;overflow:hidden}
+.focused-solar .solar-canvas{flex:1;min-height:0;height:auto;touch-action:none}
+.focused-solar .solar-stage-heading{flex:none;padding:12px 16px}
+.focused-solar .solar-toolbar{flex:none;padding:8px 12px;align-items:center;gap:8px}
+.focused-solar .solar-toolbar :is(button,label){min-height:44px}
+.focused-solar .solar-caption{flex:none;font-size:10px!important;padding:0 14px 10px}
+.focused-solar .solar-layout>.planet-picker{grid-column:1;grid-row:2;display:flex;overflow-x:auto;gap:7px;padding:3px 2px 5px;scroll-snap-type:x proximity;overscroll-behavior-x:contain}
+.focused-solar .planet-picker button{flex:1 0 94px;min-height:48px;scroll-snap-align:start;font-size:12px}
+.focused-solar .solar-layout>.planet-detail{grid-column:2;grid-row:1/3;overflow-y:auto;min-height:0;padding:20px;overscroll-behavior:contain}
+.focused-solar .universe-idea{padding:18px 0 0;border:0;border-top:1px solid var(--line);box-shadow:none;margin-top:24px;border-radius:0;background:transparent}
+.focused-solar .universe-idea h2{font-size:20px}
+@media(max-width:1000px){
+ .focused-solar .solar-layout{grid-template-columns:minmax(0,1fr);gap:8px}
+ .solar-view-tabs{display:flex;gap:8px;margin-bottom:8px;flex:none}
+ .solar-view-tabs button{flex:1;display:flex;gap:7px;align-items:center;justify-content:center;min-height:44px;padding:8px;border-radius:12px;border:1px solid var(--line);background:var(--paper);font-size:12px;color:var(--ink)}
+ .solar-view-tabs button[aria-pressed=true]{background:var(--soft);border-color:var(--sun-accent);color:var(--purple-ink)}
+ .focused-solar .solar-layout>.planet-detail{display:none;grid-column:1;grid-row:1;padding:18px}
+ .focused-solar .lesson-open .planet-detail{display:block}
+ .focused-solar .lesson-open .solar-stage{display:none}
+ .focused-solar .solar-layout>.planet-picker{grid-column:1;grid-row:2}
+}
+@media(max-width:760px){
+ .focused-workspace{position:fixed;inset:auto 0 auto 0;top:var(--task-top,0px);width:100%;height:var(--task-height,100dvh)}
+ .focused-workspace .workspace-content{padding:8px!important}
+ .focused-chat .workspace-content{padding:0!important}
+ .focused-chat .tutor-shell{border:0;border-radius:0}
+ .focused-chat .tutor-workspace-tools{padding:2px 8px;gap:4px}
+ .focused-chat .tutor-workspace-tools>button{min-height:44px;font-size:11px}
+ .focused-chat .tutor-workspace-tools>strong{font-size:13px}
+ .focused-chat .chat-header{display:none}
+ .focused-chat .tutor-modes{padding:5px 8px;gap:6px}
+ .focused-chat .tutor-modes button{min-height:40px;font-size:11px;padding:8px}
+ .focused-chat .chat-messages{padding:14px 12px}
+ .focused-chat .chat-welcome{padding:16px 0;gap:0}
+ .focused-chat .chat-welcome>.eyebrow{font-size:9px;margin:0}
+ .focused-chat .chat-welcome h2{font-size:22px;text-align:center}
+ .focused-chat .chat-welcome>p{font-size:12px;line-height:1.65}
+ .focused-chat .chat-prompts{margin-top:14px;gap:8px}
+ .focused-chat .chat-prompts button{font-size:12px;min-height:48px;padding:9px 12px}
+ .focused-chat .chat-input{width:calc(100% - 16px);margin:6px 8px!important;padding:7px 11px!important;border-radius:18px}
+ .focused-chat .chat-input textarea{padding:4px 0!important}
+ .focused-chat .chat-input-footer{min-height:44px}
+ .focused-chat .chat-keyboard-hint{display:none}
+ .focused-chat .chat-disclaimer{font-size:9px!important;padding-bottom:max(5px,env(safe-area-inset-bottom))!important}
+ .focused-solar .solar-stage{border-radius:17px}
+ .focused-solar .solar-stage-heading{font-size:10px;padding:10px 12px}
+ .focused-solar .solar-toolbar{display:grid;grid-template-columns:repeat(3,minmax(0,1fr)) 44px;gap:5px;padding:7px}
+ .focused-solar .solar-toolbar label{flex-wrap:nowrap;font-size:10px}
+ .focused-solar .solar-toolbar button>span{font-size:10px}
+ .focused-solar .solar-toolbar select{font-size:16px;min-height:26px}
+ .focused-solar .solar-caption{font-size:9px!important;line-height:1.5!important;padding:0 10px 9px}
+}
+@media(max-height:550px){.focused-chat .tutor-orb,.focused-chat .chat-welcome>.eyebrow,.focused-chat .chat-input-hint{display:none}.focused-chat .chat-welcome{justify-content:flex-start;padding:8px 0}.focused-chat .chat-disclaimer{display:none}.focused-chat .chat-input textarea{max-height:72px!important}}
+.focused-chat .tutor-modes{flex-wrap:nowrap}
+.focused-chat .chat-input-actions{margin-left:auto;justify-content:flex-end}
+.focused-solar .planet-picker button{flex-wrap:nowrap;white-space:nowrap;padding:9px 10px;height:52px}
+@media(max-width:760px){
+ .focused-chat .chat-input{display:grid;grid-template-columns:minmax(0,1fr) 44px;align-items:end;gap:8px}
+ .focused-chat .chat-input textarea{grid-column:1;grid-row:1;width:100%}
+ .focused-chat .chat-input-footer{display:contents}
+ .focused-chat .chat-input-actions{grid-column:2;grid-row:1;align-self:end;display:flex;margin:0}
+ .focused-chat .chat-input-hint,.focused-chat .chat-character-count{display:none}
+}
+html:has(.focused-workspace),body:has(.focused-workspace){height:100%;overflow:hidden;overscroll-behavior:none}
+.focused-chat .chat-welcome{width:100%;max-width:none}

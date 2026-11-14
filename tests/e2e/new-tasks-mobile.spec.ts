@@ -14,11 +14,10 @@ for(const width of [320,390,430,760]){
     await expect(page.getByRole('button',{name:'Đã điểm danh hôm nay'})).toBeDisabled();
    }
    if(view==='solar'){
-    const order=await page.locator('.solar-layout').evaluate(el=>{const rect=(s:string)=>el.querySelector(s)!.getBoundingClientRect();return {stage:rect('.solar-stage').bottom,picker:rect('.planet-picker').top,pickerBottom:rect('.planet-picker').bottom,lesson:rect('.planet-detail').top};});
-    expect(order.picker).toBeGreaterThanOrEqual(order.stage);
-    expect(order.lesson).toBeGreaterThanOrEqual(order.pickerBottom);
     await page.getByRole('button',{name:'Trái Đất',exact:true}).click();
+    await page.getByRole('button',{name:'Bài học & câu hỏi',exact:true}).click();
     await expect(page.locator('.planet-detail h2')).toHaveText('Trái Đất');
+    await page.getByRole('button',{name:'Mô hình 3D',exact:true}).click();
     await page.getByRole('button',{name:'Phóng to khu vũ trụ toàn màn hình'}).click();
     await expect(page.locator('.solar-expanded')).toBeVisible();
     const box=await page.locator('.solar-expanded').boundingBox();
