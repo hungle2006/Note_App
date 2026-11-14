@@ -225,3 +225,40 @@
  .settings-card .service-status>div{min-width:0;flex:1 1 150px}
  .settings-card .service-status .tag{max-width:100%;white-space:normal}
 }
+
+/* One quiet focus boundary. Portaled conversations also need these styles outside app-shell. */
+.peer-input-wrap{min-width:0;border:1px solid var(--line);border-radius:22px;background:var(--bg);transition:border-color .15s,box-shadow .15s;overflow:hidden}
+.peer-input-wrap:focus-within{border-color:var(--sun-accent);box-shadow:0 0 0 2px color-mix(in srgb,var(--sun-accent) 12%,transparent)}
+.peer-task .peer-composer .peer-input-wrap textarea,
+.peer-task .peer-composer .peer-input-wrap textarea:focus,
+.peer-task .peer-composer .peer-input-wrap textarea:focus-visible{border:0;outline:none;outline-offset:0;box-shadow:none;background:transparent;border-radius:0;min-height:44px;height:44px;max-height:136px;padding:11px 14px;margin:0;font-size:16px;line-height:22px;display:block;-webkit-appearance:none}
+.peer-task .peer-composer{grid-template-columns:minmax(0,1fr) 44px;gap:10px;align-items:end}
+.peer-task .peer-composer>.button{height:44px;min-height:44px;width:44px;min-width:44px;border-radius:50%;padding:0;box-shadow:none;transform:none}
+.peer-task .peer-composer>.button:disabled{opacity:1;background:var(--soft);color:var(--muted);border:1px solid var(--line)}
+.peer-task .peer-composer>.button>svg{width:19px;height:19px}
+.peer-first-message{margin:auto;max-width:290px;padding:25px 10px;display:flex;flex-direction:column;align-items:center;text-align:center;gap:12px;color:var(--ink)}
+.peer-first-message>.peer-avatar{width:64px;height:64px;border-radius:23px;font-size:25px}
+.peer-first-message>strong{font-size:17px;line-height:1.4;overflow-wrap:anywhere;max-width:100%}
+.peer-first-message>p{font-size:13px;line-height:1.7;color:var(--muted)}
+.peer-first-message>small{font-size:10px;line-height:1.6;color:var(--muted);max-width:230px}
+.peer-block{justify-content:center}
+@media(max-width:760px), (max-height:520px) and (pointer:coarse){
+ .peer-task .peer-chat-heading{min-height:64px;padding:calc(8px + env(safe-area-inset-top,0px)) max(12px,env(safe-area-inset-right,0px)) 8px max(8px,env(safe-area-inset-left,0px));gap:9px}
+ .peer-task .peer-chat-heading .peer-avatar{width:38px;height:38px;border-radius:14px}
+ .peer-task .peer-chat-heading strong{font-size:15px;font-weight:750}
+ .peer-task .peer-chat-heading small{font-size:11px}
+ .peer-task .peer-chat-heading .peer-block{width:44px;height:44px;padding:0;border-radius:50%;background:var(--soft);flex:none}
+ .peer-block>span{display:none}
+ .peer-task .peer-messages{padding:14px 12px;gap:10px}
+ .peer-task .peer-chat-note{font-size:10px;margin:0 auto 6px;line-height:1.6}
+ .peer-task .peer-composer{padding:10px max(12px,env(safe-area-inset-right,0px)) max(10px,env(safe-area-inset-bottom,0px)) max(12px,env(safe-area-inset-left,0px));background:var(--paper);border-top:1px solid var(--line)}
+ .peer-task .peer-composer-hint{font-size:10px;line-height:1.4;padding:0 2px;grid-column:1/-1}
+ .peer-task .peers-layout.peer-keyboard-open .peer-chat-heading{min-height:64px;padding-top:calc(8px + env(safe-area-inset-top,0px))}
+ .peer-task .peers-layout.peer-keyboard-open .peer-composer{padding-top:8px;padding-bottom:8px}
+ .peer-task .peers-layout.peer-keyboard-open .peer-composer-hint{display:block}
+ .peer-keyboard-open .peer-first-message{padding:12px 8px;gap:8px}
+ .peer-keyboard-open .peer-first-message>.peer-avatar{width:46px;height:46px;border-radius:16px;font-size:20px}
+ .peer-keyboard-open .peer-first-message>small{display:none}
+}
+@media(max-height:400px){.peer-first-message>.peer-avatar,.peer-first-message>small{display:none}}
+@media(prefers-reduced-motion:reduce){.peer-input-wrap{transition:none}}
