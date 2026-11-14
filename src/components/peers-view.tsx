@@ -34,7 +34,7 @@ export function PeersView({demo}:{demo:boolean}){
    else if(!compact&&locked){document.body.style.overflow=previousBody;document.documentElement.style.overflow=previousRoot;locked=false;}
    if(compact){
     const height=viewport?.height||window.innerHeight;
-    layout.style.setProperty('--peer-visible-height',Math.max(250,Math.round(height))+'px');
+    layout.style.setProperty('--peer-visible-height',Math.max(150,Math.round(height))+'px');
     layout.style.setProperty('--peer-visible-top',Math.max(0,Math.round(viewport?.offsetTop||0))+'px');
     layout.classList.toggle('peer-keyboard-open',Boolean(viewport&&window.innerHeight-viewport.height>140));
    }else{
