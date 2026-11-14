@@ -155,3 +155,73 @@
  .peer-task .peer-composer{padding-top:6px;padding-bottom:6px}
  .peer-task .peer-composer-hint{display:none}
 }
+
+/* Task layouts: keep the model, selector and lesson in reading order. */
+.solar-layout>.solar-stage{grid-column:1;grid-row:1/3}
+.solar-layout>.planet-picker{grid-column:2;grid-row:1;grid-template-columns:repeat(3,minmax(0,1fr));margin:0;align-self:start}
+.solar-layout>.planet-detail{grid-column:2;grid-row:2}
+.solar-stage.solar-expanded{position:fixed;inset:0;z-index:100;height:100dvh;min-height:0;border-radius:0;padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}
+.solar-expanded .solar-canvas{height:auto;min-height:0;flex:1}
+.solar-expanded .solar-toolbar{flex:none}
+@media(max-width:1150px){
+ .solar-layout>.solar-stage,.solar-layout>.planet-picker,.solar-layout>.planet-detail{grid-column:1;grid-row:auto}
+}
+@media(max-width:760px){
+ .new-task :is(.task-kicker,.eyebrow){line-height:1.5;letter-spacing:.8px;max-width:100%;overflow-wrap:anywhere}
+ .new-task .task-kicker svg{flex:none}
+ .new-task-cards{margin:16px 0;gap:10px}
+ .new-task-card{padding:18px 40px 18px 16px;gap:5px 12px}
+ .new-task-card>svg:last-child{right:13px;top:22px}
+ .new-task-card h3{font-size:17px;line-height:1.4}
+ .checkin-hero{display:grid;grid-template-columns:minmax(0,1fr);position:relative;padding:20px;gap:14px}
+ .checkin-hero>div:first-child{min-width:0}
+ .checkin-hero h2{padding:0;margin:14px 0;font-size:clamp(25px,7vw,32px);max-width:100%}
+ .checkin-hero p{line-height:1.7;margin-bottom:16px}
+ .checkin-hero .button{width:100%;min-height:48px;padding:12px 9px;white-space:normal;line-height:1.4}
+ .checkin-hero .streak-medallion{position:static;width:100%;height:auto;margin:0;border-radius:15px;flex-direction:row;gap:10px;padding:12px;box-shadow:none}
+ .checkin-hero .streak-medallion strong{font-size:28px}
+ .checkin-hero .streak-medallion span{font-size:12px}
+ .checkin-stats{margin:12px 0;gap:7px}
+ .checkin-stats>div{padding:13px 9px;gap:5px}
+ .checkin-stats svg{width:20px;height:20px;margin-bottom:3px}
+ .checkin-stats strong{font-size:18px}
+ .checkin-stats span{font-size:11px}
+ .checkin-calendar{padding:18px 12px}
+ .checkin-calendar .section-row{gap:8px;flex-wrap:wrap}
+ .checkin-day{min-width:0}
+ .peer-task .peers-layout:not(.has-conversation){height:clamp(410px,calc(100dvh - 245px),720px);min-height:0}
+ .peer-search>input,.peer-search>input:focus{font-size:16px}
+ .peer-tabs button,.peer-search>button{min-height:44px}
+ .peer-search>button{width:44px}
+ .peer-task .peer-helper{font-size:11px}
+ .solar-layout{gap:12px}
+ .solar-layout>.planet-picker{grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;margin:0}
+ .planet-picker button{font-size:12px;min-height:48px;line-height:1.35;padding:9px 5px;flex-wrap:wrap}
+ .solar-stage{min-height:0}
+ .solar-canvas{height:clamp(240px,45svh,360px);min-height:240px;flex:none}
+ .solar-toolbar{display:grid;grid-template-columns:repeat(3,minmax(0,1fr)) 44px;gap:6px;padding:10px}
+ .solar-toolbar button,.solar-toolbar label{justify-content:center;min-width:0;min-height:44px;padding:7px 4px;font-size:11px;gap:4px}
+ .solar-toolbar button>span{display:inline;font-size:10px}
+ .solar-toolbar label{flex-wrap:wrap}
+ .solar-toolbar select{font-size:16px;min-height:26px;max-width:55px}
+ .solar-caption{padding:0 12px 14px;font-size:10px!important}
+ .planet-detail{padding:20px 16px}
+ .planet-detail-title{margin:18px 0 14px}
+ .solar-quiz button{min-height:48px;font-size:14px;line-height:1.5;gap:9px}
+ .solar-quiz button svg{flex:none}
+ .universe-idea{padding:20px 16px;margin-top:14px}
+ .universe-idea h2{font-size:22px}
+ .universe-idea>div{display:grid;gap:8px;margin:16px 0}
+ .color-settings{padding:20px 16px;gap:18px}
+ .color-controls{grid-template-columns:minmax(0,1fr);gap:14px}
+ .color-swatch{flex-direction:row;align-items:center;justify-content:space-between}
+ .color-swatch input{width:88px;min-height:48px}
+ .rgb-fields{gap:10px}
+ .rgb-fields label{margin:0!important;gap:6px}
+ .rgb-fields input{font-size:16px;min-height:48px;padding:10px}
+ .color-controls>.button{width:100%;min-height:48px;justify-content:center}
+ .color-controls>span{overflow-wrap:anywhere;line-height:1.5}
+ .settings-card .service-status{flex-wrap:wrap;gap:10px}
+ .settings-card .service-status>div{min-width:0;flex:1 1 150px}
+ .settings-card .service-status .tag{max-width:100%;white-space:normal}
+}
