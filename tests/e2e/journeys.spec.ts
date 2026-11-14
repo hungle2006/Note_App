@@ -18,7 +18,7 @@ test("library searches without Vietnamese accents",async({page})=>{
  await page.goto("/app?mode=demo&view=library");
  await page.getByRole("textbox",{name:"Tìm bài học",exact:true}).fill("quy dong");
  await expect(page.locator(".note-card")).toHaveCount(1);
- await page.locator(".note-card").click();
+ await page.locator(".note-card .library-note-open").click();
  await expect(page.getByRole("heading",{level:1})).toContainText("Cộng và rút gọn phân số");
  await expect(page.locator(".katex").first()).toBeVisible();
 });
@@ -33,7 +33,14 @@ test("manual note persists and deletion removes it",async({page})=>{
  await expect(page.getByRole("heading",{level:1})).toHaveText("Bài kiểm tra lưu");
  await page.reload();
  await expect(page.getByRole("heading",{level:1})).toHaveText("Bài kiểm tra lưu");
- await page.getByRole("button",{name:"Xóa bài học",exact:true}).click();
+ await page.goto("/app?mode=demo&view=library");
+ const savedCard=page.locator(".note-card").filter({hasText:"Bài kiểm tra lưu"});
+ await savedCard.getByRole("button",{name:"Xóa bài học: Bài kiểm tra lưu",exact:true}).click();
+ await expect(page.getByRole("dialog")).toBeVisible();
+ await page.getByRole("dialog").getByRole("button",{name:"Giữ lại bài",exact:true}).click();
+ await expect(savedCard).toHaveCount(1);
+ await expect(page).toHaveURL(/view=library/);
+ await savedCard.getByRole("button",{name:"Xóa bài học: Bài kiểm tra lưu",exact:true}).click();
  await expect(page.getByRole("dialog")).toBeVisible();
  await page.getByRole("dialog").getByRole("button",{name:"Xóa bài học",exact:true}).click();
  await expect(page.getByRole("dialog")).toHaveCount(0);
