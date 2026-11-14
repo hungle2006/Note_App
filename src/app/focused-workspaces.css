@@ -49,8 +49,8 @@
 .focused-solar .solar-toolbar{flex:none;padding:8px 12px;align-items:center;gap:8px}
 .focused-solar .solar-toolbar :is(button,label){min-height:44px}
 .focused-solar .solar-caption{flex:none;font-size:10px!important;padding:0 14px 10px}
-.focused-solar .solar-layout>.planet-picker{grid-column:1;grid-row:2;display:flex;overflow-x:auto;gap:7px;padding:3px 2px 5px;scroll-snap-type:x proximity;overscroll-behavior-x:contain}
-.focused-solar .planet-picker button{flex:1 0 94px;min-height:48px;scroll-snap-align:start;font-size:12px}
+.focused-solar .solar-layout>.planet-picker{grid-column:1;grid-row:2;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));overflow:visible;gap:7px;padding:3px 2px 5px}
+.focused-solar .planet-picker button{position:relative;min-width:0;min-height:48px;font-size:12px}
 .focused-solar .solar-layout>.planet-detail{grid-column:2;grid-row:1/3;overflow-y:auto;min-height:0;padding:20px;overscroll-behavior:contain}
 .focused-solar .universe-idea{padding:18px 0 0;border:0;border-top:1px solid var(--line);box-shadow:none;margin-top:24px;border-radius:0;background:transparent}
 .focused-solar .universe-idea h2{font-size:20px}
@@ -98,7 +98,13 @@
 @media(max-height:550px){.focused-chat .tutor-orb,.focused-chat .chat-welcome>.eyebrow,.focused-chat .chat-input-hint{display:none}.focused-chat .chat-welcome{justify-content:flex-start;padding:8px 0}.focused-chat .chat-disclaimer{display:none}.focused-chat .chat-input textarea{max-height:72px!important}}
 .focused-chat .tutor-modes{flex-wrap:nowrap}
 .focused-chat .chat-input-actions{margin-left:auto;justify-content:flex-end}
-.focused-solar .planet-picker button{flex-wrap:nowrap;white-space:nowrap;padding:9px 10px;height:52px}
+.focused-solar .planet-picker button{flex-wrap:nowrap;white-space:normal;padding:7px 14px 7px 8px;height:52px;gap:6px;line-height:1.3}
+.focused-solar .planet-picker button>span{min-width:0;overflow-wrap:anywhere}
+.focused-solar .planet-picker button>svg{position:absolute;right:3px;top:3px;width:10px;height:10px}
+.focused-solar .planet-picker i{width:12px;height:12px}
+.planet-compact-select{display:none}
+@media(max-width:760px){.focused-solar .solar-layout>.planet-picker{grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}.focused-solar .planet-picker button{font-size:11px;min-height:44px;height:46px}}
+@media(max-height:550px){.focused-solar .solar-layout>.planet-picker{display:block}.focused-solar .planet-picker>button{display:none}.focused-solar .planet-compact-select{display:flex;flex-direction:row;align-items:center;gap:10px;font-size:12px}.planet-compact-select select{flex:1;min-width:0;min-height:44px;font-size:16px;border:1px solid var(--line);background:var(--paper);color:var(--ink)}}
 @media(max-width:760px){
  .focused-chat .chat-input{display:grid;grid-template-columns:minmax(0,1fr) 44px;align-items:end;gap:8px}
  .focused-chat .chat-input textarea{grid-column:1;grid-row:1;width:100%}
