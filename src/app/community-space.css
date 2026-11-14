@@ -71,3 +71,87 @@
 .message.assistant .markdown .katex-display>.katex{display:inline-block;min-width:max-content;text-align:center;white-space:nowrap}
 .message.assistant .markdown .katex-error{font-size:13px;color:var(--ink)}
 @media(max-width:760px){.message.assistant .markdown .katex-display{font-size:14px;padding:8px 0 12px}}
+
+
+/* Mobile messenger workspace: keep the friend list in the task, expand the
+   selected conversation into the usable phone viewport without page scroll. */
+.peer-composer textarea{resize:none;overflow-y:auto;line-height:1.5;max-height:136px}
+.peer-inline-error{display:none}
+.peer-task{min-width:0}
+@media(max-width:760px), (max-height:520px) and (pointer:coarse){
+ .peer-task{width:100%;min-width:0}
+ .peer-task .peers-layout:not(.has-conversation){display:grid;grid-template-columns:minmax(0,1fr);height:min(69dvh,660px);min-height:370px;max-height:700px;margin-bottom:6px}
+ .peer-task .peer-sidebar{width:100%;min-width:0;min-height:0;padding:16px 12px 10px}
+ .peer-task .peer-list{overflow-y:auto;overflow-x:hidden;min-height:0;-webkit-overflow-scrolling:touch}
+ .peer-task .peer-row{padding:12px 10px;min-height:66px}
+ .peer-task .peer-tabs button{min-height:43px}
+ .peer-task .peer-search{flex:none}
+ .peer-task .peers-layout.has-conversation{
+   position:fixed;top:var(--peer-visible-top,0px);left:0;right:0;bottom:auto;
+   width:100vw;max-width:100vw;height:var(--peer-visible-height,100dvh);
+   min-height:0;max-height:none;display:flex;flex-direction:column;
+   padding:0;margin:0;border:0;border-radius:0;box-shadow:none;
+   background:var(--paper);overflow:hidden;z-index:1100;
+ }
+ .peer-task .peers-layout.has-conversation .peer-sidebar{display:none}
+ .peer-task .peers-layout.has-conversation .peer-conversation{
+   display:flex;flex:1;width:100%;height:100%;min-height:0;min-width:0;
+   overflow:hidden;contain:layout;
+ }
+ .peer-task .peer-chat-heading{
+   flex:none;min-height:68px;padding:calc(10px + env(safe-area-inset-top,0px)) 12px 10px;
+   gap:10px;align-items:center;background:var(--paper);
+ }
+ .peer-task .peer-chat-heading>div{min-width:0}
+ .peer-task .peer-chat-heading strong{font-size:15px;line-height:1.3}
+ .peer-task .peer-chat-heading small{font-size:11px;line-height:1.3}
+ .peer-task .peer-chat-heading .peer-avatar{width:41px;height:41px;border-radius:14px}
+ .peer-task .peer-back{display:inline-grid!important;place-items:center;flex:none;width:44px;height:44px;min-height:44px;border-radius:12px;margin-left:-3px}
+ .peer-task .peer-chat-heading .text-button{min-height:40px;min-width:44px;font-size:11px;gap:4px;white-space:nowrap}
+ .peer-task .peer-inline-error{display:flex;align-items:center;justify-content:space-between;gap:10px;flex:none;background:var(--orange-soft);color:var(--ink);padding:9px 14px;font-size:12px;line-height:1.45}
+ .peer-task .peer-inline-error button{border:0;background:transparent;font-size:23px;line-height:1;min-width:32px;min-height:32px}
+ .peer-task .peer-messages{
+   flex:1;min-height:0;min-width:0;overflow-y:auto;overflow-x:hidden;
+   padding:16px 12px 20px;gap:12px;scrollbar-gutter:auto;
+   -webkit-overflow-scrolling:touch;overscroll-behavior:contain;
+ }
+ .peer-task .peer-chat-note{margin:0 auto 9px;max-width:290px;font-size:11px}
+ .peer-task .peer-bubble{max-width:min(86%,370px);padding:10px 13px;min-width:60px}
+ .peer-task .peer-bubble p{font-size:14px;line-height:1.5}
+ .peer-task .peer-bubble time{font-size:10px}
+ .peer-task .peer-composer{
+   flex:none;display:grid;grid-template-columns:minmax(0,1fr) 45px;
+   align-items:end;gap:7px;padding:10px 12px calc(9px + env(safe-area-inset-bottom,0px));
+   border-top:1px solid var(--line);background:var(--paper);
+ }
+ .peer-task .peer-composer textarea{
+   display:block;box-sizing:border-box;min-height:45px;height:45px;
+   max-height:136px;min-width:0;width:100%;resize:none;
+   border-radius:17px;padding:11px 14px;font-size:16px;
+   line-height:1.45;overflow-y:auto;touch-action:pan-y;
+ }
+ .peer-task .peer-composer>.button{
+   display:grid;place-items:center;width:45px;height:45px;min-width:45px;
+   min-height:45px;border-radius:15px;padding:0;
+ }
+ .peer-task .peer-composer-hint{
+   grid-column:1/-1;margin:0;padding-left:4px;
+   color:var(--muted);font-size:10px;line-height:1.2;text-align:right;
+ }
+ .peer-task .peer-composer-hint span{display:none}
+ .peer-task .peers-layout.peer-keyboard-open .peer-chat-heading{padding-top:9px;min-height:59px}
+ .peer-task .peers-layout.peer-keyboard-open .peer-composer{padding-bottom:9px}
+ .peer-task .peers-layout.peer-keyboard-open .peer-composer-hint{display:none}
+}
+@media(max-width:380px){
+ .peer-task .peer-chat-heading{gap:6px;padding-left:8px;padding-right:8px}
+ .peer-task .peer-chat-heading .peer-avatar{width:35px;height:35px}
+ .peer-task .peer-composer{padding-left:9px;padding-right:9px}
+}
+@media(max-height:500px) and (pointer:coarse){
+ .peer-task .peer-chat-heading{padding-top:6px;padding-bottom:6px;min-height:54px}
+ .peer-task .peer-chat-note{display:none}
+ .peer-task .peer-messages{padding-top:10px;padding-bottom:10px}
+ .peer-task .peer-composer{padding-top:6px;padding-bottom:6px}
+ .peer-task .peer-composer-hint{display:none}
+}
