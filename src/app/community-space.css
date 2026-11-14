@@ -78,7 +78,7 @@
 .peer-composer textarea{resize:none;overflow-y:auto;line-height:1.5;max-height:136px}
 .peer-inline-error{display:none}
 .peer-task{min-width:0}
-@media(max-width:760px){
+@media(max-width:760px), (max-height:520px) and (pointer:coarse){
  .peer-task{width:100%;min-width:0}
  .peer-task .peers-layout:not(.has-conversation){display:grid;grid-template-columns:minmax(0,1fr);height:min(69dvh,660px);min-height:370px;max-height:700px;margin-bottom:6px}
  .peer-task .peer-sidebar{width:100%;min-width:0;min-height:0;padding:16px 12px 10px}
@@ -148,7 +148,7 @@
  .peer-task .peer-chat-heading .peer-avatar{width:35px;height:35px}
  .peer-task .peer-composer{padding-left:9px;padding-right:9px}
 }
-@media(max-width:760px) and (max-height:500px){
+@media(max-height:500px) and (pointer:coarse){
  .peer-task .peer-chat-heading{padding-top:6px;padding-bottom:6px;min-height:54px}
  .peer-task .peer-chat-note{display:none}
  .peer-task .peer-messages{padding-top:10px;padding-bottom:10px}
