@@ -29,7 +29,7 @@ export function RewardsView({learning,demo,onNavigate}:{learning:Learning;demo:b
  return <div className="sun-page">
   <Title eyebrow="SÂN CHƠI THÀNH TÍCH · KHÔNG CẦN SO SÁNH VỚI AI" title="Góc thành tích" description="Quiz, ghép đôi và buổi tập AI đủ điều kiện góp thêm Điểm Nắng cho em. Dùng điểm để sưu tầm huy hiệu hoặc đón pet, rồi chọn những bạn nhỏ đồng hành."/>
   <ol className="sun-reward-path" aria-label="Hành trình Điểm Nắng"><li><b>01</b><span>Ôn tập & vận động<small>Quiz, ghép đôi hoặc tập AI đủ điều kiện</small></span></li><li><b>02</b><span>Tích Điểm Nắng<small>Ghi nhận từng bước tiến của em</small></span></li><li><b>03</b><span>Huy hiệu hoặc pet<small>Chọn cách ghi nhận em yêu thích</small></span></li><li><b>04</b><span>Thêm bạn đồng hành<small>Tối đa 3 pet cùng xuất hiện</small></span></li></ol>
-  <nav className="sun-section-nav" aria-label="Khám phá Góc thành tích"><a href="#pet-shop">Đón pet đồng hành</a><a href="#rewards-collection">Sưu tầm huy hiệu</a><a href="#points-history">Nhật ký điểm</a></nav>
+  <nav className="sun-section-nav" aria-label="Khám phá Góc thành tích"><button type="button" onClick={()=>onNavigate?.("leaderboard")}><Trophy size={15}/>Top 10 Điểm Nắng</button><a href="#pet-shop">Đón pet đồng hành</a><a href="#rewards-collection">Sưu tầm huy hiệu</a><a href="#points-history">Nhật ký điểm</a></nav>
   <div className="sun-hero">
    <section className="sun-balance" aria-label="Số Điểm Nắng">
     <span className="sun-kicker"><Sun size={15}/> VÍ ĐIỂM NẮNG CỦA EM</span>
@@ -47,7 +47,7 @@ export function RewardsView({learning,demo,onNavigate}:{learning:Learning;demo:b
     <p className="sun-tier-next">{tier.next?<><span>Còn <b>{tier.remaining}</b> điểm để lên cấp</span><strong>{tier.next.label}</strong></>:<span>Em đã mở tất cả các cấp hiện tại. Cứ tận hưởng việc học nhé!</span>}</p>
    </section>
   </div>
-  <p className="sun-rule"><ShieldCheck size={19}/><span><strong>Quy đổi minh bạch:</strong> Quiz/ghép đôi được 2 Điểm Nắng mỗi đáp án đúng, tối đa một lượt thưởng cho mỗi bài và trò/ngày. Vận động từ 30 giây và ít nhất 4 lần hợp lệ được 4 điểm/bài, tối đa 2 bài khác nhau/ngày. Ngày tính theo UTC, đặt lại lúc 07:00 giờ Việt Nam. Không có điểm cho việc tập quá mức, không có bảng xếp hạng hay phần thưởng tiền mặt.</span></p>
+  <p className="sun-rule"><ShieldCheck size={19}/><span><strong>Quy đổi minh bạch:</strong> Quiz/ghép đôi được 2 Điểm Nắng mỗi đáp án đúng, tối đa một lượt thưởng cho mỗi bài và trò/ngày. Vận động từ 30 giây và ít nhất 4 lần hợp lệ được 4 điểm/bài, tối đa 2 bài khác nhau/ngày. Ngày tính theo UTC, đặt lại lúc 07:00 giờ Việt Nam. Không có điểm cho việc tập quá mức hoặc phần thưởng tiền mặt. Bảng xếp hạng Top 10 là tự nguyện và tính theo tổng điểm đã kiếm được, không giảm khi đổi pet.</span></p>
   {error&&<p role="alert" className="form-error">{error}</p>}
   {learning.walletError&&<p role="status" className="notice">{learning.walletError}</p>}
   <div className="sun-quests" aria-label="Hai cách nhận Điểm Nắng">
