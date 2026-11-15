@@ -383,3 +383,8 @@
 }
 @media(max-width:360px){.leaderboard-join-form input,.leaderboard-join-form .button{flex-basis:100%}.leaderboard-podium-card{min-height:163px}.leaderboard-podium-card.winner{min-height:185px}}
 @media(prefers-reduced-motion:reduce){.leaderboard-task *{scroll-behavior:auto}}
+
+/* Four discovery tasks remain balanced from desktop to compact phones. */
+.new-task-cards{grid-template-columns:repeat(4,minmax(0,1fr))}
+@media(max-width:1200px){.new-task-cards{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:600px){.new-task-cards{grid-template-columns:minmax(0,1fr)}}
