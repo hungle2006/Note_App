@@ -1,5 +1,5 @@
 import {petCatalog} from "./pets";
-/** Virtual-only rewards: no money, leaderboards or required streaks. */
+/** Virtual-only rewards: no money or required streaks. Optional leaderboard uses lifetime earned points. */
 export const rewardCatalog=[
  {id:'curious-star',name:'Ngôi sao tò mò',cost:10,emoji:'✦',description:'Dành cho khoảnh khắc em bắt đầu khám phá điều mới.',theme:'Học hỏi'},
  {id:'morning-sun',name:'Nắng đầu ngày',cost:20,emoji:'☀',description:'Một chút tiến bộ cũng xứng đáng được ghi nhận.',theme:'Khởi đầu'},
