@@ -401,3 +401,64 @@
 .new-task-cards{grid-template-columns:repeat(4,minmax(0,1fr))}
 @media(max-width:1200px){.new-task-cards{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:600px){.new-task-cards{grid-template-columns:minmax(0,1fr)}}
+
+
+/* Top 10 award v3: isolated from old .leaderboard-symbol styling.
+   The JSX has inline layout fallbacks for clients with a cached stylesheet. */
+.leaderboard-intro .lb-award-v3{
+ position:relative;z-index:1;flex:none;box-sizing:border-box;
+ width:174px;min-height:182px;padding:18px 14px;
+ border:1px solid #f4d4ac;border-radius:27px;
+ background:linear-gradient(145deg,#fffaf1 4%,#ffebcb 58%,#ffd5a0 100%);
+ box-shadow:0 14px 34px #b96c2924,inset 0 1px 0 #fff;
+ color:#85451d;overflow:hidden
+}
+.leaderboard-intro .lb-award-v3::after{
+ content:"✦";position:absolute;right:17px;top:12px;
+ font-size:17px;color:#c98b3e;opacity:.65;pointer-events:none
+}
+.lb-award-v3 .lb-award-v3-icon{
+ width:65px;height:65px;border-radius:20px;
+ background:linear-gradient(145deg,#fffcf3,#ffe1aa);
+ border:1px solid #fffbeb;box-shadow:0 6px 17px #b7752826;
+ color:#98551e;box-sizing:border-box
+}
+.lb-award-v3 .lb-award-v3-label{min-width:0;line-height:1.2}
+.lb-award-v3 .lb-award-v3-label strong{
+ color:#81411e;font-size:23px;font-weight:900;letter-spacing:.5px;white-space:nowrap
+}
+.lb-award-v3 .lb-award-v3-label small{
+ color:#94592d;font-size:10px;font-weight:850;letter-spacing:1.3px;white-space:nowrap
+}
+:root[data-theme=dark] .leaderboard-intro .lb-award-v3{
+ background:linear-gradient(145deg,#5d422c,#855b35);
+ border-color:#916b47;box-shadow:0 15px 28px #0003
+}
+:root[data-theme=dark] .lb-award-v3 .lb-award-v3-icon{
+ background:linear-gradient(145deg,#9a6c37,#bd874a);
+ border-color:#d3a36d;color:#fff2d9
+}
+:root[data-theme=dark] .lb-award-v3 .lb-award-v3-label strong,
+:root[data-theme=dark] .lb-award-v3 .lb-award-v3-label small{color:#fff1d7}
+@media(max-width:900px){
+ .leaderboard-intro .lb-award-v3{width:148px;min-height:162px;padding:15px 10px;border-radius:23px}
+ .lb-award-v3 .lb-award-v3-icon{width:55px;height:55px;border-radius:17px}
+ .lb-award-v3 .lb-award-v3-icon svg{width:29px;height:29px}
+ .lb-award-v3 .lb-award-v3-label strong{font-size:20px}
+ .lb-award-v3 .lb-award-v3-label small{font-size:9px}
+}
+@media(max-width:600px){
+ .leaderboard-intro{flex-direction:column;align-items:stretch}
+ .leaderboard-intro .lb-award-v3{
+  flex-direction:row!important;align-self:flex-start;justify-content:flex-start!important;
+  width:auto;max-width:100%;min-height:0;height:64px;padding:9px 14px;
+  border-radius:17px;box-shadow:none
+ }
+ .leaderboard-intro .lb-award-v3::after{right:9px;top:7px;font-size:12px}
+ .lb-award-v3 .lb-award-v3-icon{width:42px;height:42px;border-radius:13px;box-shadow:none}
+ .lb-award-v3 .lb-award-v3-icon svg{width:23px;height:23px}
+ .lb-award-v3 .lb-award-v3-label{align-items:flex-start!important;text-align:left}
+ .lb-award-v3 .lb-award-v3-label strong{font-size:17px}
+ .lb-award-v3 .lb-award-v3-label small{font-size:9px;letter-spacing:1px}
+}
+@media(prefers-reduced-motion:reduce){.leaderboard-intro .lb-award-v3{animation:none;transition:none}}
