@@ -29,7 +29,7 @@ export function AuthForm({ mode, quickStart=false }: { mode: "login" | "register
   const { user, loading, error: sessionError } = useAuth();
   const [completed, setCompleted] = useState(false);
   useEffect(() => {
-    if ((completed || quickStart) && user && !loading) router.replace("/app");
+    if ((completed || quickStart) && user && !loading) router.replace("/app?view=forum");
   }, [completed, quickStart, user, loading, router]);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
