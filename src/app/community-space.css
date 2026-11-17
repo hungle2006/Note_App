@@ -275,9 +275,17 @@
 .leaderboard-intro p{max-width:560px;color:var(--muted);line-height:1.75;font-size:13px;margin:0}
 .leaderboard-intro p strong{color:var(--ink)}
 .leaderboard-pill{display:inline-flex;align-items:center;gap:8px;border:1px solid color-mix(in srgb,var(--sun-accent) 24%,var(--line));background:var(--paper);padding:7px 12px;border-radius:100px;font-size:12px;font-weight:750;color:var(--purple-ink);margin-top:17px}
-.leaderboard-symbol{position:relative;z-index:1;display:grid;place-items:center;flex:none;width:150px;height:150px;border-radius:50%;background:radial-gradient(circle at 30% 27%,#fff9c4 0%,#ffda80 45%,#f7a64e 100%);box-shadow:0 16px 46px #dd8b4e38;color:#8a4319}
-.leaderboard-symbol svg{opacity:.85}
-.leaderboard-symbol span{position:absolute;bottom:26px;letter-spacing:1px;font-size:14px;font-weight:900}
+.leaderboard-symbol{position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;flex:none;width:184px;min-height:184px;padding:17px;border-radius:27px;overflow:hidden;isolation:isolate;border:1px solid #f7d5a7;background:linear-gradient(140deg,#fffaf0 0%,#ffebc7 55%,#ffcf91 100%);box-shadow:0 16px 36px #c47b3224,inset 0 2px 0 #ffffffcf;color:#85421a}
+.leaderboard-symbol::before{content:"";position:absolute;z-index:-1;inset:-40%;border-radius:50%;border:1px solid #fff9;transform:translate(30%,-24%);pointer-events:none}
+.leaderboard-symbol-medal{display:grid;place-items:center;flex:none;width:72px;height:72px;margin-bottom:5px;border-radius:23px;background:linear-gradient(145deg,#fffef7,#ffdd9c);border:1px solid #fff9;box-shadow:0 8px 17px #b6753130,inset 0 2px 0 #ffffffb8;color:#a65922}
+.leaderboard-symbol strong{font-size:23px;line-height:1.1;letter-spacing:.4px;font-weight:900;color:#80401d;white-space:nowrap}
+.leaderboard-symbol small{font-size:9px;line-height:1.35;font-weight:850;letter-spacing:1.7px;color:#915027;white-space:nowrap}
+.leaderboard-symbol-spark{position:absolute;z-index:1;color:#d49438;font-size:21px;line-height:1;pointer-events:none}
+.leaderboard-symbol-spark-one{top:22px;right:20px}
+.leaderboard-symbol-spark-two{bottom:33px;left:21px;font-size:15px;opacity:.62}
+:root[data-theme=dark] .leaderboard-symbol{background:linear-gradient(145deg,#503d2d,#77532f);border-color:#976f40;box-shadow:0 16px 35px #0003}
+:root[data-theme=dark] .leaderboard-symbol-medal{background:linear-gradient(145deg,#8c622e,#a87738);border-color:#c99c56;color:#ffe1a4}
+:root[data-theme=dark] .leaderboard-symbol strong,:root[data-theme=dark] .leaderboard-symbol small{color:#fff0d1}
 .leaderboard-my-summary{display:flex;align-items:center;gap:17px;padding:17px 23px;background:var(--paper);border:1px solid var(--line);border-radius:19px;margin-bottom:22px;box-shadow:0 8px 28px #00000008}
 .leaderboard-me-icon{width:54px;height:54px;border-radius:17px;flex:none;display:grid;place-items:center;background:var(--soft);color:var(--sun-accent)}
 .leaderboard-my-copy,.leaderboard-my-place{display:flex;flex-direction:column;gap:2px;min-width:0}
@@ -337,14 +345,19 @@
 .leaderboard-info>div svg{flex:none;color:var(--sun-accent);margin-top:1px}
 .leaderboard-info strong{color:var(--ink)}
 .leaderboard-actions{display:flex;align-items:center;gap:11px;flex-wrap:wrap}
-@media(max-width:900px){.leaderboard-intro{padding:25px}.leaderboard-symbol{width:116px;height:116px}.leaderboard-symbol svg{width:60px}.leaderboard-symbol span{bottom:14px;font-size:12px}.leaderboard-board{padding:20px}.leaderboard-podium{gap:9px}}
+@media(max-width:900px){.leaderboard-intro{padding:25px}.leaderboard-symbol{width:145px;min-height:150px;padding:13px;border-radius:22px}.leaderboard-symbol-medal{width:58px;height:58px;border-radius:19px}.leaderboard-symbol-medal svg{width:28px;height:28px}.leaderboard-symbol strong{font-size:20px}.leaderboard-symbol small{font-size:8px}.leaderboard-board{padding:20px}.leaderboard-podium{gap:9px}}
 @media(max-width:600px){
  .leaderboard-task .section-title{gap:13px}
  .leaderboard-refresh{min-width:0}
  .leaderboard-intro{padding:22px 18px;border-radius:20px;margin:12px 0 15px}
  .leaderboard-intro h2{font-size:25px;letter-spacing:-.6px}
  .leaderboard-intro p{font-size:12px}
- .leaderboard-symbol{display:none}
+ .leaderboard-symbol{display:flex;flex-direction:row;justify-content:flex-start;width:fit-content;max-width:100%;min-height:0;height:54px;margin-top:16px;padding:8px 13px;gap:10px;border-radius:16px;box-shadow:none}
+ .leaderboard-symbol-medal{width:36px;height:36px;margin:0;border-radius:11px;box-shadow:none}
+ .leaderboard-symbol-medal svg{width:20px;height:20px}
+ .leaderboard-symbol strong{font-size:16px;letter-spacing:.2px}
+ .leaderboard-symbol small{font-size:9px;letter-spacing:.6px}
+ .leaderboard-symbol-spark{display:none}
  .leaderboard-my-summary{padding:14px;gap:10px;border-radius:17px}
  .leaderboard-me-icon{width:43px;height:43px;border-radius:13px}
  .leaderboard-my-copy>span,.leaderboard-my-place>span{font-size:10px}
