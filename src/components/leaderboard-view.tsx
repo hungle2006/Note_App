@@ -38,7 +38,13 @@ export function LeaderboardView({demo,onNavigate}:{demo:boolean;onNavigate?:(tar
     <p>Xếp hạng theo <strong>tổng điểm đã kiếm được</strong> từ các hoạt động hợp lệ. Dùng điểm đổi pet hoặc huy hiệu sẽ không làm giảm thứ hạng.</p>
     {!demo&&data&&<div className="leaderboard-pill"><Users size={15}/>{data.participants} bạn đang tham gia</div>}
    </div>
-   <div className="leaderboard-symbol" aria-hidden="true"><span className="leaderboard-symbol-spark leaderboard-symbol-spark-one">✦</span><span className="leaderboard-symbol-spark leaderboard-symbol-spark-two">✦</span><span className="leaderboard-symbol-medal"><Trophy size={34} strokeWidth={1.85}/></span><strong>TOP 10</strong><small>ĐIỂM NẮNG</small></div>
+   <div className="lb-award-v3" aria-hidden="true" style={{display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:9,textAlign:"center"}}>
+    <div className="lb-award-v3-icon" style={{display:"grid",placeItems:"center",position:"static",flexShrink:0}}><Trophy size={34} strokeWidth={1.85}/></div>
+    <div className="lb-award-v3-label" style={{display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:4,position:"static"}}>
+     <strong style={{position:"static",display:"block",margin:0,lineHeight:1.15}}>TOP 10</strong>
+     <small style={{position:"static",display:"block",margin:0,lineHeight:1.35}}>ĐIỂM NẮNG</small>
+    </div>
+   </div>
   </div>
   {demo?<div className="panel leaderboard-empty"><Trophy size={39}/><h2>Bảng xếp hạng của người học thật</h2><p>Bản trải nghiệm không sử dụng tên hoặc điểm của tài khoản thật. Đăng nhập để xem Top 10 và lựa chọn tham gia bằng biệt danh riêng.</p><Link className="button primary" href="/login">Đăng nhập khám phá <ArrowRight size={16}/></Link></div>:<>
    {error&&<div className="notice leaderboard-error" role="alert">{error}<button type="button" className="text-button" onClick={()=>void reload()}><RefreshCw size={15}/>Thử lại</button></div>}
