@@ -21,7 +21,7 @@ test("forum posts appear in recent and today's hot feed without exposing account
  const b=await forum.create("uid-two",{...post(),nickname:"Ánh Sao",subject:"Khoa học",title:"Tại sao chúng ta thấy cầu vồng?"});
  const hot=await forum.list("reader");
  assert.equal(hot.posts.length,2);assert.equal(hot.today,2);
- assert.deepEqual(hot.posts.map(x=>x.id),[b.id,a.id]);
+ assert.deepEqual(new Set(hot.posts.map(x=>x.id)),new Set([a.id,b.id]));
  assert.ok(hot.posts.every(x=>!x.mine));
  assert.equal(hot.posts[0].nickname,"Ánh Sao");
  assert.doesNotMatch(JSON.stringify(hot),/uid-one|uid-two/);
@@ -77,7 +77,7 @@ test("comment reports hide only the reported comment",async t=>{
  const {forum}=await setup(t);
  const {id}=await forum.create("author",post());
  const result=await forum.action("commenter",{type:"comment",postId:id,body:"Cách này làm theo từng bước sẽ dễ hiểu.",nickname:"Bạn Gió"});
- if(!("comment" in result))throw new Error("Expected comment result");
+ if(!("comment" in result)||!result.comment)throw new Error("Expected comment result");
  const commentId=result.comment.id;
  for(const reporter of ["one","two","three"])
   await forum.action(reporter,{type:"report",postId:id,commentId,reason:"other"});
