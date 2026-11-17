@@ -1,7 +1,7 @@
 "use client";
 import {useCallback,useEffect,useState} from "react";
 import Link from "next/link";
-import {ArrowRight,BookOpen,CheckCircle2,Crown,EyeOff,Gift,Info,Loader2,Medal,RefreshCw,ShieldCheck,Sun,Sunrise,Trophy,Users} from "lucide-react";
+import {ArrowRight,BookOpen,CheckCircle2,Crown,EyeOff,Gift,Info,Loader2,Medal,RefreshCw,ShieldCheck,Sun,Trophy,Users} from "lucide-react";
 import {api} from "@/lib/client-api";
 import {Title} from "./ui";
 type Entry={rank:number;nickname:string;earned:number;isMe:boolean};
@@ -38,7 +38,7 @@ export function LeaderboardView({demo,onNavigate}:{demo:boolean;onNavigate?:(tar
     <p>Xếp hạng theo <strong>tổng điểm đã kiếm được</strong> từ các hoạt động hợp lệ. Dùng điểm đổi pet hoặc huy hiệu sẽ không làm giảm thứ hạng.</p>
     {!demo&&data&&<div className="leaderboard-pill"><Users size={15}/>{data.participants} bạn đang tham gia</div>}
    </div>
-   <div className="leaderboard-symbol" aria-hidden="true"><Sunrise size={75}/><span>TOP 10</span></div>
+   <div className="leaderboard-symbol" aria-hidden="true"><span className="leaderboard-symbol-spark leaderboard-symbol-spark-one">✦</span><span className="leaderboard-symbol-spark leaderboard-symbol-spark-two">✦</span><span className="leaderboard-symbol-medal"><Trophy size={34} strokeWidth={1.85}/></span><strong>TOP 10</strong><small>ĐIỂM NẮNG</small></div>
   </div>
   {demo?<div className="panel leaderboard-empty"><Trophy size={39}/><h2>Bảng xếp hạng của người học thật</h2><p>Bản trải nghiệm không sử dụng tên hoặc điểm của tài khoản thật. Đăng nhập để xem Top 10 và lựa chọn tham gia bằng biệt danh riêng.</p><Link className="button primary" href="/login">Đăng nhập khám phá <ArrowRight size={16}/></Link></div>:<>
    {error&&<div className="notice leaderboard-error" role="alert">{error}<button type="button" className="text-button" onClick={()=>void reload()}><RefreshCw size={15}/>Thử lại</button></div>}
